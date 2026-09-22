@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CompanySettings, Order, OrderStatus, Product, CartItem } from '../types';
 import { RESTAURANT_INFO, PRODUCTS } from '../data';
-import { db } from '../lib/firebase';
+import { db, auth, sanitizeFirestoreData } from '../lib/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, updateDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 
 interface CompanyContextType {
@@ -427,18 +427,20 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const orderNumber = `#MV-${randomSuffix}`;
     const id = `order-${Date.now()}`;
     const nowIso = new Date().toISOString();
+    const currentUid = auth.currentUser?.uid || null;
 
     const newOrder: Order = {
       ...orderInput,
       id,
       orderNumber,
       status: 'novo',
+      customerId: orderInput.customerId || (currentUid ? currentUid : undefined),
       createdAt: nowIso,
       updatedAt: nowIso,
     };
 
-    // Save locally immediately
-    const updatedOrders = [newOrder, ...orders];
+    // Save locally immediately as fallback
+    const updatedOrders = [newOrder, ...orders.filter(o => o.id !== id)];
     setOrders(updatedOrders);
     localStorage.setItem('vovo_orders_history', JSON.stringify(updatedOrders));
     try {
@@ -450,16 +452,18 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       console.warn('Error saving my_order_ids:', e);
     }
 
-    // Save to Firestore
+    // Save to Firestore (Database is primary source of truth for Master and App)
     try {
       const orderRef = doc(db, 'orders', id);
-      await setDoc(orderRef, {
+      const cleanedData = sanitizeFirestoreData({
         ...newOrder,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
+      await setDoc(orderRef, cleanedData);
+      console.log('Order successfully persisted in Firestore database:', id);
     } catch (err) {
-      console.warn('Could not save order to Firestore, order is safe in local storage:', err);
+      console.error('Error saving order to Firestore database:', err);
     }
 
     return newOrder;

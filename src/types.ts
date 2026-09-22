@@ -94,6 +94,7 @@ export interface Order {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
+  customerId?: string;
   deliveryType: 'delivery' | 'takeaway';
   street?: string;
   number?: string;

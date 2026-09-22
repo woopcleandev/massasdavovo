@@ -235,6 +235,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       savedOrder = await createOrder({
         customerName: customer.name,
         customerPhone: customer.phone,
+        customerId: currentUser?.uid,
         deliveryType: customer.deliveryType,
         street: customer.street,
         number: customer.number,

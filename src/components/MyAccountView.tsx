@@ -92,9 +92,15 @@ export const MyAccountView: React.FC = () => {
     const currentWa = normalizePhone(userProfile?.whatsapp || '');
     const currentName = (userProfile?.name || '').trim().toLowerCase();
     const queryWa = normalizePhone(lookupPhone);
+    const queryTrimmed = lookupPhone.trim().toLowerCase();
 
     return orders.filter(o => {
-      // If order ID was generated on this device
+      // If user is logged in and order matches customerId
+      if (currentUser?.uid && o.customerId === currentUser.uid) {
+        return true;
+      }
+
+      // If order ID or orderNumber was generated on this device
       if (localSavedIds.includes(o.id) || localSavedIds.includes(o.orderNumber)) return true;
 
       // If matches phone number from profile
@@ -103,8 +109,11 @@ export const MyAccountView: React.FC = () => {
         return true;
       }
 
-      // If user is searching by phone
+      // If user is searching by phone or comanda number
       if (queryWa && (orderWa === queryWa || orderWa.includes(queryWa))) {
+        return true;
+      }
+      if (queryTrimmed && (o.orderNumber.toLowerCase().includes(queryTrimmed) || o.id.toLowerCase().includes(queryTrimmed))) {
         return true;
       }
 
@@ -115,7 +124,7 @@ export const MyAccountView: React.FC = () => {
 
       return false;
     });
-  }, [orders, userProfile, lookupPhone]);
+  }, [orders, currentUser, userProfile, lookupPhone]);
 
   const clearForm = () => {
     setWhatsapp('');
@@ -327,6 +336,19 @@ export const MyAccountView: React.FC = () => {
           )}
         </div>
 
+        {/* Guest Tracking Explanation Note */}
+        {!currentUser && (
+          <div className="bg-amber-500/10 border border-amber-400/30 rounded-2xl p-4 text-xs space-y-1.5 text-stone-800 dark:text-amber-200">
+            <div className="flex items-center gap-2 font-black text-amber-900 dark:text-amber-300">
+              <MessageCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span>Acompanhamento para Clientes sem Login</span>
+            </div>
+            <p className="text-[11px] text-stone-700 dark:text-amber-200/90 leading-relaxed">
+              Os pedidos realizados por clientes visitantes são salvos diretamente no banco de dados da cozinha e o acompanhamento do preparo/entrega é feito <strong>diretamente no WhatsApp da Massas da Vovó</strong>. Para ter histórico unificado em qualquer aparelho e salvar seus endereços, crie sua conta acima!
+            </p>
+          </div>
+        )}
+
         {userOrders.length === 0 ? (
           <div className="text-center py-10 dark-glass-card border border-dashed border-stone-200 dark:border-white/10 rounded-2xl p-6">
             <span className="text-4xl block mb-2">🍝</span>
@@ -334,7 +356,7 @@ export const MyAccountView: React.FC = () => {
             <p className="text-xs text-stone-600 dark:text-gray-400 mt-1 max-w-xs mx-auto font-medium">
               {currentUser 
                 ? 'Você ainda não realizou pedidos com esta conta. Escolha suas massas no cardápio e monte sua refeição!'
-                : 'Quando você fizer um pedido pela sacola, o histórico e o status ao vivo aparecerão aqui.'}
+                : 'Se você acabou de fazer um pedido pelo WhatsApp ou sacola, busque pelo seu telefone ou número da comanda acima.'}
             </p>
           </div>
         ) : (

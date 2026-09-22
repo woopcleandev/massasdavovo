@@ -73,6 +73,7 @@
         "orderNumber": { "type": "string" },
         "customerName": { "type": "string" },
         "customerPhone": { "type": "string" },
+        "customerId": { "type": "string" },
         "deliveryType": { "type": "string" },
         "paymentMethod": { "type": "string" },
         "itemsSubtotal": { "type": "number" },
