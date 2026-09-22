@@ -1,0 +1,6 @@
+{
+  "name": "Massas da Vovó",
+  "description": "Cardápio digital PWA do restaurante Massas da Vovó em Primavera do Leste - MT. Peça massas artesanais, lasanhas recheadas e monte seu prato com envio rápido para WhatsApp.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
