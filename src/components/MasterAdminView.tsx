@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useCompany } from '../context/CompanyContext';
+import { useTheme, ThemeMode } from '../context/ThemeContext';
 import { CategoryId, Order, OrderStatus, Product } from '../types';
 import { CATEGORIES } from '../data';
 import { OrderReceiptModal } from './OrderReceiptModal';
@@ -34,7 +35,10 @@ import {
   CheckCircle,
   XCircle,
   Sparkles,
-  MessageCircle
+  MessageCircle,
+  Sun,
+  Moon,
+  Monitor
 } from 'lucide-react';
 
 const PRESET_PASTA_IMAGES = [
@@ -64,6 +68,8 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     logoutMaster,
     updateMasterCredentials,
   } = useCompany();
+
+  const { themeMode, setThemeMode, resolvedTheme } = useTheme();
 
   // Login form state
   const [loginUser, setLoginUser] = useState('');
@@ -294,95 +300,95 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         return {
           label: 'Recebido',
           icon: Clock,
-          classes: 'bg-amber-500/20 text-amber-300 border-amber-400/40'
+          classes: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-400/40'
         };
       case 'preparo':
         return {
           label: 'Em Preparo',
           icon: ChefHat,
-          classes: 'bg-orange-500/20 text-orange-300 border-orange-400/40'
+          classes: 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-400/40'
         };
       case 'entrega':
         return {
           label: 'Saiu p/ Entrega',
           icon: Bike,
-          classes: 'bg-sky-500/20 text-sky-300 border-sky-400/40'
+          classes: 'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-500/20 dark:text-sky-300 dark:border-sky-400/40'
         };
       case 'concluido':
         return {
           label: 'Concluído',
           icon: CheckCircle,
-          classes: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40'
+          classes: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-400/40'
         };
       case 'cancelado':
         return {
           label: 'Cancelado',
           icon: XCircle,
-          classes: 'bg-rose-500/20 text-rose-300 border-rose-400/40'
+          classes: 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-rose-500/20 dark:text-rose-300 dark:border-rose-400/40'
         };
       default:
         return {
           label: status,
           icon: Clock,
-          classes: 'bg-stone-500/20 text-stone-300 border-stone-400/40'
+          classes: 'bg-stone-100 text-stone-800 border-stone-300 dark:bg-stone-500/20 dark:text-stone-300 dark:border-stone-400/40'
         };
     }
   };
 
-  // 1. If not authenticated, show Master Login Card in Main Dark Luxury Style
+  // 1. If not authenticated, show Master Login Card
   if (!isMasterAuth) {
     return (
-      <div className="min-h-screen bg-stone-950 text-stone-100 flex items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen obsidian-ambient-bg text-stone-900 dark:text-stone-100 flex items-center justify-center p-4 relative overflow-hidden transition-colors duration-300">
         {/* Background glow effects */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-orange-600/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="dark-glass-panel rounded-3xl p-8 max-w-md w-full shadow-2xl border border-white/10 text-left animate-scale-in relative z-10">
+        <div className="dark-glass-panel rounded-3xl p-8 max-w-md w-full shadow-2xl border border-stone-200 dark:border-white/10 text-left animate-scale-in relative z-10">
           <div className="text-center mb-6">
-            <div className="w-18 h-18 bg-amber-500/15 text-amber-400 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-amber-400/30 shadow-lg shadow-amber-500/10">
-              <ShieldCheck className="w-10 h-10 text-amber-400" />
+            <div className="w-18 h-18 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-amber-500/30 shadow-lg shadow-amber-500/10">
+              <ShieldCheck className="w-10 h-10 text-amber-600 dark:text-amber-400" />
             </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-300 text-[11px] font-black uppercase tracking-wider mb-2">
-              <Sparkles className="w-3 h-3 text-amber-400" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-500/20 dark:border-amber-400/30 dark:text-amber-300 text-[11px] font-black uppercase tracking-wider mb-2">
+              <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" />
               <span>Painel Master Admin</span>
             </div>
-            <h1 className="text-2xl font-black text-white tracking-tight">Massas da Vovó</h1>
-            <p className="text-xs text-stone-400 mt-1">Gestão Completa • Cozinha & Comandas</p>
+            <h1 className="text-2xl font-black text-stone-900 dark:text-white tracking-tight">Massas da Vovó</h1>
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-medium">Gestão Completa • Cozinha & Comandas</p>
           </div>
 
           {loginError && (
-            <div className="bg-rose-500/15 text-rose-300 p-3.5 rounded-2xl border border-rose-400/30 text-xs font-semibold mb-5 flex items-center gap-2.5 animate-shake">
-              <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+            <div className="bg-rose-100 dark:bg-rose-500/15 text-rose-900 dark:text-rose-300 p-3.5 rounded-2xl border border-rose-300 dark:border-rose-400/30 text-xs font-semibold mb-5 flex items-center gap-2.5 animate-shake">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600 dark:text-rose-400" />
               <span>{loginError}</span>
             </div>
           )}
 
           <form onSubmit={handleLoginSubmit} className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-stone-300 block mb-1.5">Usuário Master</label>
+              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Usuário Master</label>
               <div className="relative">
-                <User className="w-4 h-4 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <User className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Ex: Admin"
                   value={loginUser}
                   onChange={(e) => setLoginUser(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-stone-500 text-sm focus:border-amber-400 outline-none transition"
+                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 text-sm focus:border-amber-500 outline-none transition"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-stone-300 block mb-1.5">Senha de Acesso</label>
+              <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Senha de Acesso</label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-stone-400 absolute left-4 top-1/2 -translate-y-1/2" />
+                <Lock className="w-4 h-4 text-stone-400 dark:text-stone-500 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="password"
                   placeholder="••••"
                   value={loginPass}
                   onChange={(e) => setLoginPass(e.target.value)}
-                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-stone-500 text-sm focus:border-amber-400 outline-none transition font-mono tracking-widest"
+                  className="w-full pl-11 pr-4 py-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-stone-500 text-sm focus:border-amber-500 outline-none transition font-mono tracking-widest"
                   required
                 />
               </div>
@@ -390,16 +396,16 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
             <button
               type="submit"
-              className="w-full py-4 px-6 dark-glass-button-gold text-black font-black rounded-full text-sm shadow-xl transition-all active:scale-98 mt-2 cursor-pointer"
+              className="w-full py-4 px-6 dark-glass-button-gold font-black rounded-full text-sm shadow-xl transition-all active:scale-98 mt-2 cursor-pointer"
             >
               Entrar no Painel Master
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-white/10 text-center">
+          <div className="mt-6 pt-5 border-t border-stone-200 dark:border-white/10 text-center">
             <button
               onClick={onBackToMenu}
-              className="inline-flex items-center gap-2 text-xs text-stone-400 hover:text-amber-300 font-bold transition cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs text-stone-600 dark:text-stone-400 hover:text-amber-700 dark:hover:text-amber-300 font-bold transition cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Voltar ao Cardápio Público</span>
@@ -410,73 +416,113 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     );
   }
 
-  // 2. Master Dashboard in Unified Luxury Style
+  // 2. Master Dashboard
   return (
-    <div className="min-h-screen bg-stone-950 text-stone-100 text-left pb-20 relative">
+    <div className="min-h-screen obsidian-ambient-bg text-stone-900 dark:text-stone-100 text-left pb-20 relative transition-colors duration-300">
       {/* Background Ambience Glow */}
       <div className="fixed top-0 left-1/3 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="fixed bottom-10 right-1/4 w-96 h-96 bg-orange-600/5 rounded-full blur-3xl pointer-events-none" />
 
       {/* Floating Rounded Header */}
       <header className="sticky top-3 z-30 max-w-6xl mx-auto px-4 pt-2">
-        <div className="dark-glass-panel rounded-3xl p-4 sm:p-5 border border-white/10 shadow-2xl backdrop-blur-xl flex flex-col gap-4">
+        <div className="dark-glass-panel rounded-3xl p-4 sm:p-5 border border-stone-200 dark:border-white/10 shadow-2xl backdrop-blur-xl flex flex-col gap-4">
           
-          {/* Top Bar: Brand, Admin Badge & Quick Actions */}
+          {/* Top Bar: Brand, Admin Badge, Theme Switcher & Quick Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-500/15 text-amber-400 rounded-2xl border border-amber-400/30 shadow-md shadow-amber-500/10 shrink-0">
-                <ShieldCheck className="w-6 h-6 text-amber-400" />
+              <div className="p-3 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-2xl border border-amber-500/30 shadow-md shadow-amber-500/10 shrink-0">
+                <ShieldCheck className="w-6 h-6 text-amber-600 dark:text-amber-400" />
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-lg font-black tracking-tight text-white">PAINEL MASTER</span>
-                  <span className="text-[10px] bg-amber-400 text-black font-black px-2.5 py-0.5 rounded-full shadow-sm">
+                  <span className="text-lg font-black tracking-tight text-stone-900 dark:text-white">PAINEL MASTER</span>
+                  <span className="text-[10px] bg-amber-400 text-stone-950 font-black px-2.5 py-0.5 rounded-full shadow-sm">
                     ADMIN
                   </span>
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full hidden sm:inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-500/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
                     Tempo Real (Firestore)
                   </span>
                 </div>
-                <p className="text-xs text-stone-400 mt-0.5 font-medium">Massas da Vovó • Gestão da Cozinha & Configurações</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">Massas da Vovó • Gestão da Cozinha & Configurações</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* Theme Selector Compact Pills */}
+              <div className="flex items-center bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-full p-1 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setThemeMode('light')}
+                  className={`p-1.5 rounded-full transition cursor-pointer ${
+                    themeMode === 'light' 
+                      ? 'bg-amber-400 text-stone-950 shadow-sm' 
+                      : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white'
+                  }`}
+                  title="Modo Claro"
+                >
+                  <Sun className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setThemeMode('dark')}
+                  className={`p-1.5 rounded-full transition cursor-pointer ${
+                    themeMode === 'dark' 
+                      ? 'bg-amber-400 text-stone-950 shadow-sm' 
+                      : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white'
+                  }`}
+                  title="Modo Escuro"
+                >
+                  <Moon className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setThemeMode('system')}
+                  className={`p-1.5 rounded-full transition cursor-pointer ${
+                    themeMode === 'system' 
+                      ? 'bg-amber-400 text-stone-950 shadow-sm' 
+                      : 'text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-white'
+                  }`}
+                  title="Tema Automático do Sistema"
+                >
+                  <Monitor className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               <button
                 onClick={onBackToMenu}
-                className="flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-white font-bold text-xs py-2.5 px-4 rounded-full border border-white/15 transition shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/10 text-stone-800 dark:text-white font-bold text-xs py-2 px-3.5 rounded-full border border-stone-200 dark:border-white/15 transition shadow-sm cursor-pointer"
                 title="Ir para o cardápio público dos clientes"
               >
-                <Eye className="w-4 h-4 text-amber-400" />
+                <Eye className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                 <span>Ver Cardápio</span>
               </button>
 
               <button
                 onClick={logoutMaster}
-                className="flex items-center gap-1.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 font-bold text-xs py-2.5 px-4 rounded-full border border-rose-500/30 transition shadow-sm cursor-pointer"
+                className="flex items-center gap-1.5 bg-rose-100 dark:bg-rose-500/20 hover:bg-rose-200 dark:hover:bg-rose-500/30 text-rose-800 dark:text-rose-300 font-bold text-xs py-2 px-3.5 rounded-full border border-rose-300 dark:border-rose-500/30 transition shadow-sm cursor-pointer"
                 title="Sair do painel administrativo"
               >
-                <LogOut className="w-4 h-4 text-rose-400" />
+                <LogOut className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                 <span>Sair</span>
               </button>
             </div>
           </div>
 
           {/* Sub-tabs Navigation: Rounded Pill Bar */}
-          <div className="flex bg-black/40 p-1.5 rounded-2xl sm:rounded-full border border-white/10 gap-1.5 overflow-x-auto no-scrollbar">
+          <div className="flex bg-stone-100 dark:bg-black/40 p-1.5 rounded-2xl sm:rounded-full border border-stone-200 dark:border-white/10 gap-1.5 overflow-x-auto no-scrollbar">
             <button
               onClick={() => setAdminTab('sales')}
               className={`flex-1 min-w-[200px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
                 adminTab === 'sales'
-                  ? 'bg-amber-400 text-black shadow-lg shadow-amber-500/20'
-                  : 'text-stone-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
               }`}
             >
               <TrendingUp className="w-4 h-4" />
               <span>Histórico de Vendas & Comandas</span>
               {pendingOrders > 0 && (
-                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${adminTab === 'sales' ? 'bg-black text-amber-300' : 'bg-amber-400 text-black'}`}>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${adminTab === 'sales' ? 'bg-stone-950 text-amber-300' : 'bg-amber-400 text-stone-950'}`}>
                   {pendingOrders}
                 </span>
               )}
@@ -486,8 +532,8 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               onClick={() => setAdminTab('menu')}
               className={`flex-1 min-w-[200px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
                 adminTab === 'menu'
-                  ? 'bg-amber-400 text-black shadow-lg shadow-amber-500/20'
-                  : 'text-stone-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
               }`}
             >
               <ShoppingBag className="w-4 h-4" />
@@ -498,8 +544,8 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               onClick={() => setAdminTab('settings')}
               className={`flex-1 min-w-[200px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
                 adminTab === 'settings'
-                  ? 'bg-amber-400 text-black shadow-lg shadow-amber-500/20'
-                  : 'text-stone-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
               }`}
             >
               <Settings className="w-4 h-4" />
@@ -521,49 +567,49 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               
               {/* Stat 1: Total Pedidos */}
-              <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl flex items-center gap-4.5 hover:border-amber-500/30 transition">
-                <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-400 border border-amber-400/30 flex items-center justify-center shadow-lg shadow-amber-500/10 shrink-0">
-                  <ShoppingBag className="w-7 h-7 text-amber-400" />
+              <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl flex items-center gap-4.5 hover:border-amber-500/40 transition">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center justify-center shadow-lg shadow-amber-500/10 shrink-0">
+                  <ShoppingBag className="w-7 h-7 text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">Total de Pedidos</span>
-                  <p className="text-3xl font-black text-white mt-0.5">{orders.length}</p>
+                  <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">Total de Pedidos</span>
+                  <p className="text-3xl font-black text-stone-900 dark:text-white mt-0.5">{orders.length}</p>
                 </div>
               </div>
 
               {/* Stat 2: Faturamento */}
-              <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl flex items-center gap-4.5 hover:border-emerald-500/30 transition">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-400/30 flex items-center justify-center shadow-lg shadow-emerald-500/10 shrink-0">
-                  <DollarSign className="w-7 h-7 text-emerald-400" />
+              <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl flex items-center gap-4.5 hover:border-emerald-500/40 transition">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center justify-center shadow-lg shadow-emerald-500/10 shrink-0">
+                  <DollarSign className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">Faturamento Registrado</span>
-                  <p className="text-2xl sm:text-3xl font-black text-emerald-400 mt-0.5">{formatPrice(totalRevenue)}</p>
+                  <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">Faturamento Registrado</span>
+                  <p className="text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400 mt-0.5">{formatPrice(totalRevenue)}</p>
                 </div>
               </div>
 
               {/* Stat 3: Pendentes */}
-              <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl flex items-center gap-4.5 hover:border-orange-500/30 transition">
-                <div className="w-14 h-14 rounded-2xl bg-orange-500/15 text-orange-400 border border-orange-400/30 flex items-center justify-center shadow-lg shadow-orange-500/10 shrink-0">
-                  <Clock className="w-7 h-7 text-orange-400" />
+              <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl flex items-center gap-4.5 hover:border-orange-500/40 transition">
+                <div className="w-14 h-14 rounded-2xl bg-orange-500/15 text-orange-600 dark:text-orange-400 border border-orange-500/30 flex items-center justify-center shadow-lg shadow-orange-500/10 shrink-0">
+                  <Clock className="w-7 h-7 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <span className="text-[11px] font-bold text-stone-400 uppercase tracking-wider block">Pedidos Pendentes</span>
-                  <p className="text-3xl font-black text-orange-400 mt-0.5">{pendingOrders}</p>
+                  <span className="text-[11px] font-bold text-stone-500 dark:text-stone-400 uppercase tracking-wider block">Pedidos Pendentes</span>
+                  <p className="text-3xl font-black text-orange-600 dark:text-orange-400 mt-0.5">{pendingOrders}</p>
                 </div>
               </div>
             </div>
 
             {/* Orders Header & Filter Bar */}
-            <div className="dark-glass-panel p-5 rounded-3xl border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div className="dark-glass-panel p-5 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-black text-white flex items-center gap-2">
+                <h2 className="text-base font-black text-stone-900 dark:text-white flex items-center gap-2">
                   <span>Pedidos Recebidos</span>
-                  <span className="text-[10px] font-black bg-amber-400 text-black px-2 py-0.5 rounded-full">
+                  <span className="text-[10px] font-black bg-amber-400 text-stone-950 px-2.5 py-0.5 rounded-full shadow-sm">
                     {filteredOrders.length}
                   </span>
                 </h2>
-                <p className="text-xs text-stone-400 mt-0.5">Acompanhamento, alteração de status e impressão de comandas</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">Acompanhamento, alteração de status e impressão de comandas</p>
               </div>
 
               {/* Status Filter Pills */}
@@ -581,8 +627,8 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                     onClick={() => setStatusFilter(st.id)}
                     className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
                       statusFilter === st.id
-                        ? 'bg-amber-400 text-black font-black shadow-md shadow-amber-500/20'
-                        : 'bg-white/5 text-stone-300 hover:bg-white/10 hover:text-white border border-white/5'
+                        ? 'bg-amber-400 text-stone-950 font-black shadow-md shadow-amber-500/20'
+                        : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 hover:text-stone-950 dark:hover:text-white border border-stone-200 dark:border-white/5'
                     }`}
                   >
                     {st.label}
@@ -593,12 +639,12 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
             {/* Orders List */}
             {filteredOrders.length === 0 ? (
-              <div className="dark-glass-panel p-12 rounded-3xl border border-dashed border-white/10 text-center space-y-3">
-                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto text-stone-500 border border-white/10">
-                  <Receipt className="w-8 h-8 text-stone-400" />
+              <div className="dark-glass-panel p-12 rounded-3xl border border-dashed border-stone-300 dark:border-white/10 text-center space-y-3">
+                <div className="w-16 h-16 rounded-full bg-stone-100 dark:bg-white/5 flex items-center justify-center mx-auto text-stone-400 dark:text-stone-500 border border-stone-200 dark:border-white/10">
+                  <Receipt className="w-8 h-8 text-stone-500 dark:text-stone-400" />
                 </div>
-                <h3 className="text-sm font-black text-white">Nenhum pedido nesta categoria</h3>
-                <p className="text-xs text-stone-400 max-w-sm mx-auto leading-relaxed">
+                <h3 className="text-sm font-black text-stone-900 dark:text-white">Nenhum pedido nesta categoria</h3>
+                <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm mx-auto leading-relaxed font-medium">
                   Os pedidos finalizados pelos clientes aparecerão aqui automaticamente via Firestore em tempo real.
                 </p>
               </div>
@@ -611,13 +657,13 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                   return (
                     <div
                       key={ord.id}
-                      className="dark-glass-card rounded-3xl border border-white/10 p-5 sm:p-6 shadow-xl hover:border-amber-500/40 transition space-y-4 text-left"
+                      className="dark-glass-card rounded-3xl border border-stone-200 dark:border-white/10 p-5 sm:p-6 shadow-xl hover:border-amber-500/40 transition space-y-4 text-left"
                     >
                       {/* Top Bar: Comanda, Status Badge, Delivery Type, Schedule */}
-                      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-white/10 pb-4">
+                      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-stone-200 dark:border-white/10 pb-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono font-black text-base text-amber-400 bg-black/40 px-3 py-1 rounded-xl border border-amber-400/30">
+                            <span className="font-mono font-black text-base text-amber-900 dark:text-amber-400 bg-amber-100 dark:bg-black/50 px-3 py-1 rounded-xl border border-amber-300 dark:border-amber-400/30">
                               {ord.orderNumber}
                             </span>
                             
@@ -630,50 +676,50 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                             {/* Delivery or Takeaway */}
                             <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${
                               ord.deliveryType === 'delivery' 
-                                ? 'bg-sky-500/15 text-sky-300 border-sky-400/30' 
-                                : 'bg-orange-500/15 text-orange-300 border-orange-400/30'
+                                ? 'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-400/30' 
+                                : 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-400/30'
                             }`}>
                               {ord.deliveryType === 'delivery' ? '🚀 Entrega' : '🏪 Retirada'}
                             </span>
 
                             {/* Scheduled order highlight */}
                             {ord.schedule?.isScheduled && (
-                              <span className="inline-flex items-center gap-1.5 text-[11px] font-black bg-amber-500/20 text-amber-300 border border-amber-400/40 px-3 py-1 rounded-full">
-                                <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                              <span className="inline-flex items-center gap-1.5 text-[11px] font-black bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-400/40 px-3 py-1 rounded-full">
+                                <Calendar className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                                 <span>Agendado: {ord.schedule.displayLabel}</span>
                               </span>
                             )}
                           </div>
 
-                          <p className="text-xs text-stone-300 font-medium pt-1 flex items-center gap-2 flex-wrap">
-                            <span>Cliente: <strong className="text-white font-bold">{ord.customerName}</strong></span>
+                          <p className="text-xs text-stone-700 dark:text-stone-300 font-medium pt-1 flex items-center gap-2 flex-wrap">
+                            <span>Cliente: <strong className="text-stone-900 dark:text-white font-bold">{ord.customerName}</strong></span>
                             <span>•</span>
                             <a
                               href={`https://wa.me/55${(ord.customerPhone || '').replace(/\D/g, '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-amber-400 hover:underline flex items-center gap-1 font-bold"
+                              className="text-amber-700 dark:text-amber-400 hover:underline flex items-center gap-1 font-bold"
                             >
                               <Phone className="w-3 h-3" />
                               <span>{formatWhatsappDisplay(ord.customerPhone)}</span>
                             </a>
                             <span>•</span>
-                            <span className="text-stone-400">{formatDate(ord.createdAt)}</span>
+                            <span className="text-stone-500 dark:text-stone-400">{formatDate(ord.createdAt)}</span>
                           </p>
                         </div>
 
                         {/* Right: Total Amount & Ver Comanda Button */}
                         <div className="flex items-center gap-3">
                           <div className="text-right">
-                            <span className="text-[10px] text-stone-400 block font-bold uppercase">Valor Total</span>
-                            <span className="text-lg font-black text-amber-400">{formatPrice(ord.grandTotal)}</span>
+                            <span className="text-[10px] text-stone-500 dark:text-stone-400 block font-bold uppercase">Valor Total</span>
+                            <span className="text-lg font-black text-amber-700 dark:text-amber-400">{formatPrice(ord.grandTotal)}</span>
                           </div>
                           
                           <button
                             onClick={() => setReceiptOrder(ord)}
-                            className="flex items-center gap-2 dark-glass-button-gold text-black font-black text-xs py-2.5 px-4 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
+                            className="flex items-center gap-2 dark-glass-button-gold font-black text-xs py-2.5 px-4 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
                           >
-                            <Receipt className="w-4 h-4 text-black" />
+                            <Receipt className="w-4 h-4 text-stone-950" />
                             <span>Ver Comanda</span>
                           </button>
                         </div>
@@ -682,17 +728,17 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                       {/* Middle: Order Items & Payment/Address details */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
                         {/* Items */}
-                        <div className="bg-black/30 p-4 rounded-2xl border border-white/5 space-y-2">
-                          <span className="text-[10px] text-amber-400/90 font-black uppercase tracking-wider block">
+                        <div className="bg-stone-50 dark:bg-black/30 p-4 rounded-2xl border border-stone-200/80 dark:border-white/5 space-y-2">
+                          <span className="text-[10px] text-amber-800 dark:text-amber-400 font-black uppercase tracking-wider block">
                             Itens do Pedido ({ord.items.length})
                           </span>
                           <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
                             {ord.items.map((it, idx) => (
-                              <div key={idx} className="text-stone-200 leading-snug">
-                                <span className="font-bold text-amber-300">{it.quantity}x</span>{' '}
-                                <span className="font-semibold text-white">{it.productName}</span>
+                              <div key={idx} className="text-stone-800 dark:text-stone-200 leading-snug">
+                                <span className="font-bold text-amber-800 dark:text-amber-300">{it.quantity}x</span>{' '}
+                                <span className="font-semibold text-stone-900 dark:text-white">{it.productName}</span>
                                 {it.notes && (
-                                  <div className="text-rose-300 text-[11px] italic bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded-md mt-0.5 inline-block">
+                                  <div className="text-rose-700 dark:text-rose-300 text-[11px] italic bg-rose-100 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 px-2 py-0.5 rounded-md mt-0.5 inline-block">
                                     Obs: "{it.notes}"
                                   </div>
                                 )}
@@ -702,14 +748,14 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                         </div>
 
                         {/* Payment & Delivery Address */}
-                        <div className="bg-black/30 p-4 rounded-2xl border border-white/5 space-y-2">
-                          <span className="text-[10px] text-amber-400/90 font-black uppercase tracking-wider block">
+                        <div className="bg-stone-50 dark:bg-black/30 p-4 rounded-2xl border border-stone-200/80 dark:border-white/5 space-y-2">
+                          <span className="text-[10px] text-amber-800 dark:text-amber-400 font-black uppercase tracking-wider block">
                             Pagamento & Entrega
                           </span>
-                          <div className="space-y-1 text-stone-200">
+                          <div className="space-y-1 text-stone-700 dark:text-stone-200">
                             <p>
-                              <strong className="text-stone-400">Forma:</strong>{' '}
-                              <span className="font-semibold text-white">
+                              <strong className="text-stone-500 dark:text-stone-400">Forma:</strong>{' '}
+                              <span className="font-semibold text-stone-900 dark:text-white">
                                 {ord.paymentMethod === 'pix_now' ? '🌀 PIX Antecipado' :
                                  ord.paymentMethod === 'pix_delivery' ? '📱 PIX na Entrega' :
                                  ord.paymentMethod === 'cash' ? `💵 Dinheiro (Troco: ${ord.changeFor || 'Não'})` :
@@ -717,10 +763,10 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                               </span>
                             </p>
                             {ord.deliveryType === 'delivery' && (
-                              <p className="text-stone-300 leading-snug">
-                                <strong className="text-stone-400">Endereço:</strong>{' '}
+                              <p className="text-stone-700 dark:text-stone-300 leading-snug">
+                                <strong className="text-stone-500 dark:text-stone-400">Endereço:</strong>{' '}
                                 {ord.street}, {ord.number} - {ord.neighborhood}
-                                {ord.reference && <span className="text-stone-400 block text-[11px] mt-0.5">Ref: {ord.reference}</span>}
+                                {ord.reference && <span className="text-stone-500 dark:text-stone-400 block text-[11px] mt-0.5">Ref: {ord.reference}</span>}
                               </p>
                             )}
                           </div>
@@ -728,9 +774,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                       </div>
 
                       {/* Bottom: Fast Status Changer Pills */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-white/10 text-xs">
-                        <span className="text-stone-400 font-bold flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200 dark:border-white/10 text-xs">
+                        <span className="text-stone-600 dark:text-stone-400 font-bold flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                           <span>Mudar Status do Pedido:</span>
                         </span>
 
@@ -748,11 +794,11 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                               className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
                                 ord.status === item.st
                                   ? item.st === 'concluido'
-                                    ? 'bg-emerald-400 text-black font-black shadow-md'
+                                    ? 'bg-emerald-500 text-white font-black shadow-md'
                                     : item.st === 'cancelado'
                                     ? 'bg-rose-500 text-white font-black shadow-md'
-                                    : 'bg-amber-400 text-black font-black shadow-md'
-                                  : 'bg-white/5 hover:bg-white/15 text-stone-300 border border-white/10'
+                                    : 'bg-amber-400 text-stone-950 font-black shadow-md'
+                                  : 'bg-stone-100 dark:bg-white/5 hover:bg-stone-200 dark:hover:bg-white/15 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-white/10'
                               }`}
                             >
                               {item.label}
@@ -774,17 +820,17 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         {adminTab === 'menu' && (
           <div className="space-y-6 animate-fade-in">
             {productSuccess && (
-              <div className="bg-emerald-500/15 text-emerald-300 p-4 rounded-3xl border border-emerald-400/30 text-xs font-bold flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-emerald-400" />
+              <div className="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 p-4 rounded-3xl border border-emerald-300 dark:border-emerald-400/30 text-xs font-bold flex items-center gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>{productSuccess}</span>
               </div>
             )}
 
             {/* Menu Header & Add Button */}
-            <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-white/10 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-base font-black text-white">Cardápio do Restaurante</h2>
-                <p className="text-xs text-stone-400 mt-0.5">Adicione pratos com fotos da galeria, câmera ou links da internet</p>
+                <h2 className="text-base font-black text-stone-900 dark:text-white">Cardápio do Restaurante</h2>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">Adicione pratos com fotos da galeria, câmera ou links da internet</p>
               </div>
 
               <button
@@ -800,9 +846,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                   });
                   setIsProductModalOpen(true);
                 }}
-                className="flex items-center gap-2 dark-glass-button-gold text-black font-black text-xs py-3 px-5 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
+                className="flex items-center gap-2 dark-glass-button-gold font-black text-xs py-3 px-5 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
               >
-                <Plus className="w-4 h-4 text-black" />
+                <Plus className="w-4 h-4 text-stone-950" />
                 <span>Adicionar Novo Prato</span>
               </button>
             </div>
@@ -813,8 +859,8 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                 onClick={() => setSelectedCategoryFilter('todos')}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                   selectedCategoryFilter === 'todos'
-                    ? 'bg-amber-400 text-black font-black shadow-md'
-                    : 'bg-white/5 text-stone-300 hover:bg-white/10 border border-white/10'
+                    ? 'bg-amber-400 text-stone-950 font-black shadow-md'
+                    : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10'
                 }`}
               >
                 Todos ({allProducts.length})
@@ -825,8 +871,8 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                   onClick={() => setSelectedCategoryFilter(cat.id)}
                   className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
                     selectedCategoryFilter === cat.id
-                      ? 'bg-amber-400 text-black font-black shadow-md'
-                      : 'bg-white/5 text-stone-300 hover:bg-white/10 border border-white/10'
+                      ? 'bg-amber-400 text-stone-950 font-black shadow-md'
+                      : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10'
                   }`}
                 >
                   <span>{cat.icon}</span>
@@ -842,10 +888,10 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                 .map((prod) => (
                 <div
                   key={prod.id}
-                  className="dark-glass-card rounded-3xl border border-white/10 overflow-hidden shadow-xl flex flex-col justify-between hover:border-amber-500/40 transition text-left"
+                  className="dark-glass-card rounded-3xl border border-stone-200 dark:border-white/10 overflow-hidden shadow-xl flex flex-col justify-between hover:border-amber-500/40 transition text-left"
                 >
                   <div>
-                    <div className="relative h-44 bg-stone-900 overflow-hidden">
+                    <div className="relative h-44 bg-stone-100 dark:bg-stone-900 overflow-hidden">
                       <img
                         src={prod.image}
                         alt={prod.name}
@@ -862,28 +908,28 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                       </span>
 
                       {prod.isPopular && (
-                        <span className="absolute top-3 left-3 bg-amber-400 text-black font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-                          <Sparkles className="w-2.5 h-2.5 fill-black" />
+                        <span className="absolute top-3 left-3 bg-amber-400 text-stone-950 font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                          <Sparkles className="w-2.5 h-2.5 fill-stone-950" />
                           <span>Mais Pedido</span>
                         </span>
                       )}
                     </div>
 
                     <div className="p-5 space-y-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-400/90 block">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400/90 block">
                         {CATEGORIES.find(c => c.id === prod.categoryId)?.name || prod.categoryId}
                       </span>
-                      <h3 className="font-black text-sm text-white leading-tight">{prod.name}</h3>
-                      <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">{prod.description}</p>
+                      <h3 className="font-black text-sm text-stone-900 dark:text-white leading-tight">{prod.name}</h3>
+                      <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed font-medium">{prod.description}</p>
                     </div>
                   </div>
 
                   <div className="p-5 pt-0 flex items-center gap-2">
                     <button
                       onClick={() => openEditProduct(prod)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs transition cursor-pointer"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 border border-stone-300 dark:border-white/15 text-stone-900 dark:text-white font-bold text-xs transition cursor-pointer"
                     >
-                      <Edit3 className="w-3.5 h-3.5 text-amber-400" />
+                      <Edit3 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                       <span>Editar</span>
                     </button>
 
@@ -893,10 +939,10 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                           deleteProduct(prod.id);
                         }
                       }}
-                      className="p-2.5 rounded-full bg-rose-500/15 border border-rose-500/30 text-rose-300 hover:bg-rose-500/30 transition cursor-pointer"
+                      className="p-2.5 rounded-full bg-rose-100 dark:bg-rose-500/15 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-500/30 transition cursor-pointer"
                       title="Excluir prato"
                     >
-                      <Trash2 className="w-4 h-4 text-rose-400" />
+                      <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
                     </button>
                   </div>
                 </div>
@@ -911,27 +957,27 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         {adminTab === 'settings' && (
           <div className="max-w-2xl mx-auto space-y-6 animate-fade-in text-left">
             {settingsSuccess && (
-              <div className="bg-emerald-500/15 text-emerald-300 p-4 rounded-3xl border border-emerald-400/30 text-xs font-bold flex items-center gap-2.5">
-                <Check className="w-4 h-4 text-emerald-400" />
+              <div className="bg-emerald-100 dark:bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 p-4 rounded-3xl border border-emerald-300 dark:border-emerald-400/30 text-xs font-bold flex items-center gap-2.5">
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>{settingsSuccess}</span>
               </div>
             )}
 
             {/* WhatsApp & PIX Settings Panel */}
-            <div className="dark-glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-xl space-y-6">
-              <div className="border-b border-white/10 pb-4">
-                <h2 className="text-base font-black text-white flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-400/30">
-                    <Phone className="w-4 h-4 text-amber-400" />
+            <div className="dark-glass-panel p-6 sm:p-8 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl space-y-6">
+              <div className="border-b border-stone-200 dark:border-white/10 pb-4">
+                <h2 className="text-base font-black text-stone-900 dark:text-white flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    <Phone className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   </div>
                   <span>WhatsApp & Recebimento de Pedidos</span>
                 </h2>
-                <p className="text-xs text-stone-400 mt-1">Configuração do contato oficial para receber os pedidos dos clientes</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-medium">Configuração do contato oficial para receber os pedidos dos clientes</p>
               </div>
 
               <form onSubmit={handleSaveSettings} className="space-y-5">
                 <div>
-                  <label className="text-xs font-bold text-stone-300 block mb-1.5">
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">
                     Número do WhatsApp da Empresa (Apenas dígitos com DDD)
                   </label>
                   <input
@@ -939,16 +985,16 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                     value={companyForm.whatsappNumber}
                     onChange={(e) => setCompanyForm({ ...companyForm, whatsappNumber: e.target.value })}
                     placeholder="Ex: 5566996523006"
-                    className="w-full p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white font-mono text-sm focus:border-amber-400 outline-none"
+                    className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white font-mono text-sm focus:border-amber-500 outline-none"
                     required
                   />
-                  <span className="text-[11px] text-stone-400 mt-1 block">
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400 mt-1 block">
                     Todos os pedidos enviados pelo carrinho irão diretamente para este WhatsApp.
                   </span>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-stone-300 block mb-1.5">
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">
                     Telefone para exibição no rodapé e comandas
                   </label>
                   <input
@@ -956,26 +1002,26 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                     value={companyForm.phone}
                     onChange={(e) => setCompanyForm({ ...companyForm, phone: e.target.value })}
                     placeholder="Ex: (66) 99652-3006"
-                    className="w-full p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-400 outline-none"
+                    className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-sm focus:border-amber-500 outline-none"
                     required
                   />
                 </div>
 
                 {/* Operating Hours Configuration Card */}
-                <div className="pt-4 border-t border-white/10 space-y-4">
+                <div className="pt-4 border-t border-stone-200 dark:border-white/10 space-y-4">
                   <div>
-                    <h3 className="text-xs font-black uppercase tracking-wider text-amber-400 mb-1 flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-xs font-black uppercase tracking-wider text-amber-800 dark:text-amber-400 mb-1 flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                       <span>Horário de Funcionamento & Agendamentos</span>
                     </h3>
-                    <p className="text-xs text-stone-400">
+                    <p className="text-xs text-stone-600 dark:text-stone-400 font-medium">
                       Defina os dias e horários em que a cozinha está aberta para preparo imediato. Fora desse período, os clientes agendam pedidos para a próxima abertura.
                     </p>
                   </div>
 
                   {/* Open Days Selector */}
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-stone-300 block">Dias de Abertura:</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block">Dias de Abertura:</label>
                     <div className="grid grid-cols-4 sm:grid-cols-7 gap-2">
                       {[
                         { day: 0, label: 'Dom' },
@@ -999,8 +1045,8 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                             }}
                             className={`py-2.5 px-1 text-center rounded-2xl text-xs font-bold transition border cursor-pointer ${
                               isChecked
-                                ? 'bg-amber-400 text-black border-amber-400 font-black shadow-md'
-                                : 'bg-white/5 text-stone-400 border-white/10 hover:bg-white/10 hover:text-white'
+                                ? 'bg-amber-400 text-stone-950 border-amber-400 font-black shadow-md'
+                                : 'bg-stone-100 dark:bg-white/5 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10 hover:text-stone-900 dark:hover:text-white'
                             }`}
                           >
                             {item.label}
@@ -1013,87 +1059,100 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                   {/* Times Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="text-xs font-bold text-stone-300 block mb-1.5">Horário de Abertura</label>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Horário de Abertura</label>
                       <input
                         type="time"
                         value={companyForm.openTime}
                         onChange={(e) => setCompanyForm({ ...companyForm, openTime: e.target.value })}
-                        className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm font-bold focus:border-amber-400 outline-none"
+                        className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-sm font-bold focus:border-amber-500 outline-none"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-stone-300 block mb-1.5">Horário de Fechamento</label>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Horário de Fechamento</label>
                       <input
                         type="time"
                         value={companyForm.closeTime}
                         onChange={(e) => setCompanyForm({ ...companyForm, closeTime: e.target.value })}
-                        className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm font-bold focus:border-amber-400 outline-none"
+                        className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-sm font-bold focus:border-amber-500 outline-none"
                         required
                       />
                     </div>
                   </div>
 
-                  {/* Force Status Mode */}
-                  <div>
-                    <label className="text-xs font-bold text-stone-300 block mb-1.5">Modo de Operação:</label>
-                    <select
-                      value={companyForm.forceStatus}
-                      onChange={(e) => setCompanyForm({ ...companyForm, forceStatus: e.target.value as any })}
-                      className="w-full p-3 rounded-2xl bg-stone-900 border border-white/10 text-white text-xs font-bold focus:border-amber-400 outline-none cursor-pointer"
-                    >
-                      <option value="auto">⏱️ Automático (Conforme relógio e dias de abertura)</option>
-                      <option value="force_open">🟢 Forçar Aberto Agora (Aceitar pedidos imediatos)</option>
-                      <option value="force_closed">🔴 Forçar Fechado Agora (Permitir apenas agendamentos)</option>
-                    </select>
+                  {/* Manual Override Status */}
+                  <div className="space-y-1.5 pt-2">
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block">Modo do Restaurante:</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { id: 'auto', label: '⏰ Automático' },
+                        { id: 'open', label: '🟢 Forçar Aberto' },
+                        { id: 'closed', label: '🔴 Forçar Fechado' }
+                      ].map(mode => (
+                        <button
+                          key={mode.id}
+                          type="button"
+                          onClick={() => setCompanyForm({ ...companyForm, forceStatus: mode.id as any })}
+                          className={`py-2 px-2 text-center rounded-xl text-xs font-bold transition border cursor-pointer ${
+                            companyForm.forceStatus === mode.id
+                              ? 'bg-amber-400 text-stone-950 border-amber-400 font-black shadow-md'
+                              : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-white/10 hover:bg-stone-200 dark:hover:bg-white/10'
+                          }`}
+                        >
+                          {mode.label}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* PIX Settings */}
-                <div className="pt-4 border-t border-white/10 space-y-4">
-                  <h3 className="text-xs font-black uppercase tracking-wider text-emerald-400 mb-1 flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-emerald-400" />
-                    <span>Dados da Chave PIX</span>
+                {/* PIX Key Settings Card */}
+                <div className="pt-4 border-t border-stone-200 dark:border-white/10 space-y-4">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-amber-800 dark:text-amber-400 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    <span>Chave PIX do Restaurante</span>
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div>
-                      <label className="text-xs font-bold text-stone-300 block mb-1.5">Tipo de Chave</label>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Tipo de Chave</label>
                       <select
                         value={companyForm.pixKeyType}
                         onChange={(e) => setCompanyForm({ ...companyForm, pixKeyType: e.target.value })}
-                        className="w-full p-3 rounded-2xl bg-stone-900 border border-white/10 text-white text-sm focus:border-amber-400 outline-none cursor-pointer"
+                        className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-bold focus:border-amber-500 outline-none"
                       >
-                        <option value="Celular">Celular</option>
                         <option value="CNPJ">CNPJ</option>
                         <option value="CPF">CPF</option>
+                        <option value="Telefone">Celular / Telefone</option>
                         <option value="E-mail">E-mail</option>
                         <option value="Chave Aleatória">Chave Aleatória</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="text-xs font-bold text-stone-300 block mb-1.5">Chave PIX</label>
+                      <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Chave PIX</label>
                       <input
                         type="text"
                         value={companyForm.pixKey}
                         onChange={(e) => setCompanyForm({ ...companyForm, pixKey: e.target.value })}
-                        placeholder="Ex: 66996523006"
-                        className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm font-mono focus:border-amber-400 outline-none"
+                        placeholder="Ex: 50.123.456/0001-00"
+                        className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-mono focus:border-amber-500 outline-none"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-stone-300 block mb-1.5">Nome do Titular / Favorecido</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">
+                      Nome do Titular / Beneficiário do PIX
+                    </label>
                     <input
                       type="text"
                       value={companyForm.pixBeneficiary}
                       onChange={(e) => setCompanyForm({ ...companyForm, pixBeneficiary: e.target.value })}
-                      placeholder="Ex: Massas da Vovó"
-                      className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-400 outline-none"
+                      placeholder="Ex: Massas da Vovó Ltda"
+                      className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs focus:border-amber-500 outline-none"
                       required
                     />
                   </div>
@@ -1101,68 +1160,69 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
                 <button
                   type="submit"
-                  className="w-full py-4 px-6 dark-glass-button-gold text-black font-black rounded-full text-sm shadow-xl transition-all active:scale-98 cursor-pointer"
+                  className="w-full py-4 px-6 dark-glass-button-gold font-black rounded-full text-sm shadow-xl transition-all active:scale-98 cursor-pointer mt-4"
                 >
-                  Salvar WhatsApp e Chave PIX
+                  Salvar Todas as Configurações
                 </button>
               </form>
             </div>
 
-            {/* Master Credentials Security Box */}
-            <div className="dark-glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-xl space-y-5">
-              <div className="border-b border-white/10 pb-4">
-                <h2 className="text-base font-black text-white flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-amber-500/15 text-amber-400 border border-amber-400/30">
-                    <Key className="w-4 h-4 text-amber-400" />
+            {/* Master Credentials Box */}
+            <div className="dark-glass-panel p-6 sm:p-8 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl space-y-5">
+              <div className="border-b border-stone-200 dark:border-white/10 pb-4">
+                <h2 className="text-base font-black text-stone-900 dark:text-white flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                    <Key className="w-4 h-4 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <span>Segurança Master (Alterar Usuário e Senha)</span>
+                  <span>Credenciais de Acesso ao Painel Master</span>
                 </h2>
-                <p className="text-xs text-stone-400 mt-1">Altere as credenciais de acesso a esta área administrativa</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-medium">Altere o usuário e senha do painel da cozinha</p>
               </div>
 
               {credMessage.text && (
-                <div className={`p-4 rounded-2xl text-xs font-bold flex items-center gap-2.5 ${
+                <div className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-center gap-2.5 ${
                   credMessage.type === 'success' 
-                    ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30' 
-                    : 'bg-rose-500/15 text-rose-300 border border-rose-400/30'
+                    ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-400/30' 
+                    : 'bg-rose-100 dark:bg-rose-500/15 text-rose-900 dark:text-rose-300 border-rose-300 dark:border-rose-400/30'
                 }`}>
-                  {credMessage.type === 'success' ? <Check className="w-4 h-4 text-emerald-400" /> : <AlertCircle className="w-4 h-4 text-rose-400" />}
+                  {credMessage.type === 'success' ? <Check className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                   <span>{credMessage.text}</span>
                 </div>
               )}
 
               <form onSubmit={handleSaveCredentials} className="space-y-4">
                 <div>
-                  <label className="text-xs font-bold text-stone-300 block mb-1.5">Nome de Usuário Master</label>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Novo Usuário Master</label>
                   <input
                     type="text"
                     value={newUser}
                     onChange={(e) => setNewUser(e.target.value)}
-                    className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-400 outline-none"
+                    className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs focus:border-amber-500 outline-none"
                     required
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
-                    <label className="text-xs font-bold text-stone-300 block mb-1.5">Nova Senha</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Nova Senha</label>
                     <input
                       type="password"
                       value={newPass}
                       onChange={(e) => setNewPass(e.target.value)}
-                      className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-400 outline-none font-mono"
+                      placeholder="••••"
+                      className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-mono tracking-widest focus:border-amber-500 outline-none"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-bold text-stone-300 block mb-1.5">Confirmar Nova Senha</label>
+                    <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1.5">Confirmar Nova Senha</label>
                     <input
                       type="password"
                       value={confirmPass}
                       onChange={(e) => setConfirmPass(e.target.value)}
-                      placeholder="Repita a senha"
-                      className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-400 outline-none font-mono"
+                      placeholder="••••"
+                      className="w-full p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-mono tracking-widest focus:border-amber-500 outline-none"
                       required
                     />
                   </div>
@@ -1170,9 +1230,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
                 <button
                   type="submit"
-                  className="w-full py-3.5 px-5 bg-white/10 hover:bg-white/20 text-white border border-white/15 font-black rounded-full text-xs shadow-md transition cursor-pointer"
+                  className="w-full py-3.5 px-5 bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 border border-stone-300 dark:border-white/15 text-stone-900 dark:text-white font-black rounded-full text-xs transition cursor-pointer shadow-md"
                 >
-                  Atualizar Usuário e Senha Master
+                  Atualizar Login e Senha
                 </button>
               </form>
             </div>
@@ -1180,219 +1240,193 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         )}
       </main>
 
-      {/* Modal: Adicionar/Editar Produto */}
+      {/* ============================================================ */}
+      {/* MODAL: ADICIONAR OU EDITAR PRATO NO CARDÁPIO */}
+      {/* ============================================================ */}
       {isProductModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
           <div className="fixed inset-0 -z-10" onClick={() => setIsProductModalOpen(false)} />
 
-          <div className="dark-glass-panel rounded-3xl w-full max-w-lg shadow-2xl p-6 sm:p-8 my-8 border border-white/10 animate-scale-in text-left text-white">
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg font-black text-white">
-                {editingProductId ? 'Editar Prato' : 'Adicionar Novo Prato ao Cardápio'}
-              </h2>
+          <div className="dark-glass-panel rounded-3xl w-full max-w-lg shadow-2xl border border-stone-200 dark:border-white/10 overflow-hidden animate-scale-in my-8 text-left text-stone-900 dark:text-white">
+            
+            {/* Modal Top Header */}
+            <div className="p-6 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-black text-stone-900 dark:text-white">
+                  {editingProductId ? 'Editar Prato do Cardápio' : 'Adicionar Novo Prato'}
+                </h3>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">
+                  Preencha as informações do prato que ficará visível aos clientes
+                </p>
+              </div>
+
               <button
+                type="button"
                 onClick={() => setIsProductModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-stone-400 hover:text-white flex items-center justify-center transition cursor-pointer"
+                className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-white/10 text-stone-500 dark:text-stone-400 transition cursor-pointer"
               >
-                ✕
+                <XCircle className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-xs text-stone-400 mb-5">Preencha os detalhes e adicione fotos por link ou direto do seu aparelho</p>
 
-            <form onSubmit={handleSaveProduct} className="space-y-4">
+            {/* Modal Form */}
+            <form onSubmit={handleSaveProduct} className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-bold text-stone-300 block mb-1.5">Nome do Prato</label>
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">Nome do Prato</label>
                 <input
                   type="text"
-                  placeholder="Ex: Canelone aos 4 Queijos (500g)"
+                  required
+                  placeholder="Ex: Lasanha de Costela com Provolone (1Kg)"
                   value={productForm.name}
                   onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                  className="w-full p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-stone-500 text-sm focus:border-amber-400 outline-none"
-                  required
+                  className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs focus:border-amber-500 outline-none font-bold"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="text-xs font-bold text-stone-300 block mb-1.5">Categoria</label>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">Categoria</label>
                   <select
                     value={productForm.categoryId}
                     onChange={(e) => setProductForm({ ...productForm, categoryId: e.target.value as CategoryId })}
-                    className="w-full p-3 rounded-2xl bg-stone-900 border border-white/10 text-white text-sm focus:border-amber-400 outline-none cursor-pointer"
+                    className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-bold focus:border-amber-500 outline-none"
                   >
                     {CATEGORIES.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.icon} {c.name}
-                      </option>
+                      <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="text-xs font-bold text-stone-300 block mb-1.5">Preço (R$)</label>
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">Preço (R$)</label>
                   <input
                     type="text"
-                    placeholder="Ex: 58,90"
+                    required
+                    placeholder="Ex: 89,90"
                     value={productForm.price}
                     onChange={(e) => setProductForm({ ...productForm, price: e.target.value })}
-                    className="w-full p-3 rounded-2xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-400 outline-none"
-                    required
+                    className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-mono font-bold focus:border-amber-500 outline-none"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-bold text-stone-300 block mb-1.5">Descrição dos Ingredientes</label>
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">Descrição dos Ingredientes & Detalhes</label>
                 <textarea
                   rows={2}
-                  placeholder="Ex: Massa fresca artesanal, ricota cremosa, provolone defumado e molho da casa..."
+                  placeholder="Ex: Camadas generosas de massa artesanal, recheio de costela desfiada e molho artesanal da vovó..."
                   value={productForm.description}
                   onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                  className="w-full p-3.5 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-stone-500 text-sm focus:border-amber-400 outline-none"
+                  className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs focus:border-amber-500 outline-none"
                 />
               </div>
 
-              {/* Photo Input: URL or Device File */}
-              <div className="space-y-3 pt-3 border-t border-white/10">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-stone-300 block">Foto do Prato</label>
-                  <span className="text-[10px] text-stone-400">Link ou Galeria/Câmera</span>
-                </div>
-                
+              {/* Photo selector (Upload from device or Preset) */}
+              <div className="space-y-2.5 pt-2">
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block">Foto do Prato</label>
+
+                {/* Direct upload from device input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleDeviceImageUpload}
+                  className="hidden"
+                />
+
                 <div className="flex gap-2">
-                  <input
-                    type="text"
-                    placeholder="Cole o link/URL da imagem..."
-                    value={productForm.image}
-                    onChange={(e) => {
-                      setProductForm({ ...productForm, image: e.target.value });
-                      setImageLoadError(false);
-                    }}
-                    className="flex-1 p-3 rounded-2xl bg-white/5 border border-white/10 text-white placeholder-stone-500 text-xs outline-none focus:border-amber-400"
-                  />
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    accept="image/*"
-                    onChange={handleDeviceImageUpload}
-                    className="hidden"
-                  />
                   <button
                     type="button"
-                    disabled={isUploadingImage}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1.5 px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-xs font-bold transition shrink-0 disabled:opacity-50 border border-white/15 cursor-pointer"
-                    title="Escolher arquivo de imagem direto do celular ou computador"
+                    disabled={isUploadingImage}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 border border-stone-300 dark:border-white/15 text-stone-900 dark:text-white font-bold text-xs transition cursor-pointer"
                   >
-                    {isUploadingImage ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400" />
-                    ) : (
-                      <Upload className="w-3.5 h-3.5 text-amber-400" />
-                    )}
-                    <span>{isUploadingImage ? 'Enviando...' : 'Do Dispositivo'}</span>
+                    {isUploadingImage ? <Loader2 className="w-4 h-4 animate-spin text-amber-600 dark:text-amber-400" /> : <Upload className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+                    <span>{isUploadingImage ? 'Carregando Foto...' : 'Enviar Foto do Celular / PC'}</span>
                   </button>
                 </div>
 
                 {/* Preset Fast Photos */}
-                <div>
-                  <span className="text-[10px] font-bold text-stone-400 block mb-1.5">Ou escolha uma foto artesanal pronta:</span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {PRESET_PASTA_IMAGES.map((preset, idx) => (
+                <div className="space-y-1">
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-medium">Ou selecione uma foto ilustrativa:</span>
+                  <div className="grid grid-cols-5 gap-2">
+                    {PRESET_PASTA_IMAGES.map((img, idx) => (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => {
-                          setProductForm(prev => ({ ...prev, image: preset.url }));
-                          setImageLoadError(false);
-                        }}
-                        className={`text-[11px] px-3 py-1 rounded-full border font-medium transition cursor-pointer ${
-                          productForm.image === preset.url
-                            ? 'bg-amber-400 text-black border-amber-400 font-bold'
-                            : 'bg-white/5 text-stone-300 border-white/10 hover:bg-white/10 hover:text-white'
+                        onClick={() => setProductForm({ ...productForm, image: img.url })}
+                        className={`group relative rounded-xl overflow-hidden h-14 border transition cursor-pointer ${
+                          productForm.image === img.url 
+                            ? 'border-amber-500 ring-2 ring-amber-500/50' 
+                            : 'border-stone-200 dark:border-white/10 opacity-70 hover:opacity-100'
                         }`}
                       >
-                        {preset.label}
+                        <img src={img.url} alt={img.label} className="w-full h-full object-cover" />
+                        <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] text-white truncate px-1 py-0.5 text-center">
+                          {img.label}
+                        </span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Photo Preview & Error Warning */}
-                {productForm.image ? (
-                  <div className="p-3.5 bg-black/40 rounded-2xl border border-white/10 space-y-2 mt-2">
-                    <div className="flex items-center gap-3">
-                      <div className="relative w-20 h-20 rounded-2xl overflow-hidden border border-white/20 bg-stone-900 shrink-0 shadow-md">
-                        <img
-                          src={productForm.image}
-                          alt="Preview"
-                          referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover"
-                          onLoad={() => setImageLoadError(false)}
-                          onError={() => {
-                            setImageLoadError(true);
-                          }}
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        {imageLoadError ? (
-                          <div className="text-[11px] font-bold text-rose-400 flex items-center gap-1">
-                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                            <span>Imagem inacessível</span>
-                          </div>
-                        ) : (
-                          <span className="text-[11px] font-bold text-emerald-400 block">✓ Foto carregada</span>
-                        )}
-                        <p className="text-[10px] text-stone-400 truncate mt-0.5 max-w-[200px]">{productForm.image}</p>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setProductForm(prev => ({ ...prev, image: '' }));
-                            setImageLoadError(false);
-                          }}
-                          className="text-[10px] text-rose-400 font-bold hover:underline mt-1 cursor-pointer block"
-                        >
-                          Remover foto
-                        </button>
-                      </div>
+                {/* Direct Image URL input */}
+                <div>
+                  <input
+                    type="url"
+                    placeholder="Ou cole a URL direta da imagem (https://...)"
+                    value={productForm.image}
+                    onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
+                    className="w-full p-2.5 rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-[11px] focus:border-amber-500 outline-none"
+                  />
+                </div>
+
+                {/* Live Photo Preview */}
+                {productForm.image && (
+                  <div className="relative h-28 rounded-2xl overflow-hidden border border-stone-200 dark:border-white/15 bg-stone-100 dark:bg-black/40">
+                    <img
+                      src={productForm.image}
+                      alt="Pré-visualização"
+                      className="w-full h-full object-cover"
+                      onError={() => setImageLoadError(true)}
+                    />
+                    <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] text-white font-bold">
+                      Pré-visualização da Foto
                     </div>
                   </div>
-                ) : (
-                  <p className="text-[11px] text-stone-400 italic">
-                    Nenhuma foto selecionada. Será utilizada a foto padrão de massas da casa.
-                  </p>
                 )}
               </div>
 
-              <label className="flex items-center gap-2.5 cursor-pointer pt-1">
+              {/* Popular Checkbox */}
+              <label className="flex items-center gap-2.5 p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={productForm.isPopular}
                   onChange={(e) => setProductForm({ ...productForm, isPopular: e.target.checked })}
-                  className="rounded-md text-amber-500 h-4 w-4 bg-white/5 border-white/20 focus:ring-amber-400"
+                  className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
                 />
-                <span className="text-xs text-stone-200 font-bold">Marcar como "Mais Pedido / Destaque"</span>
+                <span className="text-xs font-bold text-stone-800 dark:text-stone-200">Destacar como "Mais Pedido" (Badge VIP)</span>
               </label>
 
-              <div className="flex items-center gap-3 pt-4 border-t border-white/10">
+              {/* Modal Actions */}
+              <div className="flex gap-2 pt-3">
                 <button
                   type="button"
                   onClick={() => setIsProductModalOpen(false)}
-                  className="flex-1 py-3.5 px-5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-stone-300 font-bold text-xs transition cursor-pointer"
+                  className="w-1/3 py-3 px-4 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs transition cursor-pointer"
                 >
                   Cancelar
                 </button>
+
                 <button
                   type="submit"
-                  disabled={isSavingProduct || isUploadingImage}
-                  className="flex-1 flex items-center justify-center gap-2 py-3.5 px-5 dark-glass-button-gold text-black font-black rounded-full text-xs shadow-xl transition active:scale-98 disabled:opacity-50 cursor-pointer"
+                  disabled={isSavingProduct}
+                  className="flex-1 py-3 px-6 dark-glass-button-gold font-black rounded-full text-xs shadow-lg transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isSavingProduct ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin text-black" />
-                      <span>Salvando...</span>
-                    </>
+                    <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
                   ) : (
-                    <span>Salvar Prato</span>
+                    <span>{editingProductId ? 'Salvar Alterações' : 'Inserir Prato no Cardápio'}</span>
                   )}
                 </button>
               </div>
@@ -1401,7 +1435,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         </div>
       )}
 
-      {/* Modal: Comanda */}
+      {/* ============================================================ */}
+      {/* MODAL: RECIBO & IMPRESSÃO DE COMANDA */}
+      {/* ============================================================ */}
       {receiptOrder && (
         <OrderReceiptModal
           order={receiptOrder}
