@@ -93,5 +93,25 @@ service cloud.firestore {
         allow delete: if isOwner(userId) && isValidId(addressId);
       }
     }
+
+    // App settings (company WhatsApp, PIX configuration, and Master Admin preferences)
+    match /app_settings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Custom menu items added or modified by the restaurant
+    match /menu_items/{itemId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Customer orders placed via delivery or pickup
+    match /orders/{orderId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+    }
   }
 }

@@ -30,6 +30,58 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "street", "number", "neighborhood", "label", "createdAt", "updatedAt"]
+    },
+    "CompanySettings": {
+      "title": "Company Settings",
+      "description": "Global restaurant settings including WhatsApp, PIX, and admin access",
+      "type": "object",
+      "properties": {
+        "whatsappNumber": { "type": "string" },
+        "phone": { "type": "string" },
+        "pixKey": { "type": "string" },
+        "pixKeyType": { "type": "string" },
+        "pixBeneficiary": { "type": "string" },
+        "adminUser": { "type": "string" },
+        "adminPass": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "MenuItem": {
+      "title": "Menu Item",
+      "description": "Custom dishes and products added or edited through the admin panel",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "categoryId": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "number" },
+        "image": { "type": "string" },
+        "isPopular": { "type": "boolean" },
+        "isActive": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "categoryId", "price"]
+    },
+    "Order": {
+      "title": "Customer Order",
+      "description": "Restaurant order placed by a customer for delivery or pickup",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "orderNumber": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerPhone": { "type": "string" },
+        "deliveryType": { "type": "string" },
+        "paymentMethod": { "type": "string" },
+        "itemsSubtotal": { "type": "number" },
+        "deliveryFee": { "type": "number" },
+        "grandTotal": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["orderNumber", "customerName", "customerPhone", "deliveryType", "paymentMethod", "grandTotal"]
     }
   },
   "firestore": {
@@ -40,6 +92,18 @@
     "users/{userId}/addresses/{addressId}": {
       "schema": "Address",
       "description": "Saved delivery locations for faster checkouts"
+    },
+    "app_settings/{settingId}": {
+      "schema": "CompanySettings",
+      "description": "General restaurant settings and configuration"
+    },
+    "menu_items/{itemId}": {
+      "schema": "MenuItem",
+      "description": "Custom dishes created by the admin"
+    },
+    "orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders placed by customers"
     }
   }
 }

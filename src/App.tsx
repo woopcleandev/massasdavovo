@@ -4,18 +4,26 @@
  */
 
 import { useState, useEffect } from 'react';
-import { CATEGORIES, PRODUCTS, RESTAURANT_INFO } from './data';
+import { CATEGORIES, RESTAURANT_INFO } from './data';
 import { CategoryId, Product, CartItem } from './types';
 import { ProductCard } from './components/ProductCard';
 import { ProductModal } from './components/ProductModal';
 import { CartDrawer } from './components/CartDrawer';
 import { AboutTab } from './components/AboutTab';
 import { PWAInstallButton } from './components/PWAInstallButton';
-import { ShoppingBag, Search, Clock, MapPin, Menu, X, Info, Phone, ArrowRight, Heart, User } from 'lucide-react';
+import { ShoppingBag, Search, Clock, MapPin, Menu, X, Info, Phone, ArrowRight, Heart, User, ShieldCheck } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
+import { CompanyProvider, useCompany } from './context/CompanyContext';
 import { MyAccountView } from './components/MyAccountView';
+import { MasterAdminView } from './components/MasterAdminView';
 
-function MainApp() {
+interface MainAppProps {
+  onOpenMaster: () => void;
+}
+
+function MainApp({ onOpenMaster }: MainAppProps) {
+  const { allProducts, settings } = useCompany();
+
   // Navigation & filtering state
   const [activeTab, setActiveTab] = useState<string>('menu'); // 'menu' | 'about' | 'account'
 
@@ -46,7 +54,7 @@ function MainApp() {
     setCartItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex((item) => item.id === newItem.id);
       if (existingItemIndex > -1) {
-        // Increment quantity if identical item (same customizations and notes) exists
+        // Increment quantity if identical item exists
         const updated = [...prevItems];
         updated[existingItemIndex].quantity += newItem.quantity;
         return updated;
@@ -73,8 +81,8 @@ function MainApp() {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  // Filter products based on active category AND search query
-  const filteredProducts = PRODUCTS.filter((product) => {
+  // Filter products based on active category AND search query (from dynamic allProducts)
+  const filteredProducts = allProducts.filter((product) => {
     const matchesCategory = activeTab === 'menu' && product.categoryId === selectedCategory;
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -88,6 +96,9 @@ function MainApp() {
 
   const cartItemsCount = cartItems.reduce((acc, curr) => acc + curr.quantity, 0);
   const cartTotalValue = cartItems.reduce((acc, curr) => acc + curr.totalUnitPrice * curr.quantity, 0);
+
+  const activeWhatsApp = settings.whatsappNumber || RESTAURANT_INFO.whatsappNumber;
+  const activePhone = settings.phone || RESTAURANT_INFO.phone;
 
   return (
     <div className="min-h-screen bg-[#FCFBF7] text-gray-800 antialiased font-sans pb-24 selection:bg-[#0b1c3f]/10 selection:text-[#0b1c3f]">
@@ -167,12 +178,12 @@ function MainApp() {
               <div className="flex items-center gap-1.5">
                 <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
                 <a
-                  href={`https://wa.me/${RESTAURANT_INFO.whatsappNumber}`}
+                  href={`https://wa.me/${activeWhatsApp}`}
                   target="_blank"
                   rel="noreferrer"
                   className="hover:text-emerald-600 underline font-semibold transition"
                 >
-                  {RESTAURANT_INFO.phone}
+                  {activePhone}
                 </a>
               </div>
             </div>
@@ -258,7 +269,7 @@ function MainApp() {
                 )}
               </div>
 
-              {/* Category selector pills (Horizontal scrolling with absolute layout containment) */}
+              {/* Category selector pills */}
               <div className="w-full max-w-full overflow-hidden">
                 <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
                   {CATEGORIES.map((category) => (
@@ -266,7 +277,7 @@ function MainApp() {
                       key={category.id}
                       onClick={() => {
                         setSelectedCategory(category.id);
-                        setSearchQuery(''); // clear search when pivoting categories
+                        setSearchQuery('');
                       }}
                       className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-extrabold whitespace-nowrap transition-all border shrink-0 ${
                         selectedCategory === category.id && searchQuery === ''
@@ -322,6 +333,23 @@ function MainApp() {
         )}
       </div>
 
+      {/* Discreet Footer */}
+      <footer className="mt-16 text-center text-xs text-gray-400 max-w-4xl mx-auto px-4 space-y-2">
+        <p>© Massas da Vovó • Feito com tradição e amor de família</p>
+        <div className="flex items-center justify-center gap-4 text-[11px]">
+          <span>Sorriso - MT</span>
+          <span>•</span>
+          <button
+            onClick={onOpenMaster}
+            className="text-gray-300 hover:text-gray-500 transition-colors flex items-center gap-1 cursor-pointer"
+            title="Área Administrativa Master"
+          >
+            <ShieldCheck className="w-3 h-3" />
+            <span>Acesso /Master</span>
+          </button>
+        </div>
+      </footer>
+
       {/* 5. Floating Bottom Cart Summary (Anota Aí Style) */}
       {cartItemsCount > 0 && (
         <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-100 shadow-[0_-8px_30px_rgb(0,0,0,0.06)] p-4 sm:p-5 flex items-center justify-between max-w-xl mx-auto rounded-t-3xl border-x">
@@ -341,7 +369,7 @@ function MainApp() {
           <button
             id="btn-open-checkout-drawer"
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] py-3.5 px-6 text-sm font-extrabold text-[#d4af37] border border-[#d4af37]/20 transition-all shadow-md active:scale-95 transform hover:scale-101 shrink-0"
+            className="flex items-center gap-1.5 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] py-3.5 px-6 text-sm font-extrabold text-[#d4af37] border border-[#d4af37]/20 transition-all shadow-md active:scale-95 transform hover:scale-101 shrink-0 cursor-pointer"
           >
             <span>Ver Sacola</span>
             <ArrowRight className="w-4 h-4" />
@@ -372,13 +400,65 @@ function MainApp() {
 }
 
 export default function App() {
+  // Check if current URL is /Master or /master or #/Master
+  const checkIsMasterUrl = () => {
+    if (typeof window === 'undefined') return false;
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    return (
+      path === '/master' ||
+      path.startsWith('/master/') ||
+      hash === '#/master' ||
+      hash === '#master'
+    );
+  };
+
+  const [isMasterRoute, setIsMasterRoute] = useState<boolean>(checkIsMasterUrl);
+
+  useEffect(() => {
+    const handleUrlChange = () => {
+      setIsMasterRoute(checkIsMasterUrl());
+    };
+
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
+  }, []);
+
+  const handleGoToMaster = () => {
+    try {
+      window.history.pushState(null, '', '/Master');
+    } catch {
+      window.location.hash = '/Master';
+    }
+    setIsMasterRoute(true);
+  };
+
+  const handleBackToMenu = () => {
+    try {
+      window.history.pushState(null, '', '/');
+    } catch {
+      window.location.hash = '/';
+    }
+    setIsMasterRoute(false);
+  };
+
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <CompanyProvider>
+      <AuthProvider>
+        {isMasterRoute ? (
+          <MasterAdminView onBackToMenu={handleBackToMenu} />
+        ) : (
+          <MainApp onOpenMaster={handleGoToMaster} />
+        )}
+      </AuthProvider>
+    </CompanyProvider>
   );
 }
-
 
 // Minimal placeholder component for offline state indicator
 export const OfflineIndicator: React.FC = () => {

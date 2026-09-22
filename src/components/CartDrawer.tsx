@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { CartItem, CustomerInfo, NEIGHBORHOODS, PaymentMethod } from '../types';
+import { CartItem, CustomerInfo, NEIGHBORHOODS, PaymentMethod, Order, OrderItem } from '../types';
 import { RESTAURANT_INFO } from '../data';
-import { X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, CreditCard, Clock, CheckCircle, Home, Briefcase, Tag } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, CreditCard, Clock, CheckCircle, Home, Briefcase, Tag, AlertCircle, Copy, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-
+import { useCompany } from '../context/CompanyContext';
+import { OrderSuccessModal } from './OrderSuccessModal';
 
 interface CartDrawerProps {
   cartItems: CartItem[];
@@ -21,8 +22,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onClearCart,
 }) => {
   const { currentUser, userProfile, savedAddresses, addSavedAddress } = useAuth();
+  const { settings, createOrder } = useCompany();
   const [selectedAddressId, setSelectedAddressId] = useState<string>('custom');
   const [saveThisAddress, setSaveThisAddress] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Success state for completed order
+  const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
+  const [completedWaUrl, setCompletedWaUrl] = useState<string>('');
 
   // Try to load saved customer info from localStorage
   const [customer, setCustomer] = useState<CustomerInfo>(() => {
@@ -30,6 +37,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       const saved = localStorage.getItem('vovo_customer_info');
       if (saved) {
         const parsed = JSON.parse(saved);
+        let pMethod: PaymentMethod = parsed.paymentMethod || 'pix_now';
+        if (pMethod === 'pix') pMethod = 'pix_now';
         return {
           name: parsed.name || '',
           phone: parsed.phone || '',
@@ -38,7 +47,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           number: parsed.number || '',
           neighborhood: parsed.neighborhood || NEIGHBORHOODS[0].name,
           reference: parsed.reference || '',
-          paymentMethod: parsed.paymentMethod || 'pix',
+          paymentMethod: pMethod,
           changeFor: parsed.changeFor || '',
         };
       }
@@ -53,7 +62,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       number: '',
       neighborhood: NEIGHBORHOODS[0].name,
       reference: '',
-      paymentMethod: 'pix',
+      paymentMethod: 'pix_now',
       changeFor: '',
     };
   });
@@ -95,7 +104,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   // Keep track of validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-
   const formatPrice = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
@@ -113,10 +121,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     localStorage.setItem('vovo_customer_info', JSON.stringify(customer));
   }, [customer]);
 
-  const validateForm = () => {
+  const validateFormDirect = () => {
     const errs: Record<string, string> = {};
     if (!customer.name.trim()) errs.name = 'Nome é obrigatório';
-    if (!customer.phone.trim()) errs.phone = 'Telefone é obrigatório';
+    if (!customer.phone.trim()) errs.phone = 'WhatsApp de contato é obrigatório';
 
     if (customer.deliveryType === 'delivery') {
       if (!customer.street?.trim()) errs.street = 'Rua é obrigatória';
@@ -124,24 +132,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       if (!customer.neighborhood) errs.neighborhood = 'Bairro é obrigatório';
     }
 
-    if (customer.paymentMethod === 'cash' && !customer.changeFor?.trim()) {
-      // optional or required if cash? Usually good to check if they need change.
-    }
-
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
+    return errs;
   };
 
-  const handleSendOrder = () => {
-    if (!validateForm()) {
-      // scroll to first error
-      const errorField = Object.keys(errors)[0];
-      const element = document.getElementById(`field-${errorField}`);
+  const handleSendOrder = async () => {
+    const errs = validateFormDirect();
+    setErrors(errs);
+
+    const errorKeys = Object.keys(errs);
+    if (errorKeys.length > 0) {
+      const firstField = errorKeys[0];
+      const element = document.getElementById(`field-${firstField}`);
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       return;
     }
+
+    setIsSubmitting(true);
 
     // Save to firebase database if checked and user is logged in
     if (currentUser && customer.deliveryType === 'delivery' && selectedAddressId === 'custom' && saveThisAddress && customer.street && customer.number && customer.neighborhood) {
@@ -153,15 +161,75 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       }).catch(e => console.error("Error saving address on checkout:", e));
     }
 
-    // Compile order message in "Anota Aí" style
+    // Convert cartItems to OrderItems
+    const orderItems: OrderItem[] = cartItems.map(item => ({
+      id: item.id,
+      productName: item.product.name,
+      quantity: item.quantity,
+      unitPrice: item.totalUnitPrice,
+      totalPrice: item.totalUnitPrice * item.quantity,
+      size: item.customization?.selectedSize?.name,
+      pasta: item.customization?.selectedPasta?.name,
+      sauce: item.customization?.selectedSauce?.name,
+      toppings: item.customization?.selectedToppings?.map(t => t.name),
+      notes: item.notes,
+    }));
+
+    // Normalize paymentMethod
+    const pMethod = (customer.paymentMethod === 'pix' ? 'pix_now' : customer.paymentMethod) as PaymentMethod;
+
+    // Create Order in Firestore and LocalStorage
+    let savedOrder: Order;
+    try {
+      savedOrder = await createOrder({
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        deliveryType: customer.deliveryType,
+        street: customer.street,
+        number: customer.number,
+        neighborhood: customer.neighborhood,
+        reference: customer.reference,
+        paymentMethod: pMethod,
+        changeFor: customer.changeFor,
+        items: orderItems,
+        itemsSubtotal,
+        deliveryFee,
+        grandTotal,
+      });
+    } catch (e) {
+      console.error("Order creation fallback:", e);
+      savedOrder = {
+        id: 'order-' + Date.now(),
+        orderNumber: `#MV-${Math.floor(1000 + Math.random() * 9000)}`,
+        customerName: customer.name,
+        customerPhone: customer.phone,
+        deliveryType: customer.deliveryType,
+        street: customer.street,
+        number: customer.number,
+        neighborhood: customer.neighborhood,
+        reference: customer.reference,
+        paymentMethod: pMethod,
+        changeFor: customer.changeFor,
+        items: orderItems,
+        itemsSubtotal,
+        deliveryFee,
+        grandTotal,
+        status: 'novo',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
+    // Compile complete WhatsApp message
     let message = `*🍝 NOVO PEDIDO - MASSAS DA VOVÓ*\n`;
+    message += `*Comanda:* ${savedOrder.orderNumber}\n`;
     message += `----------------------------------------\n`;
     message += `*Cliente:* ${customer.name}\n`;
     message += `*Contato:* ${customer.phone}\n`;
-    message += `*Método:* ${customer.deliveryType === 'delivery' ? '🚀 Entrega' : '🏪 Retirar no Local'}\n`;
+    message += `*Método:* ${customer.deliveryType === 'delivery' ? '🚀 Entrega em Domicílio' : '🏪 Retirar no Local'}\n`;
     message += `----------------------------------------\n\n`;
 
-    message += `*Itens do Pedido:*\n`;
+    message += `*ITENS DO PEDIDO:*\n`;
     cartItems.forEach((item, index) => {
       message += `${index + 1}. *${item.quantity}x ${item.product.name}*\n`;
       
@@ -190,7 +258,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     });
 
     message += `----------------------------------------\n`;
-    message += `*Resumo dos Valores:*\n`;
+    message += `*RESUMO FINANCEIRO:*\n`;
     message += `• Subtotal itens: ${formatPrice(itemsSubtotal)}\n`;
     if (customer.deliveryType === 'delivery') {
       message += `• Taxa de Entrega (${customer.neighborhood}): ${formatPrice(deliveryFee)}\n`;
@@ -198,26 +266,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     message += `• *TOTAL DO PEDIDO: ${formatPrice(grandTotal)}*\n`;
     message += `----------------------------------------\n\n`;
 
-    message += `*Forma de Pagamento:*\n`;
-    let paymentText = '';
-    switch (customer.paymentMethod) {
-      case 'pix':
-        paymentText = 'Pix (Chave celular no fechamento)';
-        break;
-      case 'credit':
-        paymentText = 'Cartão de Crédito (Levar maquininha)';
-        break;
-      case 'debit':
-        paymentText = 'Cartão de Débito (Levar maquininha)';
-        break;
-      case 'cash':
-        paymentText = `Dinheiro (Troco para ${customer.changeFor || 'Não precisa'})`;
-        break;
+    message += `*FORMA DE PAGAMENTO:*\n`;
+    if (pMethod === 'pix_now') {
+      message += `• *PIX AGORA (Chave Pix)*\n`;
+      message += `  Chave PIX (${settings.pixKeyType}): *${settings.pixKey}*\n`;
+      message += `  Favorecido: ${settings.pixBeneficiary}\n`;
+      message += `  Valor: ${formatPrice(grandTotal)}\n\n`;
+      message += `⚠️ *ATENÇÃO:* Por favor, envie o comprovante do Pix aqui nesta conversa para a Vovó iniciar o preparo imediatamente!\n\n`;
+    } else if (pMethod === 'pix_delivery') {
+      message += `• *PIX NA ENTREGA (QR Code)*\n`;
+      message += `  O entregador levará a maquininha/celular com QR Code Pix no momento da entrega.\n\n`;
+    } else if (pMethod === 'credit') {
+      message += `• *Cartão de Crédito na Entrega* (Levar maquininha)\n\n`;
+    } else if (pMethod === 'debit') {
+      message += `• *Cartão de Débito na Entrega* (Levar maquininha)\n\n`;
+    } else if (pMethod === 'cash') {
+      message += `• *Dinheiro na Entrega* (Troco para ${customer.changeFor || 'Não precisa de troco'})\n\n`;
     }
-    message += `• ${paymentText}\n\n`;
 
     if (customer.deliveryType === 'delivery') {
-      message += `*Endereço para Entrega:*\n`;
+      message += `*ENDEREÇO DE ENTREGA:*\n`;
       message += `• *Rua/Av:* ${customer.street}, Nº ${customer.number}\n`;
       message += `• *Bairro:* ${customer.neighborhood}\n`;
       if (customer.reference?.trim()) {
@@ -226,17 +294,33 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       message += `----------------------------------------\n`;
     }
 
-    message += `_Pedido feito através do nosso Cardápio Digital PWA_ 👵❤`;
+    message += `_Pedido realizado pelo Cardápio Digital Massas da Vovó_ 👵❤`;
 
-    // Encode URL and trigger redirect
+    // Target WhatsApp number from dynamic company settings
+    const targetWhatsApp = (settings.whatsappNumber || RESTAURANT_INFO.whatsappNumber).replace(/\D/g, '');
     const cleanText = encodeURIComponent(message);
-    const waUrl = `https://api.whatsapp.com/send?phone=${RESTAURANT_INFO.whatsappNumber}&text=${cleanText}`;
-    
-    // Open WhatsApp
-    window.open(waUrl, '_blank');
+    const waUrl = `https://api.whatsapp.com/send?phone=${targetWhatsApp}&text=${cleanText}`;
 
-    // Optionally clear cart and close
-    // We can show a success page or keep cart for reference
+    // Safely trigger WhatsApp
+    try {
+      const link = document.createElement('a');
+      link.href = waUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch {
+      window.open(waUrl, '_blank');
+    }
+
+    // Set order completion state
+    setCompletedOrder(savedOrder);
+    setCompletedWaUrl(waUrl);
+    setIsSubmitting(false);
+
+    // Empty cart so it doesn't duplicate
+    onClearCart();
   };
 
   return (
@@ -637,38 +721,63 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
               {/* Payment Methods */}
               <div className="space-y-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-xs text-left">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-55 pb-2">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
                   <CreditCard className="w-4 h-4 text-gray-400" />
                   <span>Forma de Pagamento</span>
                 </h3>
 
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Pix */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {/* Pix Agora */}
                   <label
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
-                      customer.paymentMethod === 'pix'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      customer.paymentMethod === 'pix_now' || customer.paymentMethod === 'pix'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
                     <input
                       type="radio"
                       name="payment-method"
-                      checked={customer.paymentMethod === 'pix'}
-                      onChange={() => setCustomer({ ...customer, paymentMethod: 'pix' })}
-                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      checked={customer.paymentMethod === 'pix_now' || customer.paymentMethod === 'pix'}
+                      onChange={() => setCustomer({ ...customer, paymentMethod: 'pix_now' })}
+                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-800 leading-none">🌀 Pix</span>
-                      <span className="text-[9px] text-gray-400 mt-1 leading-none">Rápido e seguro</span>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-gray-900 leading-none">🌀 Pix Agora (Chave Pix)</span>
+                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">
+                        Pague agora e envie o comprovante pelo WhatsApp
+                      </span>
+                    </div>
+                  </label>
+
+                  {/* Pix na Entrega */}
+                  <label
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                      customer.paymentMethod === 'pix_delivery'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
+                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="payment-method"
+                      checked={customer.paymentMethod === 'pix_delivery'}
+                      onChange={() => setCustomer({ ...customer, paymentMethod: 'pix_delivery' })}
+                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                    />
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-gray-900 leading-none">📱 Pix na Entrega (QR Code)</span>
+                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">
+                        Entregador leva o QR Code Pix na maquininha
+                      </span>
                     </div>
                   </label>
 
                   {/* Dinheiro */}
                   <label
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       customer.paymentMethod === 'cash'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -677,19 +786,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'cash'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'cash' })}
-                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-800 leading-none">💵 Dinheiro</span>
-                      <span className="text-[9px] text-gray-400 mt-1 leading-none">Pagar na entrega</span>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-gray-900 leading-none">💵 Dinheiro</span>
+                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">Pagar em espécie na entrega</span>
                     </div>
                   </label>
 
-                  {/* Crédito */}
+                  {/* Cartão de Crédito */}
                   <label
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       customer.paymentMethod === 'credit'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -698,19 +807,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'credit'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'credit' })}
-                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-800 leading-none">💳 Crédito</span>
-                      <span className="text-[9px] text-gray-400 mt-1 leading-none">Levar maquininha</span>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-gray-900 leading-none">💳 Cartão de Crédito</span>
+                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">Levar maquininha</span>
                     </div>
                   </label>
 
-                  {/* Débito */}
+                  {/* Cartão de Débito */}
                   <label
-                    className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       customer.paymentMethod === 'debit'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -719,26 +828,42 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'debit'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'debit' })}
-                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-gray-800 leading-none">💳 Débito</span>
-                      <span className="text-[9px] text-gray-400 mt-1 leading-none">Levar maquininha</span>
+                    <div className="flex flex-col text-left">
+                      <span className="text-xs font-bold text-gray-900 leading-none">💳 Cartão de Débito</span>
+                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">Levar maquininha</span>
                     </div>
                   </label>
                 </div>
 
-                {/* Pix instructions */}
-                {customer.paymentMethod === 'pix' && (
-                  <div className="bg-emerald-50 text-emerald-800 p-3 rounded-xl border border-emerald-100 text-xs flex gap-2">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                    <div>
-                      <span className="font-bold">Chave Celular Pix da Vovó!</span>
-                      <p className="mt-0.5 leading-snug">
-                        Após enviar o pedido, enviaremos os dados do Pix. Chave celular para transferência:{' '}
-                        <span className="font-bold underline text-emerald-900">{RESTAURANT_INFO.phone}</span>
-                      </p>
+                {/* Pix Agora details info box */}
+                {(customer.paymentMethod === 'pix_now' || customer.paymentMethod === 'pix') && (
+                  <div className="bg-amber-50/80 text-amber-950 p-3.5 rounded-xl border border-amber-200/80 text-xs space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-amber-900">
+                      <CheckCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Chave PIX da Vovó ({settings.pixKeyType}):</span>
                     </div>
+                    <div className="bg-white p-2.5 rounded-lg border border-amber-200 flex items-center justify-between font-mono font-bold text-xs text-gray-900">
+                      <span className="select-all">{settings.pixKey}</span>
+                      <span className="text-[10px] text-gray-400 font-sans font-medium">{settings.pixBeneficiary}</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 leading-tight">
+                      Após o clique em finalizar, a mensagem já incluirá a chave PIX e ficaremos aguardando o envio do comprovante nesta mesma conversa para iniciar o preparo!
+                    </p>
+                  </div>
+                )}
+
+                {/* Pix na Entrega details info box */}
+                {customer.paymentMethod === 'pix_delivery' && (
+                  <div className="bg-blue-50 text-blue-900 p-3.5 rounded-xl border border-blue-200 text-xs space-y-1">
+                    <div className="flex items-center gap-2 font-bold text-blue-950">
+                      <span className="text-sm">📱</span>
+                      <span>QR Code Pix com o Entregador</span>
+                    </div>
+                    <p className="text-[11px] text-blue-800 leading-tight">
+                      O entregador levará a maquininha ou o celular com o QR Code Pix pronto para você ler e pagar com segurança na entrega.
+                    </p>
                   </div>
                 )}
 
@@ -748,10 +873,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     <label className="text-xs font-bold text-gray-700 block mb-1">Precisa de troco para quanto?</label>
                     <input
                       type="text"
-                      placeholder="Ex: R$ 50, R$ 100"
+                      placeholder="Ex: R$ 50, R$ 100 (ou deixe em branco se não precisar)"
                       value={customer.changeFor}
                       onChange={(e) => setCustomer({ ...customer, changeFor: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 p-3 text-sm focus:ring-red-500 focus:border-red-500 outline-hidden"
+                      className="w-full rounded-xl border border-gray-200 p-3 text-sm focus:ring-[#0b1c3f] focus:border-[#0b1c3f] outline-hidden"
                     />
                   </div>
                 )}
@@ -797,15 +922,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             {/* Submit Order to WhatsApp Button */}
             <button
               id="btn-send-whatsapp-order"
+              disabled={isSubmitting}
               onClick={handleSendOrder}
-              className="w-full flex items-center justify-center gap-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 py-4 px-6 text-base font-bold text-white transition shadow-lg active:scale-98 transform hover:scale-101"
+              className="w-full flex items-center justify-center gap-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 py-4 px-6 text-base font-bold text-white transition shadow-lg active:scale-98 transform hover:scale-101 cursor-pointer"
             >
               <Send className="w-5 h-5 fill-white" />
-              <span>Enviar Pedido pelo WhatsApp</span>
+              <span>{isSubmitting ? 'Gerando Comanda...' : 'Finalizar e Enviar Pedido pelo WhatsApp'}</span>
             </button>
           </div>
         )}
       </div>
+
+      {/* Order Success & PIX Modal */}
+      {completedOrder && (
+        <OrderSuccessModal
+          order={completedOrder}
+          whatsappUrl={completedWaUrl}
+          onClose={() => {
+            setCompletedOrder(null);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 };

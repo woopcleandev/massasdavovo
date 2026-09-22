@@ -52,7 +52,7 @@ export interface CartItem {
   totalUnitPrice: number;
 }
 
-export type PaymentMethod = 'pix' | 'credit' | 'debit' | 'cash';
+export type PaymentMethod = 'pix' | 'pix_now' | 'pix_delivery' | 'credit' | 'debit' | 'cash';
 
 export interface CustomerInfo {
   name: string;
@@ -64,6 +64,53 @@ export interface CustomerInfo {
   reference?: string;
   paymentMethod: PaymentMethod;
   changeFor?: string;
+}
+
+export type OrderStatus = 'novo' | 'preparo' | 'entrega' | 'concluido' | 'cancelado';
+
+export interface OrderItem {
+  id: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+  size?: string;
+  pasta?: string;
+  sauce?: string;
+  toppings?: string[];
+  notes?: string;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  deliveryType: 'delivery' | 'takeaway';
+  street?: string;
+  number?: string;
+  neighborhood?: string;
+  reference?: string;
+  paymentMethod: PaymentMethod;
+  changeFor?: string;
+  items: OrderItem[];
+  itemsSubtotal: number;
+  deliveryFee: number;
+  grandTotal: number;
+  status: OrderStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CompanySettings {
+  whatsappNumber: string; // digits only, e.g. 5566996523006
+  phone: string; // display phone, e.g. (66) 99652-3006
+  pixKey: string;
+  pixKeyType: string;
+  pixBeneficiary: string;
+  adminUser: string;
+  adminPass: string;
+  updatedAt?: string;
 }
 
 export interface NeighborhoodFee {
