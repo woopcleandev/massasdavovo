@@ -16,18 +16,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
     <div
       id={`product-card-${product.id}`}
       onClick={() => onSelect(product)}
-      className="group relative flex flex-col dark-glass-card rounded-3xl p-4 sm:p-4.5 cursor-pointer transition-all duration-300 text-left select-none overflow-hidden border border-stone-300/80 dark:border-white/10 shadow-md hover:shadow-xl"
+      className="group relative flex flex-col dark-glass-card rounded-3xl p-3.5 sm:p-4 cursor-pointer transition-all duration-300 text-left select-none overflow-hidden border border-stone-300/80 dark:border-white/10 shadow-md hover:shadow-xl"
     >
-      {/* Popular Badge - Completely Rounded */}
-      {product.isPopular && (
-        <div className="absolute top-3.5 left-3.5 z-10 flex items-center gap-1 rounded-full bg-amber-500 dark:bg-amber-400 text-black px-3 py-0.5 text-[10px] font-black shadow-md">
-          <Flame className="w-3 h-3 fill-black text-black" />
-          <span>Mais Pedido</span>
-        </div>
-      )}
-
       {/* Floating Image with Ambient Backlight Halo */}
-      <div className="relative w-full h-44 sm:h-48 flex items-center justify-center overflow-hidden rounded-2xl bg-stone-100 dark:bg-black/40 my-1 dish-halo border border-stone-200 dark:border-white/5">
+      <div className="relative w-full h-44 sm:h-48 flex items-center justify-center overflow-hidden rounded-2xl bg-stone-100 dark:bg-black/40 dish-halo border border-stone-200 dark:border-white/5">
+        {/* Popular Badge - Positioned over image with high z-index */}
+        {product.isPopular && (
+          <div className="absolute top-2.5 left-2.5 z-20 flex items-center gap-1.5 rounded-full bg-amber-400 text-black px-3 py-1 text-[10px] font-black shadow-md">
+            <Flame className="w-3.5 h-3.5 fill-black text-black" />
+            <span>Mais Pedido</span>
+          </div>
+        )}
+
         <img
           src={product.image}
           alt={product.name}
@@ -39,7 +39,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
         />
 
         {/* Floating Tag - Completely Rounded */}
-        <div className="absolute bottom-2.5 right-2.5 z-10 rounded-full bg-stone-950/85 backdrop-blur-md border border-white/20 px-3 py-0.5 text-[10px] font-extrabold text-white tracking-wider shadow-sm">
+        <div className="absolute bottom-2.5 right-2.5 z-20 rounded-full bg-stone-950/85 backdrop-blur-md border border-white/20 px-3 py-0.5 text-[10px] font-extrabold text-white tracking-wider shadow-sm">
           {product.sizes ? 'Tamanhos' : product.customizable ? 'Personalizável' : 'Artesanal'}
         </div>
       </div>

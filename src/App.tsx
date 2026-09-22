@@ -541,7 +541,7 @@ function MainApp() {
       </main>
 
       {/* 3. Footer */}
-      <footer className="mt-20 text-center text-xs text-stone-500 dark:text-gray-400 max-w-4xl mx-auto px-4 space-y-1 relative z-10 pb-8">
+      <footer className="mt-20 text-center text-xs text-stone-500 dark:text-gray-400 max-w-4xl mx-auto px-4 space-y-1 relative z-10 pb-28 sm:pb-8">
         <p className="font-semibold text-stone-600 dark:text-gray-300">© Massas da Vovó • Tradição, Afeto e Sabor Artesanal</p>
         <p className="text-[11px] text-stone-500 dark:text-gray-400 flex items-center justify-center gap-1.5 flex-wrap">
           <span>Primavera do Leste - MT</span>
