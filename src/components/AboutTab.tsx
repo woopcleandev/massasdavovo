@@ -1,32 +1,48 @@
 import React from 'react';
 import { RESTAURANT_INFO } from '../data';
-import { MapPin, Phone, Clock, Heart, Award, ShieldCheck, Map, Star } from 'lucide-react';
+import { MapPin, Phone, Clock, Heart, Award, ShieldCheck, Star, ExternalLink, Sparkles } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
 export const AboutTab: React.FC = () => {
   return (
-    <div className="glass-panel rounded-3xl p-6 sm:p-10 max-w-4xl mx-auto space-y-8 animate-fade-in text-left shadow-xl border border-white/80">
+    <div className="dark-glass-panel rounded-3xl p-6 sm:p-10 max-w-4xl mx-auto space-y-8 animate-fade-in text-left shadow-2xl border border-white/10 text-white">
       {/* Restaurant Intro */}
       <div className="flex flex-col md:flex-row gap-6 items-center">
-        <div className="relative p-1 rounded-full bg-white/70 backdrop-blur-md shadow-md border border-white/90 shrink-0">
+        <div className="relative p-1 rounded-full bg-white/5 backdrop-blur-md shadow-lg border border-amber-400/40 shrink-0 dish-halo">
           <img
             src={RESTAURANT_INFO.logo}
             alt={RESTAURANT_INFO.name}
             referrerPolicy="no-referrer"
-            className="w-28 h-28 rounded-full object-cover border border-[#d4af37]/30"
+            className="w-28 h-28 rounded-full object-cover relative z-10"
           />
         </div>
         <div className="text-center md:text-left flex-1">
-          <h2 className="text-2xl sm:text-3xl font-black text-gray-950 tracking-tight">{RESTAURANT_INFO.name}</h2>
-          <p className="mt-2 text-sm text-gray-600 leading-relaxed font-normal">{RESTAURANT_INFO.description}</p>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-2">
+            <span className="dark-glass-pill inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-amber-300 border border-amber-400/30">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Massas Frescas & Molhos da Vovó</span>
+            </span>
+            <span className="dark-glass-pill inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-extrabold text-emerald-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Primavera do Leste - MT</span>
+            </span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{RESTAURANT_INFO.name}</h2>
+          <p className="mt-2 text-sm text-gray-300 leading-relaxed font-normal">{RESTAURANT_INFO.description}</p>
+          
           <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-2.5">
-            <span className="glass-pill inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600">
-              <Heart className="w-3.5 h-3.5 fill-red-600" />
+            <span className="dark-glass-pill inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-rose-400">
+              <Heart className="w-3.5 h-3.5 fill-rose-400" />
               <span>Receita de Família</span>
             </span>
-            <span className="glass-pill inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-800">
-              <Award className="w-3.5 h-3.5" />
+            <span className="dark-glass-pill inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-amber-300">
+              <Award className="w-3.5 h-3.5 text-amber-400" />
               <span>Cozinha Artesanal</span>
+            </span>
+            <span className="dark-glass-pill inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-yellow-300">
+              <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" />
+              <span>4.9 no Google</span>
             </span>
           </div>
         </div>
@@ -35,86 +51,89 @@ export const AboutTab: React.FC = () => {
       {/* Info Blocks */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Hours */}
-        <div className="flex gap-3.5 p-5 rounded-2xl glass-card border border-white/80">
-          <div className="p-3 rounded-xl bg-amber-500/10 text-amber-700 shrink-0 h-11 w-11 flex items-center justify-center">
+        <div className="flex gap-3.5 p-5 rounded-2xl dark-glass-card border border-white/10">
+          <div className="p-3 rounded-xl bg-amber-400/10 text-amber-400 shrink-0 h-11 w-11 flex items-center justify-center">
             <Clock className="w-5 h-5" />
           </div>
           <div>
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Horário de Funcionamento</h4>
-            <p className="mt-1 text-sm font-black text-gray-900 leading-snug">{RESTAURANT_INFO.hours}</p>
-            <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-emerald-700 font-extrabold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/20">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Aberto Agora
+            <p className="mt-1 text-sm font-black text-white leading-snug">{RESTAURANT_INFO.hours}</p>
+            <span className="inline-flex items-center gap-1 mt-1.5 text-[11px] text-emerald-400 font-extrabold bg-emerald-500/15 px-2 py-0.5 rounded-full border border-emerald-500/30">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Aberto para Entregas
             </span>
           </div>
         </div>
 
         {/* Contact Phone / WhatsApp */}
-        <div className="flex gap-3.5 p-5 rounded-2xl glass-card border border-white/80">
-          <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-700 shrink-0 h-11 w-11 flex items-center justify-center">
+        <div className="flex gap-3.5 p-5 rounded-2xl dark-glass-card border border-white/10">
+          <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 shrink-0 h-11 w-11 flex items-center justify-center">
             <Phone className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">WhatsApp / Telefone</h4>
+            <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">WhatsApp / Atendimento</h4>
             <a
               href={`https://wa.me/${RESTAURANT_INFO.whatsappNumber}`}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 text-sm font-black text-gray-900 block hover:text-emerald-700 underline leading-snug transition"
+              className="mt-1 text-sm font-black text-amber-400 hover:underline block leading-snug"
             >
               {RESTAURANT_INFO.phone}
             </a>
-            <span className="text-[11px] text-gray-400 mt-1 block">Clique para iniciar conversa no WhatsApp</span>
+            <p className="text-[11px] text-gray-400 mt-0.5">Clique para falar direto com nossa equipe</p>
           </div>
         </div>
-      </div>
 
-      {/* Address & Google Maps integration */}
-      <div className="p-6 rounded-2xl glass-card border border-white/80 space-y-4">
-        <div className="flex gap-3.5">
-          <div className="p-3 rounded-xl bg-red-500/10 text-red-600 shrink-0 h-11 w-11 flex items-center justify-center">
+        {/* Address */}
+        <div className="flex gap-3.5 p-5 rounded-2xl dark-glass-card border border-white/10 sm:col-span-2">
+          <div className="p-3 rounded-xl bg-red-500/10 text-red-400 shrink-0 h-11 w-11 flex items-center justify-center">
             <MapPin className="w-5 h-5" />
           </div>
           <div className="flex-1">
             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Localização & Retirada</h4>
-            <p className="mt-1 text-sm font-black text-gray-900 leading-snug">{RESTAURANT_INFO.address}</p>
-            <p className="text-xs text-gray-500 font-semibold mt-0.5">Primavera do Leste - MT</p>
+            <p className="mt-1 text-sm font-black text-white leading-snug">{RESTAURANT_INFO.address}</p>
+            <a
+              href={RESTAURANT_INFO.googleMapsLink}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 mt-1 text-xs text-amber-400 hover:underline font-bold"
+            >
+              <span>Abrir no Google Maps</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
-        </div>
-
-        {/* Call to action to view on Maps & Reviews */}
-        <div className="pt-2 flex flex-wrap items-center gap-3">
-          <a
-            href={RESTAURANT_INFO.googleMapsLink}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full glass-button-primary px-5 py-2.5 text-xs font-black shadow-md cursor-pointer"
-          >
-            <Map className="w-4 h-4 text-[#f6e09e]" />
-            <span>Abrir no Google Maps</span>
-          </a>
-
-          <a
-            href="https://maps.app.goo.gl/hecpUqJLLVd8EghW9"
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-2 rounded-full glass-pill px-5 py-2.5 text-xs font-extrabold text-amber-900 cursor-pointer"
-          >
-            <Star className="w-4 h-4 fill-yellow-400 text-amber-500" />
-            <span>Avaliar com 5 Estrelas no Google</span>
-          </a>
         </div>
       </div>
 
-      {/* Trust & Policy Info */}
-      <div className="pt-6 border-t border-white/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5 text-gray-500">
-          <ShieldCheck className="w-5 h-5 text-[#0b1c3f]" />
-          <span className="text-xs">Aplicativo seguro • Suas informações de entrega ficam salvas somente no seu dispositivo.</span>
+      {/* Trust Badges */}
+      <div className="border-t border-white/10 pt-6">
+        <h4 className="text-xs font-black text-gray-400 uppercase tracking-wider mb-3">Nosso Compromisso com Você</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
+            <ShieldCheck className="w-5 h-5 text-emerald-400 mb-1" />
+            <h5 className="text-xs font-bold text-white">Ingredientes Frescos</h5>
+            <p className="text-[11px] text-gray-400 mt-0.5">Sem aditivos químicos ou conservantes industriais.</p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
+            <Heart className="w-5 h-5 text-rose-400 mb-1" />
+            <h5 className="text-xs font-bold text-white">Feito à Mão</h5>
+            <p className="text-[11px] text-gray-400 mt-0.5">Cada massa recheada é moldada e fechada artesanalmente.</p>
+          </div>
+          <div className="p-3.5 rounded-xl bg-white/5 border border-white/10">
+            <Award className="w-5 h-5 text-amber-400 mb-1" />
+            <h5 className="text-xs font-bold text-white">Entrega Cuidadosa</h5>
+            <p className="text-[11px] text-gray-400 mt-0.5">Embalagens térmicas especiais que conservam textura e calor.</p>
+          </div>
         </div>
-        <div className="shrink-0">
-          <PWAInstallButton />
+      </div>
+
+      {/* PWA Install Button Option */}
+      <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <h4 className="text-sm font-black text-white">Instalar App no seu Dispositivo</h4>
+          <p className="text-xs text-gray-400">Tenha o cardápio sempre à mão direto na sua tela inicial.</p>
         </div>
+        <PWAInstallButton />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product, CustomizationOption, CartItem } from '../types';
-import { X, Minus, Plus, ShoppingBag, Info } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, Star, Clock, Heart, Sparkles, ChefHat } from 'lucide-react';
 
 interface ProductModalProps {
   product: Product;
@@ -39,17 +39,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
   useEffect(() => {
     let currentPrice = product.price;
 
-    // 1. Add size price differences (or set base size price)
     if (selectedSize) {
       currentPrice = selectedSize.price;
     }
 
-    // 2. Add customizable pasta upcharges
     if (selectedPasta) {
       currentPrice += selectedPasta.price;
     }
 
-    // 3. Add toppings prices
     if (selectedToppings.length > 0) {
       const toppingsSum = selectedToppings.reduce((acc, curr) => acc + curr.price, 0);
       currentPrice += toppingsSum;
@@ -67,7 +64,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
   };
 
   const handleAddToCart = () => {
-    // Generate a unique ID for this specific customization mix
     const customizationHash = JSON.stringify({
       size: selectedSize?.name,
       pasta: selectedPasta?.id,
@@ -101,58 +97,122 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/75 backdrop-blur-md p-0 sm:p-4 overflow-y-auto animate-fade-in text-left">
       {/* Click outside to close */}
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
-      {/* Modal Card */}
+      {/* Main Glass Customizer Card */}
       <div
         id="product-customizer-modal"
-        className="w-full sm:max-w-xl glass-panel rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up border border-white/80"
+        className="w-full sm:max-w-xl dark-glass-panel rounded-t-[2.5rem] sm:rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[88vh] border border-white/10"
       >
-        {/* Header Image banner */}
-        <div className="relative h-48 sm:h-56 w-full bg-gray-100 shrink-0">
-          <img
-            src={product.image}
-            alt={product.name}
-            referrerPolicy="no-referrer"
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600';
-            }}
-          />
-          {/* Close button */}
+        {/* Top Floating Action Bar */}
+        <div className="relative px-6 pt-5 pb-2 flex items-center justify-between z-20 shrink-0">
           <button
             id="btn-close-modal"
             onClick={onClose}
-            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-md text-gray-800 transition shadow-md border border-white/80 cursor-pointer"
+            className="w-10 h-10 rounded-full dark-glass-pill flex items-center justify-center text-white hover:text-amber-400 transition cursor-pointer"
+            title="Fechar"
           >
             <X className="w-5 h-5" />
           </button>
+
+          <span className="text-xs font-black uppercase tracking-widest text-amber-400/90 flex items-center gap-1.5">
+            <ChefHat className="w-3.5 h-3.5" />
+            <span>Massas da Vovó</span>
+          </span>
+
+          <div className="w-10 h-10 rounded-full dark-glass-pill flex items-center justify-center text-amber-400">
+            <Heart className="w-4 h-4 fill-amber-400/20" />
+          </div>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 p-6 overflow-y-auto space-y-6">
-          <div>
-            <h2 className="text-xl font-black text-gray-950">{product.name}</h2>
-            <p className="mt-2 text-sm text-gray-600 leading-relaxed font-normal">{product.description}</p>
+        <div className="flex-1 px-6 pb-6 overflow-y-auto space-y-6 no-scrollbar">
+          
+          {/* Centered Floating Food Spotlight with Halo (Matching Reference Image) */}
+          <div className="flex flex-col items-center justify-center pt-2">
+            <div className="relative w-56 h-56 sm:w-64 sm:h-64 flex items-center justify-center dish-halo">
+              <img
+                src={product.image}
+                alt={product.name}
+                referrerPolicy="no-referrer"
+                className="relative z-10 w-full h-full object-cover rounded-3xl shadow-2xl border border-white/10"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600';
+                }}
+              />
+              
+              {/* Floating Badge (e.g. Artesanal) */}
+              <div className="absolute top-2 right-2 z-20 rounded-full bg-black/65 backdrop-blur-md border border-white/15 px-3 py-1 text-[11px] font-extrabold text-amber-300 flex items-center gap-1 shadow-md">
+                <Sparkles className="w-3 h-3 text-amber-400" />
+                <span>100% Artesanal</span>
+              </div>
+            </div>
+
+            {/* Stepper Floating Pill (+ 1 -) matching the reference */}
+            <div className="mt-4 flex items-center gap-4 dark-glass-pill rounded-full px-5 py-2 border border-white/15 shadow-lg">
+              <button
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                disabled={quantity <= 1}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-gray-300 hover:text-white disabled:opacity-30 cursor-pointer active:scale-95 transition"
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+              <span className="text-base font-black text-white w-6 text-center">{quantity}</span>
+              <button
+                onClick={() => setQuantity(quantity + 1)}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-amber-400 hover:text-amber-300 cursor-pointer active:scale-95 transition"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
           </div>
 
-          {/* Size Options */}
+          {/* Dish Details Header */}
+          <div className="text-center sm:text-left space-y-2">
+            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">{product.name}</h2>
+            <p className="text-xs sm:text-sm text-gray-400 leading-relaxed font-normal">{product.description}</p>
+          </div>
+
+          {/* Mini Specs Pill Row: Delivery Time & Rating (From Reference) */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="dark-glass-pill rounded-2xl p-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-400/10 text-amber-400 flex items-center justify-center shrink-0">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Preparo & Entrega</span>
+                <span className="text-xs font-black text-white">30 - 45 Minutos</span>
+              </div>
+            </div>
+
+            <div className="dark-glass-pill rounded-2xl p-3 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-400/10 text-amber-400 flex items-center justify-center shrink-0">
+                <Star className="w-4 h-4 fill-amber-400" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Avaliação</span>
+                <span className="text-xs font-black text-white">4.9 ★★★★★</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Size Options (If Available) */}
           {product.sizes && product.sizes.length > 0 && (
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
+              <h3 className="text-xs font-black text-gray-300 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/10 pb-2">
                 <span>1. Escolha o Tamanho</span>
-                <span className="text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] px-1.5 py-0.5 rounded-sm">Obrigatório</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">Obrigatório</span>
               </h3>
-              <div className="grid grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-1 gap-2">
                 {product.sizes.map((size) => (
                   <label
                     key={size.name}
-                    className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
                       selectedSize?.name === size.name
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400/60 bg-amber-400/10 shadow-sm'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -161,11 +221,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                         name="product-size"
                         checked={selectedSize?.name === size.name}
                         onChange={() => setSelectedSize(size)}
-                        className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                        className="w-4 h-4 accent-amber-400 text-amber-500 focus:ring-amber-400"
                       />
-                      <span className="text-sm font-bold text-gray-800">{size.name}</span>
+                      <span className="text-sm font-bold text-gray-200">{size.name}</span>
                     </div>
-                    <span className="text-sm font-extrabold text-[#0b1c3f]">{formatPrice(size.price)}</span>
+                    <span className="text-sm font-black text-amber-400">{formatPrice(size.price)}</span>
                   </label>
                 ))}
               </div>
@@ -175,18 +235,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
           {/* Customizable: Pasta Selection */}
           {product.customizable?.pastas && (
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
+              <h3 className="text-xs font-black text-gray-300 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/10 pb-2">
                 <span>1. Escolha a Massa</span>
-                <span className="text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] px-1.5 py-0.5 rounded-sm">Obrigatório</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">Obrigatório</span>
               </h3>
               <div className="grid grid-cols-1 gap-2">
                 {product.customizable.pastas.map((pasta) => (
                   <label
                     key={pasta.id}
-                    className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
                       selectedPasta?.id === pasta.id
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400/60 bg-amber-400/10 shadow-sm'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <div className="flex items-center gap-3">
@@ -195,12 +255,12 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                         name="custom-pasta"
                         checked={selectedPasta?.id === pasta.id}
                         onChange={() => setSelectedPasta(pasta)}
-                        className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                        className="w-4 h-4 accent-amber-400 text-amber-500"
                       />
-                      <span className="text-sm font-bold text-gray-800">{pasta.name}</span>
+                      <span className="text-sm font-bold text-gray-200">{pasta.name}</span>
                     </div>
-                    <span className="text-xs font-semibold text-gray-500">
-                      {pasta.price === 0 ? 'Sem custo extra' : `+ ${formatPrice(pasta.price)}`}
+                    <span className="text-xs font-semibold text-gray-400">
+                      {pasta.price === 0 ? 'Incluso' : `+ ${formatPrice(pasta.price)}`}
                     </span>
                   </label>
                 ))}
@@ -211,18 +271,18 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
           {/* Customizable: Sauce Selection */}
           {product.customizable?.sauces && (
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                <span>2. Escolha o Molho</span>
-                <span className="text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] px-1.5 py-0.5 rounded-sm">Obrigatório</span>
+              <h3 className="text-xs font-black text-gray-300 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/10 pb-2">
+                <span>2. Escolha o Molho da Vovó</span>
+                <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">Obrigatório</span>
               </h3>
-              <div className="grid grid-cols-1 gap-2.5">
+              <div className="grid grid-cols-1 gap-2">
                 {product.customizable.sauces.map((sauce) => (
                   <label
                     key={sauce.id}
-                    className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-3 p-3.5 rounded-2xl border cursor-pointer transition-all ${
                       selectedSauce?.id === sauce.id
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400/60 bg-amber-400/10 shadow-sm'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <input
@@ -230,11 +290,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                       name="custom-sauce"
                       checked={selectedSauce?.id === sauce.id}
                       onChange={() => setSelectedSauce(sauce)}
-                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f] mt-0.5 shrink-0"
+                      className="w-4 h-4 accent-amber-400 text-amber-500 mt-1 shrink-0"
                     />
                     <div className="flex flex-col">
-                      <span className="text-sm font-bold text-gray-800 leading-tight">{sauce.name}</span>
-                      <span className="text-xs text-gray-400 mt-1 leading-snug">{sauce.description}</span>
+                      <span className="text-sm font-bold text-gray-200 leading-tight">{sauce.name}</span>
+                      <span className="text-xs text-gray-400 mt-0.5 leading-snug">{sauce.description}</span>
                     </div>
                   </label>
                 ))}
@@ -245,18 +305,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
           {/* Customizable: Toppings Selection */}
           {product.customizable?.toppings && (
             <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                <span>3. Adicionais Extras</span>
-                <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">Opcional</span>
+              <h3 className="text-xs font-black text-gray-300 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/10 pb-2">
+                <span>3. Adicionais Especiais</span>
+                <span className="text-[10px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-full font-bold">Opcional</span>
               </h3>
               <div className="grid grid-cols-1 gap-2">
-                 {product.customizable.toppings.map((topping) => {
+                {product.customizable.toppings.map((topping) => {
                   const isChecked = selectedToppings.some(t => t.id === topping.id);
                   return (
                     <label
                       key={topping.id}
-                      className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                        isChecked ? 'border-[#0b1c3f] bg-[#0b1c3f]/5' : 'border-gray-100 hover:border-gray-200 bg-white'
+                      className={`flex items-center justify-between p-3.5 rounded-2xl border cursor-pointer transition-all ${
+                        isChecked
+                          ? 'border-amber-400/60 bg-amber-400/10 shadow-sm'
+                          : 'border-white/10 hover:border-white/20 bg-white/5'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -264,11 +326,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleToppingToggle(topping)}
-                          className="w-4 h-4 rounded text-[#0b1c3f] focus:ring-[#0b1c3f] cursor-pointer"
+                          className="w-4 h-4 accent-amber-400 text-amber-500 rounded"
                         />
-                        <span className="text-sm font-bold text-gray-800">{topping.name}</span>
+                        <span className="text-sm font-bold text-gray-200">{topping.name}</span>
                       </div>
-                      <span className="text-sm font-bold text-[#0b1c3f]">+ {formatPrice(topping.price)}</span>
+                      <span className="text-xs font-black text-amber-400">+ {formatPrice(topping.price)}</span>
                     </label>
                   );
                 })}
@@ -278,46 +340,39 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
 
           {/* Kitchen Notes */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-gray-800 uppercase tracking-wider block">Observações do Pedido</label>
+            <label className="text-xs font-black text-gray-300 uppercase tracking-wider block">
+              Observações para a cozinha
+            </label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ex: sem cebola, ponto da massa bem cozido, talher extra..."
-              className="w-full rounded-xl border border-gray-200 p-3.5 text-sm focus:border-[#0b1c3f] focus:ring-[#0b1c3f] outline-hidden min-h-[80px]"
+              placeholder="Ex: sem queijo parmesão, molho bem quente, enviar talheres descartáveis..."
+              rows={2}
+              className="w-full rounded-2xl bg-white/5 border border-white/10 p-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-400/50"
             />
           </div>
+
         </div>
 
-        {/* Footer actions: Quantity + Add button */}
-        <div className="p-6 border-t border-white/60 bg-white/50 backdrop-blur-md shrink-0 flex flex-col sm:flex-row gap-4 items-center">
-          {/* Quantity Selector */}
-          <div className="flex items-center justify-between border border-white/80 rounded-full bg-white/70 backdrop-blur-md p-1.5 shrink-0 w-32 shadow-xs">
-            <button
-              onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-1.5 rounded-full hover:bg-white text-gray-700 disabled:opacity-40 transition cursor-pointer"
-              disabled={quantity <= 1}
-            >
-              <Minus className="w-4 h-4" />
-            </button>
-            <span className="text-base font-extrabold text-gray-900">{quantity}</span>
-            <button
-              onClick={() => setQuantity(quantity + 1)}
-              className="p-1.5 rounded-full hover:bg-white text-gray-700 transition cursor-pointer"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+        {/* Footer actions: Price & Add Button */}
+        <div className="p-5 border-t border-white/10 bg-black/40 backdrop-blur-md shrink-0 flex items-center justify-between gap-4">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total do Prato</span>
+            <span className="text-xl font-black text-amber-400 leading-tight">
+              {formatPrice(unitPrice * quantity)}
+            </span>
           </div>
 
-          {/* Add Button */}
           <button
             id="btn-confirm-add-cart"
             onClick={handleAddToCart}
-            className="flex-1 w-full flex items-center justify-center gap-2 rounded-full glass-button-primary py-4 px-6 text-base font-black shadow-lg cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-2 rounded-full dark-glass-button-gold py-3.5 px-6 text-sm font-black shadow-lg cursor-pointer hover:scale-102 active:scale-95 transition-transform"
           >
-            <ShoppingBag className="w-5 h-5 text-[#f6e09e]" />
-            <span>Adicionar {formatPrice(unitPrice * quantity)}</span>
+            <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
+            <span>Adicionar ao Pedido</span>
           </button>
         </div>
+
       </div>
     </div>
   );

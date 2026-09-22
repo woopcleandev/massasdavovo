@@ -324,32 +324,32 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-md">
       {/* Click outside to close */}
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
       {/* Cart Drawer Panel */}
       <div
         id="cart-panel-drawer"
-        className="w-full max-w-lg glass-panel h-full flex flex-col shadow-2xl relative animate-slide-left overflow-hidden border-l border-white/80"
+        className="w-full max-w-lg dark-glass-panel h-full flex flex-col shadow-2xl relative animate-slide-left overflow-hidden border-l border-white/10 text-white"
       >
         {/* Drawer Header */}
-        <div className="bg-white/60 backdrop-blur-md border-b border-white/60 p-5 shrink-0 flex items-center justify-between">
+        <div className="bg-black/50 backdrop-blur-md border-b border-white/10 p-5 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[#0b1c3f]/10 text-[#0b1c3f] border border-[#0b1c3f]/15">
+            <div className="p-2 rounded-xl bg-amber-400/10 text-amber-400 border border-amber-400/20">
               <ShoppingCart className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-gray-950">Seu Carrinho</h2>
+              <h2 className="text-lg font-black text-white">Sua Sacola de Massas</h2>
               <p className="text-xs text-gray-400">
-                {cartItems.length} {cartItems.length === 1 ? 'item selecionado' : 'itens selecionados'}
+                {cartItems.length} {cartItems.length === 1 ? 'item artesanal' : 'itens artesanais'}
               </p>
             </div>
           </div>
           <button
             id="btn-close-cart"
             onClick={onClose}
-            className="p-2.5 rounded-full hover:bg-white text-gray-500 hover:text-gray-800 transition cursor-pointer"
+            className="p-2.5 rounded-full dark-glass-pill hover:bg-white/10 text-gray-400 hover:text-white transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -377,19 +377,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <>
               {/* Order Items List */}
               <div className="space-y-3">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Itens Escolhidos</h3>
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider">Itens Escolhidos</h3>
                 <div className="space-y-2.5">
                   {cartItems.map((item) => (
                     <div
                       key={item.id}
-                      className="bg-white border border-gray-100 rounded-2xl p-4 flex items-start gap-3 shadow-xs"
+                      className="dark-glass-card border border-white/10 rounded-2xl p-4 flex items-start gap-3 shadow-md"
                     >
                       {/* Product Thumbnail */}
                       <img
                         src={item.product.image}
                         alt={item.product.name}
                         referrerPolicy="no-referrer"
-                        className="w-16 h-16 rounded-xl object-cover bg-gray-50 shrink-0 border border-gray-50"
+                        className="w-16 h-16 rounded-xl object-cover bg-black/40 shrink-0 border border-white/10"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600';
                         }}
@@ -398,12 +398,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       {/* Info & Adjusters */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-1">
-                          <h4 className="text-sm font-bold text-gray-900 leading-tight truncate">
+                          <h4 className="text-sm font-bold text-white leading-tight truncate">
                             {item.product.name}
                           </h4>
                           <button
                             onClick={() => onRemoveItem(item.id)}
-                            className="p-1 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition shrink-0"
+                            className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition shrink-0 cursor-pointer"
                             title="Remover item"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -416,49 +416,49 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           item.customization?.selectedSauce ||
                           (item.customization?.selectedToppings && item.customization.selectedToppings.length > 0) ||
                           item.notes) && (
-                          <div className="mt-1 flex flex-col gap-0.5 text-[11px] text-gray-500 leading-snug bg-gray-50 rounded-lg p-2 border border-gray-50/50">
+                          <div className="mt-1 flex flex-col gap-0.5 text-[11px] text-gray-300 leading-snug bg-white/5 rounded-lg p-2 border border-white/5">
                             {item.customization?.selectedSize && (
-                              <div><strong>Tamanho:</strong> {item.customization.selectedSize.name}</div>
+                              <div><strong className="text-amber-400">Tamanho:</strong> {item.customization.selectedSize.name}</div>
                             )}
                             {item.customization?.selectedPasta && (
-                              <div><strong>Massa:</strong> {item.customization.selectedPasta.name}</div>
+                              <div><strong className="text-amber-400">Massa:</strong> {item.customization.selectedPasta.name}</div>
                             )}
                             {item.customization?.selectedSauce && (
-                              <div><strong>Molho:</strong> {item.customization.selectedSauce.name}</div>
+                              <div><strong className="text-amber-400">Molho:</strong> {item.customization.selectedSauce.name}</div>
                             )}
                             {item.customization?.selectedToppings && (
                               <div>
-                                <strong>Adicionais:</strong>{' '}
+                                <strong className="text-amber-400">Adicionais:</strong>{' '}
                                 {item.customization.selectedToppings.map(t => t.name).join(', ')}
                               </div>
                             )}
                             {item.notes && (
-                              <div className="text-[#0b1c3f]/80 italic"><strong>Obs:</strong> "{item.notes}"</div>
+                              <div className="text-gray-300 italic"><strong className="text-amber-400">Obs:</strong> "{item.notes}"</div>
                             )}
                           </div>
                         )}
 
                         <div className="mt-3.5 flex items-center justify-between">
                           {/* Item unit subtotal */}
-                          <span className="text-sm font-extrabold text-[#0b1c3f]">
+                          <span className="text-sm font-black text-amber-400">
                             {formatPrice(item.totalUnitPrice * item.quantity)}
                           </span>
 
                           {/* Adjust Quantity Buttons */}
-                          <div className="flex items-center gap-2.5 border border-gray-100 rounded-full bg-gray-50/50 p-1">
+                          <div className="flex items-center gap-2 border border-white/10 rounded-full bg-white/5 p-1">
                             <button
                               onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                              className="p-1 rounded-full bg-white hover:bg-gray-100 text-gray-600 shadow-xs transition"
+                              className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-gray-200 transition cursor-pointer"
                               disabled={item.quantity <= 1}
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="text-xs font-bold text-gray-800 w-4 text-center">{item.quantity}</span>
+                            <span className="text-xs font-black text-white w-4 text-center">{item.quantity}</span>
                             <button
                               onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
-                              className="p-1 rounded-full bg-white hover:bg-gray-100 text-gray-600 shadow-xs transition"
+                              className="p-1 rounded-full bg-amber-400 text-black hover:bg-amber-300 transition cursor-pointer"
                             >
-                              <Plus className="w-3 h-3" />
+                              <Plus className="w-3 h-3 stroke-[3]" />
                             </button>
                           </div>
                         </div>
@@ -887,21 +887,21 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         {/* Drawer Footer Summary & Send Button */}
         {cartItems.length > 0 && (
-          <div className="bg-white border-t border-gray-100 p-5 shrink-0 space-y-4">
+          <div className="bg-black/60 backdrop-blur-md border-t border-white/10 p-5 shrink-0 space-y-4">
             <div className="space-y-1.5 text-sm">
-              <div className="flex items-center justify-between text-gray-500">
+              <div className="flex items-center justify-between text-gray-400">
                 <span>Subtotal dos itens</span>
-                <span>{formatPrice(itemsSubtotal)}</span>
+                <span className="text-gray-200 font-mono">{formatPrice(itemsSubtotal)}</span>
               </div>
               {customer.deliveryType === 'delivery' && (
-                <div className="flex items-center justify-between text-gray-500">
+                <div className="flex items-center justify-between text-gray-400">
                   <span>Taxa de Entrega ({customer.neighborhood})</span>
-                  <span>{formatPrice(deliveryFee)}</span>
+                  <span className="text-gray-200 font-mono">{formatPrice(deliveryFee)}</span>
                 </div>
               )}
-              <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between text-gray-900 font-extrabold text-lg">
+              <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-white font-black text-lg">
                 <span>Total do Pedido</span>
-                <span className="text-[#0b1c3f]">{formatPrice(grandTotal)}</span>
+                <span className="text-amber-400 font-mono text-xl">{formatPrice(grandTotal)}</span>
               </div>
             </div>
 
@@ -913,7 +913,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     onClearCart();
                   }
                 }}
-                className="text-xs text-gray-400 hover:text-[#0b1c3f] underline font-medium transition"
+                className="text-xs text-gray-400 hover:text-red-400 underline font-medium transition cursor-pointer"
               >
                 Limpar carrinho de compras
               </button>
@@ -924,9 +924,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               id="btn-send-whatsapp-order"
               disabled={isSubmitting}
               onClick={handleSendOrder}
-              className="w-full flex items-center justify-center gap-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 py-4 px-6 text-base font-bold text-white transition shadow-lg active:scale-98 transform hover:scale-101 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 py-3.5 px-6 text-sm font-black text-white transition shadow-lg active:scale-98 transform hover:scale-101 cursor-pointer"
             >
-              <Send className="w-5 h-5 fill-white" />
+              <Send className="w-4 h-4 fill-white" />
               <span>{isSubmitting ? 'Gerando Comanda...' : 'Finalizar e Enviar Pedido pelo WhatsApp'}</span>
             </button>
           </div>
