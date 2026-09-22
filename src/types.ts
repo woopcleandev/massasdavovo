@@ -1,7 +1,12 @@
 export enum CategoryId {
+  SORRENTINO = 'sorrentino',
+  NHOQUE = 'nhoque',
   LASANHAS = 'lasanhas',
-  MASSAS_CLASSICAS = 'massas-classicas',
-  EXECUTIVOS = 'executivos',
+  RONDELE = 'rondele',
+  CAPELETE_TORTEI = 'capelete-tortei',
+  MOLHOS = 'molhos',
+  NHOQUE_TRADICIONAL = 'nhoque-tradicional',
+  CARNES = 'carnes',
   SOBREMESAS = 'sobremesas',
   BEBIDAS = 'bebidas',
 }
@@ -77,3 +82,25 @@ export const NEIGHBORHOODS: NeighborhoodFee[] = [
   { name: 'Industrial', fee: 10.0 },
   { name: 'Outro Bairro (A combinar)', fee: 10.0 },
 ];
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  whatsapp: string;
+  email: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface SavedAddress {
+  id: string;
+  userId: string;
+  street: string;
+  number: string;
+  complement?: string;
+  neighborhood: string;
+  label: 'casa' | 'trabalho' | 'outro';
+  createdAt: string;
+  updatedAt: string;
+}
+

@@ -6,6 +6,12 @@ import lasagnaImage from './assets/images/lasanha_bolonhesa_vovo_1790085587729.j
 import gnocchiImage from './assets/images/nhoque_artesanal_vovo_1790085601096.jpg';
 import coca2lImage from './assets/images/coca_cola_2l_man_1790086001186.jpg';
 
+// New high-fidelity generated images
+import sorrentinoCapreseImage from './assets/images/sorrentino_caprese_1790099802500.jpg';
+import rondeleArtesanalImage from './assets/images/rondele_artesanal_1790099816704.jpg';
+import torteiAboboraImage from './assets/images/tortei_abobora_1790099852857.jpg';
+import carneMolhoMadeiraImage from './assets/images/carne_molho_madeira_1790099866762.jpg';
+
 export const RESTAURANT_INFO = {
   name: 'Massas da Vovó',
   logo: logoImage,
@@ -18,114 +24,306 @@ export const RESTAURANT_INFO = {
 };
 
 export const CATEGORIES = [
-  { id: CategoryId.LASANHAS, name: 'Lasanhas Especiais', icon: '🍕' },
-  { id: CategoryId.MASSAS_CLASSICAS, name: 'Monte sua Massa', icon: '🍝' },
-  { id: CategoryId.EXECUTIVOS, name: 'Pratos da Vovó', icon: '🍽️' },
+  { id: CategoryId.SORRENTINO, name: 'Sorrentino', icon: '🥟' },
+  { id: CategoryId.NHOQUE, name: 'Nhoque', icon: '🍲' },
+  { id: CategoryId.LASANHAS, name: 'Lasanha (Pronta)', icon: '🍕' },
+  { id: CategoryId.RONDELE, name: 'Rondele', icon: '🌀' },
+  { id: CategoryId.CAPELETE_TORTEI, name: 'Capelete e Tortéi', icon: '🇮🇹' },
+  { id: CategoryId.MOLHOS, name: 'Molhos', icon: '🥫' },
+  { id: CategoryId.NHOQUE_TRADICIONAL, name: 'Nhôque Tradicional', icon: '🍝' },
+  { id: CategoryId.CARNES, name: 'Carnes', icon: '🥩' },
   { id: CategoryId.SOBREMESAS, name: 'Sobremesas', icon: '🍰' },
   { id: CategoryId.BEBIDAS, name: 'Bebidas', icon: '🥤' },
 ];
 
 export const PRODUCTS: Product[] = [
-  // 1. LASANHAS
+  // 1. SORRENTINO
   {
-    id: 'lasanha-bolonhesa',
-    categoryId: CategoryId.LASANHAS,
-    name: 'Lasanha à Bolonhesa da Vovó',
-    description: 'Camadas de massa fresca artesanal, molho de tomate cozido lentamente com carne moída selecionada, presunto, queijo muçarela e orégano.',
-    price: 38.90,
-    image: lasagnaImage,
+    id: 'sorrentino-caprese',
+    categoryId: CategoryId.SORRENTINO,
+    name: 'Sorrentino Caprese (500g)',
+    description: 'Massa fresca artesanal recheada com mussarela cremosa, tomate seco selecionado e manjericão fresco picado.',
+    price: 58.90,
+    image: sorrentinoCapreseImage,
     isPopular: true,
-    sizes: [
-      { name: 'Individual (Aprox. 600g)', price: 38.90 },
-      { name: 'Família (Aprox. 1.2kg)', price: 68.90 },
-    ],
   },
   {
-    id: 'lasanha-frango',
-    categoryId: CategoryId.LASANHAS,
-    name: 'Lasanha de Frango com Catupiry',
-    description: 'Massa fresca, peito de frango desfiado suculento, creme bechamel, queijo muçarela e o legítimo Catupiry.',
-    price: 36.90,
-    image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&q=80&w=600',
-    sizes: [
-      { name: 'Individual (Aprox. 600g)', price: 36.90 },
-      { name: 'Família (Aprox. 1.2kg)', price: 64.90 },
-    ],
+    id: 'sorrentino-abobora-carne-seca',
+    categoryId: CategoryId.SORRENTINO,
+    name: 'Sorrentino de Abóbora com Carne Seca (500g)',
+    description: 'Massa fresca recheada com um delicioso creme de abóbora cabotiá e carne seca desfiada bem temperada.',
+    price: 58.90,
+    image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80&w=600',
   },
   {
-    id: 'lasanha-quatro-queijos',
-    categoryId: CategoryId.LASANHAS,
-    name: 'Lasanha Quatro Queijos',
-    description: 'Para os amantes de queijo: Muçarela, provolone, queijo gorgonzola suave e Catupiry cremoso intercalados com nossa massa artesanal e molho branco.',
-    price: 39.90,
+    id: 'sorrentino-limao-siciliano',
+    categoryId: CategoryId.SORRENTINO,
+    name: 'Sorrentino de Limão Siciliano (500g)',
+    description: 'Massa fresca recheada com presunto cozido, queijo mussarela cremoso e raspas de limão siciliano fresco.',
+    price: 58.90,
+    image: 'https://images.unsplash.com/photo-1621996346565-e3bb64e0be5e?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'sorrentino-ricota-gorgonzola-nozes',
+    categoryId: CategoryId.SORRENTINO,
+    name: 'Sorrentino de Ricota com Gorgonzola e Nozes (500g)',
+    description: 'Recheio requintado de ricota fresca, queijo gorgonzola suave e pedaços crocantes de nozes selecionadas.',
+    price: 58.90,
     image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
-    sizes: [
-      { name: 'Individual (Aprox. 600g)', price: 39.90 },
-      { name: 'Família (Aprox. 1.2kg)', price: 69.90 },
-    ],
   },
-
-  // 2. MONTE SUA MASSA
   {
-    id: 'monte-sua-massa',
-    categoryId: CategoryId.MASSAS_CLASSICAS,
-    name: 'Monte seu Prato de Massa',
-    description: 'Escolha seu tipo de pasta fresca, o molho artesanal de sua preferência e adicione os complementos que mais gostar!',
-    price: 29.90, // Base price
+    id: 'sorrentino-frango-cremoso',
+    categoryId: CategoryId.SORRENTINO,
+    name: 'Sorrentino de Frango Cremoso (500g)',
+    description: 'Massa fresca artesanal recheada com peito de frango desfiado temperado e requeijão cremoso.',
+    price: 58.90,
+    image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'sorrentino-pitaya',
+    categoryId: CategoryId.SORRENTINO,
+    name: 'Sorrentino de Pitaya (500g)',
+    description: 'Massa artesanal levemente rosada de pitaya recheada com bacon defumado, alho-poró e creme especial da casa.',
+    price: 58.90,
     image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600',
-    isPopular: true,
-    customizable: {
-      pastas: [
-        { id: 'p1', name: 'Espaguete da Vovó', price: 0 },
-        { id: 'p2', name: 'Talharim Fresco', price: 2.0 },
-        { id: 'p3', name: 'Nhoque de Batata Rústico', price: 4.0 },
-        { id: 'p4', name: 'Rondelli Presunto e Queijo', price: 6.0 },
-      ],
-      sauces: [
-        { id: 's1', name: 'Molho Bolonhesa', description: 'Carne bovina moída cozida lentamente com tomates frescos' },
-        { id: 's2', name: 'Molho Branco (Quatro Queijos)', description: 'Bechamel aveludado com provolone, parmesão e gorgonzola' },
-        { id: 's3', name: 'Molho ao Sugo Rústico', description: 'Tomates italianos pelados com manjericão e alho dourado' },
-        { id: 's4', name: 'Molho Rosé Cremoso', description: 'O equilíbrio perfeito entre molho de tomate e creme de leite' },
-      ],
-      toppings: [
-        { id: 't1', name: 'Bacon em Cubos Crocante', price: 5.0 },
-        { id: 't2', name: 'Almôndegas de Carne (3 unidades)', price: 8.0 },
-        { id: 't3', name: 'Frango Grelhado Desfiado', price: 6.0 },
-        { id: 't4', name: 'Queijo Parmesão Ralado Grosso', price: 3.5 },
-        { id: 't5', name: 'Azeitonas Pretas Fatiadas', price: 2.5 },
-        { id: 't6', name: 'Brócolis ao Alho e Óleo', price: 4.0 },
-      ],
-    },
   },
 
-  // 3. EXECUTIVOS
+  // 2. NHOQUE (RECHEADO)
   {
-    id: 'nhoque-recheado',
-    categoryId: CategoryId.EXECUTIVOS,
-    name: 'Nhoque Recheado ao Molho Bolonhesa',
-    description: 'Deliciosos nhoques artesanais feitos de batata selecionada, recheados com queijo muçarela cremoso, cobertos com nosso molho bolonhesa clássico e gratinados.',
-    price: 42.90,
+    id: 'nhoque-limao',
+    categoryId: CategoryId.NHOQUE,
+    name: 'Nhoque de Limão (500g)',
+    description: 'Massa de batata levíssima recheada com queijo mussarela, raspas de limão siciliano e pedacinhos de nozes.',
+    price: 58.90,
     image: gnocchiImage,
     isPopular: true,
   },
   {
-    id: 'rondelli-quatro-queijos',
-    categoryId: CategoryId.EXECUTIVOS,
-    name: 'Rondelli de Quatro Queijos ao Sugo',
-    description: 'Rondellis de massa fresca enrolados com mix cremoso de quatro queijos (muçarela, parmesão, provolone e ricota temperada) ao molho de tomate rústico e parmesão gratinado.',
-    price: 44.90,
+    id: 'nhoque-queijo',
+    categoryId: CategoryId.NHOQUE,
+    name: 'Nhoque de Queijo (500g)',
+    description: 'Delicioso nhoque artesanal de batata super recheado com queijo muçarela derretido e cremoso.',
+    price: 58.90,
+    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'nhoque-caprese',
+    categoryId: CategoryId.NHOQUE,
+    name: 'Nhoque Caprese (500g)',
+    description: 'Nhoque de batata recheado com queijo cremoso, tomate seco e toque aromático de manjericão fresco.',
+    price: 58.90,
     image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=600',
   },
   {
-    id: 'canelone-ricota',
-    categoryId: CategoryId.EXECUTIVOS,
-    name: 'Canelone de Ricota com Nozes',
-    description: 'Tubos de massa fresca recheados com ricota fresca temperada, nozes picadas crocantes e espinafre fresco, cobertos com molho branco cremoso.',
-    price: 39.90,
+    id: 'nhoque-gorgonzola',
+    categoryId: CategoryId.NHOQUE,
+    name: 'Nhoque de Gorgonzola (500g)',
+    description: 'Nhoque rústico de batata com recheio marcante de queijo gorgonzola cremoso.',
+    price: 58.90,
     image: 'https://images.unsplash.com/photo-1595295333158-4742f28fbe93?auto=format&fit=crop&q=80&w=600',
   },
+  {
+    id: 'nhoque-calabresa-queijo',
+    categoryId: CategoryId.NHOQUE,
+    name: 'Nhoque de Calabresa e Queijo (500g)',
+    description: 'Massa de batata recheada com calabresa moída bem temperada e queijo muçarela cremoso.',
+    price: 58.90,
+    image: 'https://images.unsplash.com/photo-1621510456681-23a23cfb5f57?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'nhoque-carne-seca-banana',
+    categoryId: CategoryId.NHOQUE,
+    name: 'Nhoque de Carne Seca com Banana da Terra (500g)',
+    description: 'Saboroso nhoque recheado de carne seca desfiada e pedaços de banana-da-terra adocicada.',
+    price: 58.90,
+    image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80&w=600',
+  },
 
-  // 4. SOBREMESAS
+  // 3. LASANHA (PRONTA)
+  {
+    id: 'lasanha-carne-g',
+    categoryId: CategoryId.LASANHAS,
+    name: 'Lasanha de Carne G (1Kg)',
+    description: 'Lasanha pronta de carne bovina selecionada, molho marinara artesanal, massa fresca e queijo muçarela.',
+    price: 87.50,
+    image: lasagnaImage,
+    isPopular: true,
+  },
+  {
+    id: 'lasanha-frango-g',
+    categoryId: CategoryId.LASANHAS,
+    name: 'Lasanha de Frango G (1Kg)',
+    description: 'Lasanha pronta de frango desfiado temperado, molho bechamel cremoso, massa artesanal e muito queijo.',
+    price: 87.50,
+    image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&q=80&w=600',
+  },
+
+  // 4. RONDELE
+  {
+    id: 'rondele-presunto-queijo-pronto',
+    categoryId: CategoryId.RONDELE,
+    name: 'Rondele Pronto de Presunto e Queijo (1Kg)',
+    description: 'Rondelli fresquinho assado e pronto para consumo, generosamente recheado com presunto e mussarela derretida.',
+    price: 72.90,
+    image: rondeleArtesanalImage,
+    isPopular: true,
+  },
+  {
+    id: 'rondele-frango-cremoso-pronto',
+    categoryId: CategoryId.RONDELE,
+    name: 'Rondele Pronto de Frango Cremoso (1Kg)',
+    description: 'Rondelli assado recheado com peito de frango desfiado temperado com ervas e requeijão cremoso.',
+    price: 72.90,
+    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'rondele-rucula-tomate-seco-pronto',
+    categoryId: CategoryId.RONDELE,
+    name: 'Rondele Pronto de Rúcula com Tomate Seco (1Kg)',
+    description: 'Sabor marcante de rúcula fresca e tomate seco picado com mussarela, assado e quentinho.',
+    price: 72.90,
+    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'rondele-presunto-queijo-congelado',
+    categoryId: CategoryId.RONDELE,
+    name: 'Rondele Congelado de Presunto e Queijo (500g)',
+    description: 'Rondelli artesanal congelado recheado com presunto e queijo, ideal para assar em casa.',
+    price: 48.90,
+    image: rondeleArtesanalImage,
+  },
+  {
+    id: 'rondele-frango-cremoso-congelado',
+    categoryId: CategoryId.RONDELE,
+    name: 'Rondele Congelado de Frango Cremoso (500g)',
+    description: 'Rondelli congelado de frango com requeijão, super prático de preparar quando quiser.',
+    price: 48.90,
+    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'rondele-rucula-tomate-seco-congelado',
+    categoryId: CategoryId.RONDELE,
+    name: 'Rondele Congelado de Rúcula com Tomate Seco (500g)',
+    description: 'Rondelli congelado de rúcula com tomate seco, uma massa vegetariana saborosa e leve.',
+    price: 48.90,
+    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+  },
+
+  // 5. CAPELETE E TORTÉI
+  {
+    id: 'capelete-carne',
+    categoryId: CategoryId.CAPELETE_TORTEI,
+    name: 'Capelete de Carne (500g)',
+    description: 'Pequenos chapéus de massa fresca recheados com carne bovina moída e temperada da vovó.',
+    price: 48.00,
+    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'capelete-frango',
+    categoryId: CategoryId.CAPELETE_TORTEI,
+    name: 'Capelete de Frango (500g)',
+    description: 'Massa artesanal recheada com peito de frango desfiado fino e levemente temperado.',
+    price: 48.00,
+    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'tortei-pronto',
+    categoryId: CategoryId.CAPELETE_TORTEI,
+    name: 'Tortéi Pronto (1Kg)',
+    description: 'Tradicionalíssimo tortéi artesanal recheado com abóbora doce temperada, servido pronto.',
+    price: 60.00,
+    image: torteiAboboraImage,
+    isPopular: true,
+  },
+  {
+    id: 'tortei-pastelzinho',
+    categoryId: CategoryId.CAPELETE_TORTEI,
+    name: 'Tortéi Pastelzinho (500g)',
+    description: 'Tortéi moldado em formato de mini pasteizinhos, super crocantes e macios.',
+    price: 45.00,
+    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'tortei-rondele',
+    categoryId: CategoryId.CAPELETE_TORTEI,
+    name: 'Tortéi Rondele (500g)',
+    description: 'Massa fresca moldada em rondeles recheados com nosso clássico e saboroso creme de abóbora.',
+    price: 48.00,
+    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=600',
+  },
+
+  // 6. MOLHOS
+  {
+    id: 'molho-sugo',
+    categoryId: CategoryId.MOLHOS,
+    name: 'Molho ao Sugo (500g)',
+    description: 'Molho clássico de tomates italianos pelados cozido lentamente com azeite e manjericão fresco.',
+    price: 28.00,
+    image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'molho-bechamel',
+    categoryId: CategoryId.MOLHOS,
+    name: 'Molho Bechamel (500g)',
+    description: 'Molho branco cremoso e aveludado feito com manteiga, farinha, leite e um toque sutil de noz-moscada.',
+    price: 28.00,
+    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'molho-quatro-queijos',
+    categoryId: CategoryId.MOLHOS,
+    name: 'Molho 4 Queijo (500g)',
+    description: 'O sabor inconfundível do molho branco combinado com muçarela, parmesão, provolone e gorgonzola.',
+    price: 28.00,
+    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=600',
+  },
+
+  // 7. NHOQUE TRADICIONAL
+  {
+    id: 'nhoque-tradicional-batata',
+    categoryId: CategoryId.NHOQUE_TRADICIONAL,
+    name: 'Nhôque de Batata (500g)',
+    description: 'Nhoque tradicional de batata selecionada, leve e extremamente saboroso, sem recheio.',
+    price: 27.90,
+    image: gnocchiImage,
+  },
+  {
+    id: 'nhoque-tradicional-batata-doce',
+    categoryId: CategoryId.NHOQUE_TRADICIONAL,
+    name: 'Nhôque de Batata Doce (500g)',
+    description: 'Leveza e suavidade com o toque adocicado da batata doce nesta receita artesanal.',
+    price: 27.90,
+    image: 'https://images.unsplash.com/photo-1621510456681-23a23cfb5f57?auto=format&fit=crop&q=80&w=600',
+  },
+
+  // 8. CARNES
+  {
+    id: 'frango-kaskata',
+    categoryId: CategoryId.CARNES,
+    name: 'Frango Kaskata',
+    description: 'Frango inteiro ou desossado cozido lentamente em tempero rústico especial, dourado e incrivelmente suculento.',
+    price: 95.90,
+    image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'frango-cacadora',
+    categoryId: CategoryId.CARNES,
+    name: 'Frango a Caçadora',
+    description: 'Guisado tradicional italiano de peito e coxas de frango com molho de tomate rústico, pimentões, ervas finas e cogumelos.',
+    price: 85.90,
+    image: 'https://images.unsplash.com/photo-1598515214211-89d3e73ae83b?auto=format&fit=crop&q=80&w=600',
+  },
+  {
+    id: 'file-molho-madeira',
+    categoryId: CategoryId.CARNES,
+    name: 'Filé ao Molho Madeira',
+    description: 'Suculentos medalhões de filé mignon grelhados, cobertos com nosso exclusivo molho ao vinho Madeira e cogumelos champignon.',
+    price: 150.00,
+    image: carneMolhoMadeiraImage,
+    isPopular: true,
+  },
+
+  // 9. SOBREMESAS
   {
     id: 'pudim-leite',
     categoryId: CategoryId.SOBREMESAS,
@@ -151,7 +349,7 @@ export const PRODUCTS: Product[] = [
     image: 'https://images.unsplash.com/photo-1511018556340-d16986a1c194?auto=format&fit=crop&q=80&w=600',
   },
 
-  // 5. BEBIDAS
+  // 10. BEBIDAS
   {
     id: 'coca-lata',
     categoryId: CategoryId.BEBIDAS,

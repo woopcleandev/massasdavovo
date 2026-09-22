@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { CartItem, CustomerInfo, NEIGHBORHOODS, PaymentMethod } from '../types';
 import { RESTAURANT_INFO } from '../data';
-import { X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, CreditCard, Clock, CheckCircle } from 'lucide-react';
+import { X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, CreditCard, Clock, CheckCircle, Home, Briefcase, Tag } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+
 
 interface CartDrawerProps {
   cartItems: CartItem[];
@@ -18,6 +20,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   onRemoveItem,
   onClearCart,
 }) => {
+  const { currentUser, userProfile, savedAddresses, addSavedAddress } = useAuth();
+  const [selectedAddressId, setSelectedAddressId] = useState<string>('custom');
+  const [saveThisAddress, setSaveThisAddress] = useState(false);
+
   // Try to load saved customer info from localStorage
   const [customer, setCustomer] = useState<CustomerInfo>(() => {
     try {
@@ -52,8 +58,43 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     };
   });
 
+  // Pre-fill user profile info if logged in
+  useEffect(() => {
+    if (userProfile) {
+      setCustomer(prev => ({
+        ...prev,
+        name: prev.name || userProfile.name || '',
+        phone: prev.phone || userProfile.whatsapp || '',
+      }));
+    }
+  }, [userProfile]);
+
+  // Handle saved address quick select selection
+  const handleSelectSavedAddress = (addrId: string) => {
+    setSelectedAddressId(addrId);
+    if (addrId === 'custom') {
+      setCustomer(prev => ({
+        ...prev,
+        street: '',
+        number: '',
+        neighborhood: NEIGHBORHOODS[0].name,
+      }));
+    } else {
+      const addr = savedAddresses.find(a => a.id === addrId);
+      if (addr) {
+        setCustomer(prev => ({
+          ...prev,
+          street: addr.street,
+          number: addr.number,
+          neighborhood: addr.neighborhood,
+        }));
+      }
+    }
+  };
+
   // Keep track of validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
+
 
   const formatPrice = (value: number) => {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -100,6 +141,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         element.scrollIntoView({ behavior: 'smooth' });
       }
       return;
+    }
+
+    // Save to firebase database if checked and user is logged in
+    if (currentUser && customer.deliveryType === 'delivery' && selectedAddressId === 'custom' && saveThisAddress && customer.street && customer.number && customer.neighborhood) {
+      addSavedAddress({
+        street: customer.street,
+        number: customer.number,
+        neighborhood: customer.neighborhood,
+        label: 'casa'
+      }).catch(e => console.error("Error saving address on checkout:", e));
     }
 
     // Compile order message in "Anota Aí" style
@@ -419,63 +470,154 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   {/* Delivery Specific Fields */}
                   {customer.deliveryType === 'delivery' && (
                     <div className="space-y-3 animate-fade-in">
-                      {/* Neighborhood / Bairro selector */}
-                      <div id="field-neighborhood">
-                        <label className="text-xs font-bold text-gray-700 block mb-1">Seu Bairro (Primavera do Leste)</label>
-                        <select
-                          value={customer.neighborhood}
-                          onChange={(e) => {
-                            setCustomer({ ...customer, neighborhood: e.target.value });
-                            if (errors.neighborhood) setErrors({ ...errors, neighborhood: '' });
-                          }}
-                          className={`w-full rounded-xl border p-3 text-sm bg-white focus:ring-red-500 focus:border-red-500 outline-hidden ${
-                            errors.neighborhood ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
-                          }`}
-                        >
-                          {NEIGHBORHOODS.map((n) => (
-                            <option key={n.name} value={n.name}>
-                              {n.name} — Taxa: {formatPrice(n.fee)}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                      {/* Saved addresses selector if user has saved addresses */}
+                      {currentUser && savedAddresses.length > 0 && (
+                        <div className="space-y-2 mb-3">
+                          <label className="text-xs font-bold text-gray-700 block">Seus Endereços Salvos</label>
+                          <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                            {savedAddresses.map((addr) => (
+                              <label
+                                key={addr.id}
+                                className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition text-left ${
+                                  selectedAddressId === addr.id
+                                    ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
+                                    : 'border-gray-100 hover:border-gray-200 bg-white'
+                                }`}
+                              >
+                                <input
+                                  type="radio"
+                                  name="saved-address"
+                                  checked={selectedAddressId === addr.id}
+                                  onChange={() => handleSelectSavedAddress(addr.id)}
+                                  className="mt-0.5 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                                />
+                                <div className="text-[11px] leading-snug">
+                                  <span className="font-extrabold capitalize text-[#0b1c3f]">{addr.label}:</span>{' '}
+                                  <span className="font-semibold text-gray-700">{addr.street}, {addr.number} ({addr.neighborhood})</span>
+                                </div>
+                              </label>
+                            ))}
 
-                      {/* Street & Number in grid */}
-                      <div className="grid grid-cols-3 gap-2.5">
-                        <div className="col-span-2 text-left" id="field-street">
-                          <label className="text-xs font-bold text-gray-700 block mb-1">Rua / Avenida</label>
-                          <input
-                            type="text"
-                            placeholder="Ex: Av. Porto Alegre"
-                            value={customer.street}
-                            onChange={(e) => {
-                              setCustomer({ ...customer, street: e.target.value });
-                              if (errors.street) setErrors({ ...errors, street: '' });
-                            }}
-                            className={`w-full rounded-xl border p-3 text-sm focus:ring-red-500 focus:border-red-500 outline-hidden ${
-                              errors.street ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
-                            }`}
-                          />
-                          {errors.street && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.street}</span>}
+                            <label
+                              className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition text-left ${
+                                selectedAddressId === 'custom'
+                                  ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
+                                  : 'border-gray-100 hover:border-gray-200 bg-white'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="saved-address"
+                                checked={selectedAddressId === 'custom'}
+                                onChange={() => handleSelectSavedAddress('custom')}
+                                className="text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                              />
+                              <span className="text-[11px] font-extrabold text-gray-800">➕ Outro Endereço / Digitar Manualmente</span>
+                            </label>
+                          </div>
                         </div>
+                      )}
 
-                        <div className="text-left" id="field-number">
-                          <label className="text-xs font-bold text-gray-700 block mb-1">Número</label>
-                          <input
-                            type="text"
-                            placeholder="Ex: 145"
-                            value={customer.number}
-                            onChange={(e) => {
-                              setCustomer({ ...customer, number: e.target.value });
-                              if (errors.number) setErrors({ ...errors, number: '' });
-                            }}
-                            className={`w-full rounded-xl border p-3 text-sm focus:ring-red-500 focus:border-red-500 outline-hidden ${
-                              errors.number ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
-                            }`}
-                          />
-                          {errors.number && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.number}</span>}
+                      {/* Display read-only card if saved address is selected */}
+                      {currentUser && selectedAddressId !== 'custom' && (
+                        <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs flex items-center justify-between">
+                          <div>
+                            <span className="text-gray-400 font-bold uppercase tracking-wider text-[9px]">Entregando em</span>
+                            <p className="font-extrabold text-[#0b1c3f] mt-0.5">
+                              {customer.street}, {customer.number}
+                            </p>
+                            <p className="text-gray-500 mt-0.5">{customer.neighborhood}</p>
+                          </div>
+                          <span className="p-2 bg-white text-emerald-600 border border-emerald-50 rounded-lg font-bold text-[10px]">
+                            Endereço Salvo ✓
+                          </span>
                         </div>
-                      </div>
+                      )}
+
+                      {/* Manual inputs if no logged-in saved address or custom selected */}
+                      {(!currentUser || selectedAddressId === 'custom') && (
+                        <>
+                          {/* Neighborhood / Bairro selector */}
+                          <div id="field-neighborhood">
+                            <label className="text-xs font-bold text-gray-700 block mb-1">Seu Bairro (Primavera do Leste)</label>
+                            <select
+                              value={customer.neighborhood}
+                              onChange={(e) => {
+                                setCustomer({ ...customer, neighborhood: e.target.value });
+                                if (errors.neighborhood) setErrors({ ...errors, neighborhood: '' });
+                              }}
+                              className={`w-full rounded-xl border p-3 text-sm bg-white focus:ring-red-500 focus:border-red-500 outline-hidden ${
+                                errors.neighborhood ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                              }`}
+                            >
+                              {NEIGHBORHOODS.map((n) => (
+                                <option key={n.name} value={n.name}>
+                                  {n.name} — Taxa: {formatPrice(n.fee)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          {/* Street & Number in grid */}
+                          <div className="grid grid-cols-3 gap-2.5">
+                            <div className="col-span-2 text-left" id="field-street">
+                              <label className="text-xs font-bold text-gray-700 block mb-1">Rua / Avenida</label>
+                              <input
+                                type="text"
+                                placeholder="Ex: Av. Porto Alegre"
+                                value={customer.street}
+                                onChange={(e) => {
+                                  setCustomer({ ...customer, street: e.target.value });
+                                  if (errors.street) setErrors({ ...errors, street: '' });
+                                }}
+                                className={`w-full rounded-xl border p-3 text-sm focus:ring-[#0b1c3f] focus:border-[#0b1c3f] outline-hidden ${
+                                  errors.street ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                                }`}
+                              />
+                              {errors.street && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.street}</span>}
+                            </div>
+
+                            <div className="text-left" id="field-number">
+                              <label className="text-xs font-bold text-gray-700 block mb-1">Número</label>
+                              <input
+                                type="text"
+                                placeholder="Ex: 145"
+                                value={customer.number}
+                                onChange={(e) => {
+                                  setCustomer({ ...customer, number: e.target.value });
+                                  if (errors.number) setErrors({ ...errors, number: '' });
+                                }}
+                                className={`w-full rounded-xl border p-3 text-sm focus:ring-[#0b1c3f] focus:border-[#0b1c3f] outline-hidden ${
+                                  errors.number ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                                }`}
+                              />
+                              {errors.number && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.number}</span>}
+                            </div>
+                          </div>
+
+                          {/* Save address checkbox option for logged-in user */}
+                          {currentUser && (
+                            <label className="flex items-center gap-2 cursor-pointer py-1 text-left">
+                              <input
+                                type="checkbox"
+                                checked={saveThisAddress}
+                                onChange={(e) => setSaveThisAddress(e.target.checked)}
+                                className="rounded text-[#0b1c3f] focus:ring-[#0b1c3f] h-4 w-4"
+                              />
+                              <span className="text-[10px] text-gray-600 font-bold select-none">
+                                💾 Salvar este endereço na minha conta para os próximos pedidos
+                              </span>
+                            </label>
+                          )}
+                        </>
+                      )}
+
+                      {/* Log in prompt banner for guest checkout */}
+                      {!currentUser && (
+                        <div className="bg-[#0b1c3f]/5 border border-[#d4af37]/20 rounded-xl p-3 text-[11px] text-[#0b1c3f] leading-snug text-left font-semibold">
+                          🔑 <span className="font-extrabold">Quer salvar seus endereços?</span> Faça login ou crie uma conta para salvar seus locais favoritos (Casa, Trabalho) e fazer pedidos mais rápido!
+                        </div>
+                      )}
 
                       {/* Reference point */}
                       <div className="text-left">

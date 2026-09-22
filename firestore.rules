@@ -1,0 +1,78 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default catch-all deny rule for total safety
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- User Profile Validation ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['name', 'whatsapp', 'email', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['name', 'whatsapp', 'email', 'createdAt', 'updatedAt', 'id'])
+        && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
+        && data.whatsapp is string && data.whatsapp.size() >= 8 && data.whatsapp.size() <= 20
+        && data.email is string && data.email.size() <= 150
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    // --- Saved Address Validation ---
+    function isValidAddress(data, authUid) {
+      return data.keys().hasAll(['userId', 'street', 'number', 'neighborhood', 'label', 'createdAt', 'updatedAt'])
+        && data.keys().hasOnly(['userId', 'street', 'number', 'complement', 'neighborhood', 'label', 'createdAt', 'updatedAt', 'id'])
+        && data.userId == authUid
+        && data.street is string && data.street.size() >= 3 && data.street.size() <= 150
+        && data.number is string && data.number.size() >= 1 && data.number.size() <= 10
+        && (!data.keys().contains('complement') || (data.complement is string && data.complement.size() <= 100))
+        && data.neighborhood is string && data.neighborhood.size() >= 2 && data.neighborhood.size() <= 100
+        && data.label is string && (data.label == 'casa' || data.label == 'trabalho' || data.label == 'outro')
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    // --- Firestore Collection Matches ---
+
+    // User collection path rules
+    match /users/{userId} {
+      allow get: if isOwner(userId) && isValidId(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming())
+        && incoming().createdAt == existing().createdAt; // Prevent overwriting createdAt
+      allow delete: if false; // Deletion is not allowed from the client for security
+
+      // Saved Address subcollection rules
+      match /addresses/{addressId} {
+        allow list: if isOwner(userId);
+        allow get: if isOwner(userId) && isValidId(addressId);
+        allow create: if isOwner(userId) && isValidId(addressId) && isValidAddress(incoming(), userId);
+        allow update: if isOwner(userId) && isValidId(addressId) && isValidAddress(incoming(), userId)
+          && incoming().createdAt == existing().createdAt; // Prevent overwriting createdAt
+        allow delete: if isOwner(userId) && isValidId(addressId);
+      }
+    }
+  }
+}

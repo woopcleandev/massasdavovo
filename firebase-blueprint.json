@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores core details for authenticated customers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "whatsapp": { "type": "string", "minLength": 8, "maxLength": 20 },
+        "email": { "type": "string", "format": "email" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "whatsapp", "email", "createdAt", "updatedAt"]
+    },
+    "Address": {
+      "title": "Customer Address",
+      "description": "Saved delivery addresses (Home, Work, etc.) for a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "street": { "type": "string", "minLength": 3, "maxLength": 150 },
+        "number": { "type": "string", "minLength": 1, "maxLength": 10 },
+        "complement": { "type": "string", "maxLength": 100 },
+        "neighborhood": { "type": "string", "minLength": 2, "maxLength": 100 },
+        "label": { "type": "string", "enum": ["casa", "trabalho", "outro"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "street", "number", "neighborhood", "label", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Collection of user profiles containing base contact information"
+    },
+    "users/{userId}/addresses/{addressId}": {
+      "schema": "Address",
+      "description": "Saved delivery locations for faster checkouts"
+    }
+  }
+}

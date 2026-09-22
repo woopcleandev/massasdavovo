@@ -11,11 +11,14 @@ import { ProductModal } from './components/ProductModal';
 import { CartDrawer } from './components/CartDrawer';
 import { AboutTab } from './components/AboutTab';
 import { PWAInstallButton } from './components/PWAInstallButton';
-import { ShoppingBag, Search, Clock, MapPin, Menu, X, Info, Phone, ArrowRight, Heart } from 'lucide-react';
+import { ShoppingBag, Search, Clock, MapPin, Menu, X, Info, Phone, ArrowRight, Heart, User } from 'lucide-react';
+import { AuthProvider } from './context/AuthContext';
+import { MyAccountView } from './components/MyAccountView';
 
-export default function App() {
+function MainApp() {
   // Navigation & filtering state
-  const [activeTab, setActiveTab] = useState<string>('menu'); // 'menu' | 'about'
+  const [activeTab, setActiveTab] = useState<string>('menu'); // 'menu' | 'about' | 'account'
+
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>(CategoryId.LASANHAS);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -177,7 +180,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* 3. Navigation Tabs (Cardápio vs Quem Somos) */}
+      {/* 3. Navigation Tabs (Cardápio vs Quem Somos vs Minha Conta) */}
       <div className="max-w-4xl mx-auto px-4 mt-6">
         <div className="flex border-b border-gray-200">
           <button
@@ -205,15 +208,33 @@ export default function App() {
             <Info className="w-4 h-4" />
             <span>QUEM SOMOS / CONTATO</span>
           </button>
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`py-3.5 px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+              activeTab === 'account'
+                ? 'border-[#0b1c3f] text-[#0b1c3f]'
+                : 'border-transparent text-gray-400 hover:text-gray-600'
+            }`}
+          >
+            <User className="w-4 h-4" />
+            <span>MINHA CONTA</span>
+          </button>
         </div>
       </div>
 
       {/* 4. Active Tab Content Rendering */}
       <div className="max-w-4xl mx-auto px-4 mt-6">
-        {activeTab === 'about' ? (
+        {activeTab === 'about' && (
           <AboutTab />
-        ) : (
+        )}
+
+        {activeTab === 'account' && (
+          <MyAccountView />
+        )}
+
+        {activeTab === 'menu' && (
           <div className="space-y-6">
+
             
             {/* Search and Category filters */}
             <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
@@ -347,6 +368,15 @@ export default function App() {
     </div>
   );
 }
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
+  );
+}
+
 
 // Minimal placeholder component for offline state indicator
 export const OfflineIndicator: React.FC = () => {
