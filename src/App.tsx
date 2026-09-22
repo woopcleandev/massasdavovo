@@ -330,9 +330,20 @@ function MainApp() {
       </div>
 
       {/* Discreet Footer */}
-      <footer className="mt-16 text-center text-xs text-gray-400 max-w-4xl mx-auto px-4 space-y-1">
+      <footer className="mt-16 text-center text-xs text-gray-400 max-w-4xl mx-auto px-4 space-y-1.5">
         <p>© Massas da Vovó • Feito com tradição e amor de família</p>
-        <p className="text-[11px] text-gray-400">Sorriso - MT</p>
+        <p className="text-[11px] text-gray-400">
+          <span>Primavera do Leste - MT</span>
+          <span className="mx-1.5">•</span>
+          <a
+            href="https://maps.app.goo.gl/hecpUqJLLVd8EghW9"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-red-600 hover:text-red-700 underline font-semibold transition inline-flex items-center gap-1"
+          >
+            <span>Ver no Google Maps</span>
+          </a>
+        </p>
       </footer>
 
       {/* 5. Floating Bottom Cart Summary (Anota Aí Style) */}

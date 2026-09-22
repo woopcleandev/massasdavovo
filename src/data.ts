@@ -18,7 +18,7 @@ export const RESTAURANT_INFO = {
   phone: '+55 66 9652-3006',
   whatsappNumber: '556696523006', // used for send wa links
   address: 'Rua Manaus, 203, Primavera do Leste - MT',
-  googleMapsLink: 'https://www.google.com/maps/search/?api=1&query=Rua+Manaus+203+Primavera+do+Leste+Mato+Grosso',
+  googleMapsLink: 'https://maps.app.goo.gl/hecpUqJLLVd8EghW9',
   hours: 'Terça a Domingo: 18:00 às 23:00',
   description: 'Massas artesanais frescas feitas com todo carinho de vó. Massas recheadas, lasanhas, molhos rústicos e muito sabor em Primavera do Leste.',
 };

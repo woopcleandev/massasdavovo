@@ -25,8 +25,17 @@ import {
   Receipt, 
   ArrowLeft,
   Clock,
-  DollarSign
+  DollarSign,
+  Loader2
 } from 'lucide-react';
+
+const PRESET_PASTA_IMAGES = [
+  { label: 'Lasanha', url: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=600' },
+  { label: 'Nhôque', url: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600' },
+  { label: 'Sorrentino / Ravioli', url: 'https://images.unsplash.com/photo-1587740908075-9e245070dfaa?auto=format&fit=crop&q=80&w=600' },
+  { label: 'Capelete', url: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600' },
+  { label: 'Molhos & Carnes', url: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=600' },
+];
 
 interface MasterAdminViewProps {
   onBackToMenu: () => void;
@@ -73,6 +82,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     image: '',
     isPopular: false,
   });
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Settings form state
@@ -125,32 +137,51 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size limit (compress to clean web dimensions)
+    setIsUploadingImage(true);
+    setImageLoadError(false);
+
     const reader = new FileReader();
+    reader.onerror = () => {
+      setIsUploadingImage(false);
+      alert('Erro ao carregar a foto do dispositivo. Tente novamente.');
+    };
     reader.onload = (event) => {
       const img = new Image();
+      img.onerror = () => {
+        setIsUploadingImage(false);
+        alert('Formato de foto não suportado.');
+      };
       img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 640;
-        const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
-        canvas.width = Math.round(img.width * scale);
-        canvas.height = Math.round(img.height * scale);
+        try {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 520;
+          const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
 
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        setProductForm(prev => ({ ...prev, image: dataUrl }));
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          setProductForm(prev => ({ ...prev, image: dataUrl }));
+          setImageLoadError(false);
+        } catch (err) {
+          console.error('Error compressing image:', err);
+          alert('Não foi possível processar a foto. Tente uma imagem diferente.');
+        } finally {
+          setIsUploadingImage(false);
+        }
       };
       img.src = event.target?.result as string;
     };
     reader.readAsDataURL(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   // Handle Product Save
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name.trim() || !productForm.price) {
-      alert('Por favor, preencha o nome e o preço do item.');
+      alert('Por favor, preencha o nome e o preço do prato.');
       return;
     }
 
@@ -160,54 +191,65 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
       return;
     }
 
-    const defaultImg = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800';
-    const finalImage = (productForm.image && productForm.image.trim()) ? productForm.image.trim() : defaultImg;
+    setIsSavingProduct(true);
 
-    if (editingProductId) {
-      await updateProduct(editingProductId, {
-        name: productForm.name.trim(),
-        categoryId: productForm.categoryId,
-        description: productForm.description.trim(),
-        price: priceNum,
-        image: finalImage,
-        isPopular: productForm.isPopular,
+    try {
+      const defaultImg = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800';
+      const finalImage = (productForm.image && productForm.image.trim()) ? productForm.image.trim() : defaultImg;
+
+      if (editingProductId) {
+        await updateProduct(editingProductId, {
+          name: productForm.name.trim(),
+          categoryId: productForm.categoryId,
+          description: productForm.description.trim(),
+          price: priceNum,
+          image: finalImage,
+          isPopular: productForm.isPopular,
+        });
+        setProductSuccess('Prato e foto atualizados com sucesso!');
+      } else {
+        await addProduct({
+          name: productForm.name.trim(),
+          categoryId: productForm.categoryId,
+          description: productForm.description.trim(),
+          price: priceNum,
+          image: finalImage,
+          isPopular: productForm.isPopular,
+        });
+        setProductSuccess('Novo prato adicionado com sucesso!');
+      }
+
+      setTimeout(() => setProductSuccess(''), 3500);
+
+      setIsProductModalOpen(false);
+      setEditingProductId(null);
+      setProductForm({
+        name: '',
+        categoryId: CategoryId.LASANHAS,
+        description: '',
+        price: '',
+        image: '',
+        isPopular: false,
       });
-      setProductSuccess('Prato e foto atualizados com sucesso!');
-    } else {
-      await addProduct({
-        name: productForm.name.trim(),
-        categoryId: productForm.categoryId,
-        description: productForm.description.trim(),
-        price: priceNum,
-        image: finalImage,
-        isPopular: productForm.isPopular,
-      });
-      setProductSuccess('Novo prato adicionado com sucesso!');
+      setImageLoadError(false);
+    } catch (err) {
+      console.error('Error saving product:', err);
+      alert('Ocorreu um erro ao salvar o prato. Tente novamente.');
+    } finally {
+      setIsSavingProduct(false);
     }
-
-    setTimeout(() => setProductSuccess(''), 3500);
-
-    setIsProductModalOpen(false);
-    setEditingProductId(null);
-    setProductForm({
-      name: '',
-      categoryId: CategoryId.LASANHAS,
-      description: '',
-      price: '',
-      image: '',
-      isPopular: false,
-    });
   };
 
   // Open Edit Product Modal
   const openEditProduct = (prod: Product) => {
     setEditingProductId(prod.id);
+    setImageLoadError(false);
     setProductForm({
       name: prod.name,
       categoryId: prod.categoryId,
-      description: prod.description,
+      description: prod.description || '',
       price: prod.price.toString(),
-      image: prod.image,
+      image: prod.image || '',
       isPopular: Boolean(prod.isPopular),
     });
     setIsProductModalOpen(true);
@@ -944,16 +986,22 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               </div>
 
               {/* Photo Input: URL or Device File */}
-              <div className="space-y-2 pt-2 border-t border-gray-100">
-                <label className="text-xs font-bold text-gray-700 block">Foto do Prato</label>
+              <div className="space-y-2.5 pt-2 border-t border-gray-100">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-700 block">Foto do Prato</label>
+                  <span className="text-[10px] text-gray-400">URL ou Galeria/Câmera</span>
+                </div>
                 
                 <div className="flex gap-2">
                   <input
                     type="text"
                     placeholder="Cole o link/URL da imagem..."
                     value={productForm.image}
-                    onChange={(e) => setProductForm({ ...productForm, image: e.target.value })}
-                    className="flex-1 p-2.5 rounded-xl border border-gray-200 text-xs outline-hidden"
+                    onChange={(e) => {
+                      setProductForm({ ...productForm, image: e.target.value });
+                      setImageLoadError(false);
+                    }}
+                    className="flex-1 p-2.5 rounded-xl border border-gray-200 text-xs outline-hidden focus:border-[#0b1c3f]"
                   />
                   <input
                     type="file"
@@ -964,40 +1012,88 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                   />
                   <button
                     type="button"
+                    disabled={isUploadingImage}
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex items-center gap-1.5 px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-2.5 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 rounded-xl text-xs font-bold transition shrink-0 disabled:opacity-50"
                     title="Escolher arquivo de imagem direto do seu celular ou computador"
                   >
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Do Dispositivo</span>
+                    {isUploadingImage ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0b1c3f]" />
+                    ) : (
+                      <Upload className="w-3.5 h-3.5" />
+                    )}
+                    <span>{isUploadingImage ? 'Processando...' : 'Do Dispositivo'}</span>
                   </button>
                 </div>
 
-                {/* Photo Preview */}
-                {productForm.image ? (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 mt-2">
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-white shrink-0">
-                      <img
-                        src={productForm.image}
-                        alt="Preview"
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800';
-                        }}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className="text-[11px] font-bold text-emerald-700 block">✓ Pré-visualização da imagem</span>
-                      <p className="text-[10px] text-gray-500 truncate mt-0.5">{productForm.image}</p>
+                {/* Quick Preset Photos */}
+                <div>
+                  <span className="text-[10px] font-bold text-gray-400 block mb-1">Ou escolha uma foto artesanal pronta:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {PRESET_PASTA_IMAGES.map((preset, idx) => (
                       <button
+                        key={idx}
                         type="button"
-                        onClick={() => setProductForm(prev => ({ ...prev, image: '' }))}
-                        className="text-[10px] text-red-500 font-bold hover:underline mt-1 cursor-pointer"
+                        onClick={() => {
+                          setProductForm(prev => ({ ...prev, image: preset.url }));
+                          setImageLoadError(false);
+                        }}
+                        className={`text-[10px] px-2 py-1 rounded-lg border font-medium transition ${
+                          productForm.image === preset.url
+                            ? 'bg-[#0b1c3f] text-[#d4af37] border-[#0b1c3f]'
+                            : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                        }`}
                       >
-                        Remover ou trocar imagem
+                        {preset.label}
                       </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Photo Preview & Error Warning */}
+                {productForm.image ? (
+                  <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2 mt-2">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-white shrink-0 shadow-xs">
+                        <img
+                          src={productForm.image}
+                          alt="Preview"
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                          onLoad={() => setImageLoadError(false)}
+                          onError={() => {
+                            setImageLoadError(true);
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {imageLoadError ? (
+                          <div className="text-[11px] font-bold text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>Imagem inacessível</span>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] font-bold text-emerald-700 block">✓ Foto carregada com sucesso</span>
+                        )}
+                        <p className="text-[10px] text-gray-500 truncate mt-0.5 max-w-[200px]">{productForm.image}</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProductForm(prev => ({ ...prev, image: '' }));
+                            setImageLoadError(false);
+                          }}
+                          className="text-[10px] text-red-500 font-bold hover:underline mt-1 cursor-pointer block"
+                        >
+                          Remover foto
+                        </button>
+                      </div>
                     </div>
+
+                    {imageLoadError && (
+                      <p className="text-[10px] text-red-700 bg-red-50 p-2 rounded-lg border border-red-200 leading-tight">
+                        A URL informada não pôde ser exibida pelo navegador. Use o botão <strong>"Do Dispositivo"</strong> para enviar uma foto do celular ou escolha uma das fotos prontas acima.
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <p className="text-[11px] text-gray-400 italic">
@@ -1026,9 +1122,17 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 px-4 bg-[#0b1c3f] hover:bg-[#07132c] text-[#d4af37] border border-[#d4af37]/20 font-black rounded-xl text-xs shadow-md transition"
+                  disabled={isSavingProduct || isUploadingImage}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-[#0b1c3f] hover:bg-[#07132c] text-[#d4af37] border border-[#d4af37]/20 font-black rounded-xl text-xs shadow-md transition disabled:opacity-50"
                 >
-                  Salvar Prato
+                  {isSavingProduct ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin text-[#d4af37]" />
+                      <span>Salvando...</span>
+                    </>
+                  ) : (
+                    <span>Salvar Prato</span>
+                  )}
                 </button>
               </div>
             </form>

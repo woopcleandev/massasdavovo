@@ -1,6 +1,6 @@
 import React from 'react';
 import { RESTAURANT_INFO } from '../data';
-import { MapPin, Phone, Clock, Heart, Award, ShieldCheck, Map } from 'lucide-react';
+import { MapPin, Phone, Clock, Heart, Award, ShieldCheck, Map, Star } from 'lucide-react';
 import { PWAInstallButton } from './PWAInstallButton';
 
 export const AboutTab: React.FC = () => {
@@ -80,8 +80,8 @@ export const AboutTab: React.FC = () => {
           </div>
         </div>
 
-        {/* Call to action to view on Maps */}
-        <div className="pt-2">
+        {/* Call to action to view on Maps & Reviews */}
+        <div className="pt-2 flex flex-wrap items-center gap-2.5">
           <a
             href={RESTAURANT_INFO.googleMapsLink}
             target="_blank"
@@ -90,6 +90,16 @@ export const AboutTab: React.FC = () => {
           >
             <Map className="w-4 h-4" />
             <span>Abrir no Google Maps</span>
+          </a>
+
+          <a
+            href="https://maps.app.goo.gl/hecpUqJLLVd8EghW9"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-4 py-2.5 text-xs font-bold transition"
+          >
+            <Star className="w-4 h-4 fill-yellow-400 text-amber-500" />
+            <span>Avaliar com 5 Estrelas no Google</span>
           </a>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
-import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag } from 'lucide-react';
+import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink } from 'lucide-react';
 
 interface OrderReceiptModalProps {
   order: Order;
@@ -224,7 +224,21 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               </span>
             </div>
 
-            <div className="text-center pt-2 text-[9px] text-gray-400">
+            {/* Google Maps 5-Star Review Callout */}
+            <div className="pt-2 text-center font-sans">
+              <a
+                href="https://maps.app.goo.gl/hecpUqJLLVd8EghW9"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-1.5 p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold transition w-full"
+              >
+                <Star className="w-3.5 h-3.5 fill-yellow-400 text-amber-500 shrink-0" />
+                <span>Avaliar com 5 Estrelas no Google</span>
+                <ExternalLink className="w-3 h-3 text-amber-700 ml-0.5" />
+              </a>
+            </div>
+
+            <div className="text-center pt-1 text-[9px] text-gray-400">
               *** Obrigado pela preferência! Bom apetite! ***
             </div>
           </div>

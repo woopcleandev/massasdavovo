@@ -38,6 +38,15 @@ const DEFAULT_SETTINGS: CompanySettings = {
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 
+// Safe localStorage wrapper to prevent quota crashes with images
+const safeSetLocalStorage = (key: string, value: string) => {
+  try {
+    localStorage.setItem(key, value);
+  } catch (err) {
+    console.warn(`LocalStorage write skipped for ${key}:`, err);
+  }
+};
+
 // Helper to get initial products list
 const getInitialProducts = (): Product[] => {
   try {
@@ -148,71 +157,74 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  // Fetch Menu Items from Firestore
+  // Fetch & Subscribe to Menu Items from Firestore in real-time
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
     try {
       const menuRef = collection(db, 'menu_items');
-      getDocs(menuRef)
-        .then((snapshot) => {
-          if (snapshot.empty) return;
-          const remoteMap = new Map<string, Product>();
-          const remoteDeleted: string[] = [];
+      unsubscribe = onSnapshot(menuRef, (snapshot) => {
+        if (snapshot.empty) return;
+        const remoteMap = new Map<string, Product>();
+        const remoteDeleted: string[] = [];
 
-          snapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            if (data.isActive === false) {
-              remoteDeleted.push(docSnap.id);
-            } else if (data.name) {
-              const baseProd = PRODUCTS.find(p => p.id === docSnap.id);
-              remoteMap.set(docSnap.id, {
-                id: docSnap.id,
-                name: data.name,
-                categoryId: data.categoryId || baseProd?.categoryId || 'lasanhas' as any,
-                description: data.description !== undefined ? data.description : (baseProd?.description || ''),
-                price: Number(data.price) || baseProd?.price || 0,
-                image: data.image || baseProd?.image || '',
-                isPopular: Boolean(data.isPopular),
-                customizable: data.customizable || baseProd?.customizable,
-                sizes: data.sizes || baseProd?.sizes,
-              });
-            }
-          });
-
-          if (remoteDeleted.length > 0) {
-            setDeletedProductIds(prev => {
-              const merged = Array.from(new Set([...prev, ...remoteDeleted]));
-              localStorage.setItem('vovo_deleted_products', JSON.stringify(merged));
-              return merged;
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          if (data.isActive === false) {
+            remoteDeleted.push(docSnap.id);
+          } else if (data.name) {
+            const baseProd = PRODUCTS.find(p => p.id === docSnap.id);
+            const remoteImage = (typeof data.image === 'string' && data.image.trim()) ? data.image.trim() : (baseProd?.image || '');
+            remoteMap.set(docSnap.id, {
+              id: docSnap.id,
+              name: data.name,
+              categoryId: data.categoryId || baseProd?.categoryId || 'lasanhas' as any,
+              description: data.description !== undefined ? data.description : (baseProd?.description || ''),
+              price: Number(data.price) || baseProd?.price || 0,
+              image: remoteImage,
+              isPopular: Boolean(data.isPopular),
+              customizable: data.customizable !== undefined ? data.customizable : baseProd?.customizable,
+              sizes: data.sizes !== undefined ? data.sizes : baseProd?.sizes,
             });
           }
-
-          if (remoteMap.size > 0) {
-            setProductsList(prev => {
-              const map = new Map<string, Product>();
-              // Initialize with base list
-              prev.forEach(p => map.set(p.id, p));
-              // Apply remote items
-              remoteMap.forEach((remProd, id) => {
-                const existing = map.get(id);
-                map.set(id, {
-                  ...existing,
-                  ...remProd,
-                  image: remProd.image || existing?.image || '',
-                });
-              });
-              // Filter out deleted
-              const combined = Array.from(map.values()).filter(p => !remoteDeleted.includes(p.id));
-              localStorage.setItem('vovo_menu_items', JSON.stringify(combined));
-              return combined;
-            });
-          }
-        })
-        .catch(err => {
-          console.warn('Error fetching menu_items from Firestore:', err);
         });
+
+        if (remoteDeleted.length > 0) {
+          setDeletedProductIds(prev => {
+            const merged = Array.from(new Set([...prev, ...remoteDeleted]));
+            safeSetLocalStorage('vovo_deleted_products', JSON.stringify(merged));
+            return merged;
+          });
+        }
+
+        if (remoteMap.size > 0) {
+          setProductsList(prev => {
+            const map = new Map<string, Product>();
+            // Initialize with current list
+            prev.forEach(p => map.set(p.id, p));
+            // Apply remote items
+            remoteMap.forEach((remProd, id) => {
+              const existing = map.get(id);
+              map.set(id, {
+                ...existing,
+                ...remProd,
+                image: remProd.image || existing?.image || '',
+              });
+            });
+            // Filter out deleted
+            const combined = Array.from(map.values()).filter(p => !remoteDeleted.includes(p.id));
+            safeSetLocalStorage('vovo_menu_items', JSON.stringify(combined));
+            return combined;
+          });
+        }
+      }, (err) => {
+        console.warn('menu_items onSnapshot listener error:', err);
+      });
     } catch (e) {
-      console.warn(e);
+      console.warn('Could not initialize menu_items listener:', e);
     }
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // Subscribe / Fetch Orders from Firestore
@@ -279,18 +291,32 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   // Add Product
   const addProduct = async (newProd: Omit<Product, 'id'>): Promise<Product> => {
     const id = 'item-' + Date.now();
-    const product: Product = { ...newProd, id };
+    const product: Product = {
+      ...newProd,
+      id,
+      name: newProd.name.trim(),
+      description: (newProd.description || '').trim(),
+      image: (newProd.image || '').trim(),
+      price: Number(newProd.price) || 0,
+      isPopular: Boolean(newProd.isPopular),
+    };
 
     setProductsList(prev => {
       const updated = [product, ...prev];
-      localStorage.setItem('vovo_menu_items', JSON.stringify(updated));
+      safeSetLocalStorage('vovo_menu_items', JSON.stringify(updated));
       return updated;
     });
 
     try {
       const prodRef = doc(db, 'menu_items', id);
       await setDoc(prodRef, {
-        ...product,
+        id: product.id,
+        name: product.name,
+        categoryId: product.categoryId,
+        description: product.description,
+        price: product.price,
+        image: product.image,
+        isPopular: product.isPopular,
         isActive: true,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
@@ -304,60 +330,64 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Update Product
   const updateProduct = async (id: string, updatedFields: Partial<Product>) => {
-    let fullProduct: Product | undefined;
+    // 1. Resolve base and existing item to build complete merged state
+    const base = PRODUCTS.find(p => p.id === id);
+    const existing = productsList.find(p => p.id === id);
 
+    const mergedProduct: Product = {
+      id,
+      name: (updatedFields.name !== undefined ? updatedFields.name : (existing?.name || base?.name || '')).trim(),
+      categoryId: updatedFields.categoryId || existing?.categoryId || base?.categoryId || ('lasanhas' as any),
+      description: (updatedFields.description !== undefined ? updatedFields.description : (existing?.description ?? base?.description ?? '')).trim(),
+      price: updatedFields.price !== undefined ? Number(updatedFields.price) : (existing?.price ?? base?.price ?? 0),
+      image: (updatedFields.image !== undefined ? updatedFields.image : (existing?.image || base?.image || '')).trim(),
+      isPopular: updatedFields.isPopular !== undefined ? Boolean(updatedFields.isPopular) : (existing?.isPopular ?? base?.isPopular ?? false),
+      customizable: existing?.customizable ?? base?.customizable,
+      sizes: existing?.sizes ?? base?.sizes,
+    };
+
+    // 2. Update state immediately
     setProductsList(prev => {
       const index = prev.findIndex(p => p.id === id);
       let updated: Product[];
       if (index >= 0) {
-        fullProduct = { ...prev[index], ...updatedFields };
         updated = [...prev];
-        updated[index] = fullProduct;
+        updated[index] = mergedProduct;
       } else {
-        const base = PRODUCTS.find(p => p.id === id);
-        fullProduct = {
-          id,
-          name: updatedFields.name || base?.name || 'Item',
-          categoryId: updatedFields.categoryId || base?.categoryId || 'lasanhas' as any,
-          description: updatedFields.description ?? (base?.description || ''),
-          price: updatedFields.price ?? (base?.price || 0),
-          image: updatedFields.image || base?.image || '',
-          isPopular: updatedFields.isPopular ?? (base?.isPopular || false),
-          customizable: base?.customizable,
-          sizes: base?.sizes,
-          ...updatedFields,
-        };
-        updated = [fullProduct, ...prev];
+        updated = [mergedProduct, ...prev];
       }
-      localStorage.setItem('vovo_menu_items', JSON.stringify(updated));
+      safeSetLocalStorage('vovo_menu_items', JSON.stringify(updated));
       return updated;
     });
 
-    // Remove from deleted list if it was there
+    // 3. Remove from deleted list if it was there
     setDeletedProductIds(prev => {
       if (prev.includes(id)) {
         const updated = prev.filter(item => item !== id);
-        localStorage.setItem('vovo_deleted_products', JSON.stringify(updated));
+        safeSetLocalStorage('vovo_deleted_products', JSON.stringify(updated));
         return updated;
       }
       return prev;
     });
 
+    // 4. Update Firestore
     try {
       const prodRef = doc(db, 'menu_items', id);
-      const dataToSave = fullProduct ? { ...fullProduct } : { ...updatedFields, id };
-      // Clean undefined fields to avoid Firestore errors
-      Object.keys(dataToSave).forEach(key => {
-        if ((dataToSave as any)[key] === undefined) {
-          delete (dataToSave as any)[key];
-        }
-      });
-      await setDoc(prodRef, {
-        ...dataToSave,
-        id,
+      const payload: Record<string, any> = {
+        id: mergedProduct.id,
+        name: mergedProduct.name,
+        categoryId: mergedProduct.categoryId,
+        description: mergedProduct.description,
+        price: mergedProduct.price,
+        image: mergedProduct.image,
+        isPopular: mergedProduct.isPopular,
         isActive: true,
         updatedAt: serverTimestamp(),
-      }, { merge: true });
+      };
+      if (mergedProduct.customizable !== undefined) payload.customizable = mergedProduct.customizable;
+      if (mergedProduct.sizes !== undefined) payload.sizes = mergedProduct.sizes;
+
+      await setDoc(prodRef, payload, { merge: true });
     } catch (err) {
       console.warn('Could not update product in Firestore, local update preserved:', err);
     }
@@ -367,13 +397,13 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const deleteProduct = async (id: string) => {
     setDeletedProductIds(prev => {
       const updated = Array.from(new Set([...prev, id]));
-      localStorage.setItem('vovo_deleted_products', JSON.stringify(updated));
+      safeSetLocalStorage('vovo_deleted_products', JSON.stringify(updated));
       return updated;
     });
 
     setProductsList(prev => {
       const updated = prev.filter(p => p.id !== id);
-      localStorage.setItem('vovo_menu_items', JSON.stringify(updated));
+      safeSetLocalStorage('vovo_menu_items', JSON.stringify(updated));
       return updated;
     });
 

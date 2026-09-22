@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
-import { CheckCircle2, Copy, Check, Send, Receipt, X, ArrowRight, ShieldCheck, Clock } from 'lucide-react';
+import { CheckCircle2, Copy, Check, Send, Receipt, ArrowRight, Clock, Star, ExternalLink } from 'lucide-react';
 import { OrderReceiptModal } from './OrderReceiptModal';
 
 interface OrderSuccessModalProps {
@@ -127,6 +127,33 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
               </p>
             </div>
           )}
+
+          {/* Google 5-Star Review Request */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-yellow-500/15 to-amber-500/10 border-2 border-yellow-400/60 rounded-2xl p-4 text-center space-y-2.5 shadow-xs">
+            <div className="flex items-center justify-center gap-1 text-amber-500">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-500 drop-shadow-xs" />
+              ))}
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-gray-900 uppercase tracking-wide">
+                Gostou do nosso atendimento?
+              </h4>
+              <p className="text-[11px] text-gray-600 mt-0.5 leading-snug">
+                Avalie a <strong>Massas da Vovó</strong> com 5 estrelas no Google! Seu carinho nos ajuda a continuar preparando as melhores massas caseiras de Primavera do Leste - MT.
+              </p>
+            </div>
+            <a
+              href="https://maps.app.goo.gl/hecpUqJLLVd8EghW9"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 w-full bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-gray-950 font-black text-xs py-2.5 px-4 rounded-xl shadow-xs hover:shadow-md transition active:scale-98"
+            >
+              <Star className="w-4 h-4 fill-gray-950 text-gray-950" />
+              <span>Avaliar com 5 Estrelas no Google</span>
+              <ExternalLink className="w-3.5 h-3.5 text-gray-900 ml-1" />
+            </a>
+          </div>
 
           {/* Order Summary & Actions */}
           <div className="flex items-center gap-2 pt-1">
