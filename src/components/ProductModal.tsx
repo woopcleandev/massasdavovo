@@ -143,7 +143,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
                 <span>1. Escolha o Tamanho</span>
-                <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-sm">Obrigatório</span>
+                <span className="text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] px-1.5 py-0.5 rounded-sm">Obrigatório</span>
               </h3>
               <div className="grid grid-cols-1 gap-2.5">
                 {product.sizes.map((size) => (
@@ -151,7 +151,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                     key={size.name}
                     className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                       selectedSize?.name === size.name
-                        ? 'border-red-600 bg-red-50/30'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -161,11 +161,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                         name="product-size"
                         checked={selectedSize?.name === size.name}
                         onChange={() => setSelectedSize(size)}
-                        className="w-4 h-4 text-red-600 focus:ring-red-500"
+                        className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                       />
                       <span className="text-sm font-bold text-gray-800">{size.name}</span>
                     </div>
-                    <span className="text-sm font-extrabold text-red-600">{formatPrice(size.price)}</span>
+                    <span className="text-sm font-extrabold text-[#0b1c3f]">{formatPrice(size.price)}</span>
                   </label>
                 ))}
               </div>
@@ -177,7 +177,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
                 <span>1. Escolha a Massa</span>
-                <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-sm">Obrigatório</span>
+                <span className="text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] px-1.5 py-0.5 rounded-sm">Obrigatório</span>
               </h3>
               <div className="grid grid-cols-1 gap-2">
                 {product.customizable.pastas.map((pasta) => (
@@ -185,7 +185,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                     key={pasta.id}
                     className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                       selectedPasta?.id === pasta.id
-                        ? 'border-red-600 bg-red-50/30'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -195,7 +195,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                         name="custom-pasta"
                         checked={selectedPasta?.id === pasta.id}
                         onChange={() => setSelectedPasta(pasta)}
-                        className="w-4 h-4 text-red-600 focus:ring-red-500"
+                        className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                       />
                       <span className="text-sm font-bold text-gray-800">{pasta.name}</span>
                     </div>
@@ -213,7 +213,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
             <div className="space-y-3">
               <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
                 <span>2. Escolha o Molho</span>
-                <span className="text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded-sm">Obrigatório</span>
+                <span className="text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] px-1.5 py-0.5 rounded-sm">Obrigatório</span>
               </h3>
               <div className="grid grid-cols-1 gap-2.5">
                 {product.customizable.sauces.map((sauce) => (
@@ -221,7 +221,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                     key={sauce.id}
                     className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
                       selectedSauce?.id === sauce.id
-                        ? 'border-red-600 bg-red-50/30'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -230,7 +230,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                       name="custom-sauce"
                       checked={selectedSauce?.id === sauce.id}
                       onChange={() => setSelectedSauce(sauce)}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500 mt-0.5 shrink-0"
+                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f] mt-0.5 shrink-0"
                     />
                     <div className="flex flex-col">
                       <span className="text-sm font-bold text-gray-800 leading-tight">{sauce.name}</span>
@@ -250,13 +250,13 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                 <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-sm">Opcional</span>
               </h3>
               <div className="grid grid-cols-1 gap-2">
-                {product.customizable.toppings.map((topping) => {
+                 {product.customizable.toppings.map((topping) => {
                   const isChecked = selectedToppings.some(t => t.id === topping.id);
                   return (
                     <label
                       key={topping.id}
                       className={`flex items-center justify-between p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                        isChecked ? 'border-red-600 bg-red-50/30' : 'border-gray-100 hover:border-gray-200 bg-white'
+                        isChecked ? 'border-[#0b1c3f] bg-[#0b1c3f]/5' : 'border-gray-100 hover:border-gray-200 bg-white'
                       }`}
                     >
                       <div className="flex items-center gap-3">
@@ -264,11 +264,11 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
                           type="checkbox"
                           checked={isChecked}
                           onChange={() => handleToppingToggle(topping)}
-                          className="w-4 h-4 rounded text-red-600 focus:ring-red-500 cursor-pointer"
+                          className="w-4 h-4 rounded text-[#0b1c3f] focus:ring-[#0b1c3f] cursor-pointer"
                         />
                         <span className="text-sm font-bold text-gray-800">{topping.name}</span>
                       </div>
-                      <span className="text-sm font-bold text-red-600">+ {formatPrice(topping.price)}</span>
+                      <span className="text-sm font-bold text-[#0b1c3f]">+ {formatPrice(topping.price)}</span>
                     </label>
                   );
                 })}
@@ -283,7 +283,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Ex: sem cebola, ponto da massa bem cozido, talher extra..."
-              className="w-full rounded-xl border border-gray-200 p-3.5 text-sm focus:border-red-500 focus:ring-red-500 outline-hidden min-h-[80px]"
+              className="w-full rounded-xl border border-gray-200 p-3.5 text-sm focus:border-[#0b1c3f] focus:ring-[#0b1c3f] outline-hidden min-h-[80px]"
             />
           </div>
         </div>
@@ -312,9 +312,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
           <button
             id="btn-confirm-add-cart"
             onClick={handleAddToCart}
-            className="flex-1 w-full flex items-center justify-center gap-2 rounded-full bg-red-600 hover:bg-red-700 py-4 px-6 text-base font-bold text-white transition shadow-md active:scale-98"
+            className="flex-1 w-full flex items-center justify-center gap-2 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] py-4 px-6 text-base font-bold text-[#d4af37] border border-[#d4af37]/30 transition shadow-md active:scale-98"
           >
-            <ShoppingBag className="w-5 h-5" />
+            <ShoppingBag className="w-5 h-5 text-[#d4af37]" />
             <span>Adicionar {formatPrice(unitPrice * quantity)}</span>
           </button>
         </div>

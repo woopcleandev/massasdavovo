@@ -1,9 +1,10 @@
 import { CategoryId, Product } from './types';
 
 // Let's import the actual generated images. They are located inside '/src/assets/images/'
-import logoImage from './assets/images/logo_massas_da_vovo_1790085573403.jpg';
+import logoImage from './assets/images/logo_massas_da_vovo_actual.png';
 import lasagnaImage from './assets/images/lasanha_bolonhesa_vovo_1790085587729.jpg';
 import gnocchiImage from './assets/images/nhoque_artesanal_vovo_1790085601096.jpg';
+import coca2lImage from './assets/images/coca_cola_2l_man_1790086001186.jpg';
 
 export const RESTAURANT_INFO = {
   name: 'Massas da Vovó',
@@ -173,7 +174,7 @@ export const PRODUCTS: Product[] = [
     name: 'Coca-Cola Garrafa 2 Litros',
     description: 'Ideal para compartilhar com a família.',
     price: 12.00,
-    image: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?auto=format&fit=crop&q=80&w=600',
+    image: coca2lImage,
   },
   {
     id: 'suco-laranja',

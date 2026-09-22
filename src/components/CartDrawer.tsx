@@ -201,7 +201,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         {/* Drawer Header */}
         <div className="bg-white border-b border-gray-100 p-5 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-red-50 text-red-600">
+            <div className="p-2 rounded-xl bg-[#0b1c3f]/10 text-[#0b1c3f]">
               <ShoppingCart className="w-5 h-5" />
             </div>
             <div>
@@ -224,7 +224,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
           {cartItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 rounded-full bg-red-50 flex items-center justify-center text-red-600 mb-5 animate-pulse">
+              <div className="w-20 h-20 rounded-full bg-[#0b1c3f]/10 flex items-center justify-center text-[#0b1c3f] mb-5 animate-pulse">
                 <ShoppingCart className="w-9 h-9" />
               </div>
               <h3 className="text-base font-extrabold text-gray-800">Carrinho Vazio</h3>
@@ -233,7 +233,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               </p>
               <button
                 onClick={onClose}
-                className="mt-6 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold text-sm py-3 px-6 shadow-xs transition"
+                className="mt-6 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] text-[#d4af37] border border-[#d4af37]/20 font-bold text-sm py-3 px-6 shadow-xs transition"
               >
                 Ver Cardápio
               </button>
@@ -268,7 +268,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           </h4>
                           <button
                             onClick={() => onRemoveItem(item.id)}
-                            className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition shrink-0"
+                            className="p-1 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-lg transition shrink-0"
                             title="Remover item"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -298,14 +298,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                               </div>
                             )}
                             {item.notes && (
-                              <div className="text-red-600 italic"><strong>Obs:</strong> "{item.notes}"</div>
+                              <div className="text-[#0b1c3f]/80 italic"><strong>Obs:</strong> "{item.notes}"</div>
                             )}
                           </div>
                         )}
 
                         <div className="mt-3.5 flex items-center justify-between">
                           {/* Item unit subtotal */}
-                          <span className="text-sm font-extrabold text-red-600">
+                          <span className="text-sm font-extrabold text-[#0b1c3f]">
                             {formatPrice(item.totalUnitPrice * item.quantity)}
                           </span>
 
@@ -346,7 +346,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     onClick={() => setCustomer({ ...customer, deliveryType: 'delivery' })}
                     className={`py-2 px-3 text-xs font-bold rounded-lg transition-all ${
                       customer.deliveryType === 'delivery'
-                        ? 'bg-white text-red-600 shadow-sm'
+                        ? 'bg-white text-[#0b1c3f] shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -356,7 +356,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     onClick={() => setCustomer({ ...customer, deliveryType: 'takeaway' })}
                     className={`py-2 px-3 text-xs font-bold rounded-lg transition-all ${
                       customer.deliveryType === 'takeaway'
-                        ? 'bg-white text-red-600 shadow-sm'
+                        ? 'bg-white text-[#0b1c3f] shadow-sm'
                         : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
@@ -505,7 +505,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <label
                     className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       customer.paymentMethod === 'pix'
-                        ? 'border-red-600 bg-red-50/30'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -514,7 +514,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'pix'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'pix' })}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500"
+                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-800 leading-none">🌀 Pix</span>
@@ -526,7 +526,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <label
                     className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       customer.paymentMethod === 'cash'
-                        ? 'border-red-600 bg-red-50/30'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -535,7 +535,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'cash'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'cash' })}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500"
+                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-800 leading-none">💵 Dinheiro</span>
@@ -547,7 +547,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <label
                     className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       customer.paymentMethod === 'credit'
-                        ? 'border-red-600 bg-red-50/30'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -556,7 +556,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'credit'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'credit' })}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500"
+                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-800 leading-none">💳 Crédito</span>
@@ -568,7 +568,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <label
                     className={`flex items-center gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
                       customer.paymentMethod === 'debit'
-                        ? 'border-red-600 bg-red-50/30'
+                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5'
                         : 'border-gray-100 hover:border-gray-200 bg-white'
                     }`}
                   >
@@ -577,7 +577,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'debit'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'debit' })}
-                      className="w-4 h-4 text-red-600 focus:ring-red-500"
+                      className="w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
                     />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-gray-800 leading-none">💳 Débito</span>
@@ -634,7 +634,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               )}
               <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between text-gray-900 font-extrabold text-lg">
                 <span>Total do Pedido</span>
-                <span className="text-red-600">{formatPrice(grandTotal)}</span>
+                <span className="text-[#0b1c3f]">{formatPrice(grandTotal)}</span>
               </div>
             </div>
 
@@ -646,7 +646,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     onClearCart();
                   }
                 }}
-                className="text-xs text-gray-400 hover:text-red-500 underline font-medium transition"
+                className="text-xs text-gray-400 hover:text-[#0b1c3f] underline font-medium transition"
               >
                 Limpar carrinho de compras
               </button>

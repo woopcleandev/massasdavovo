@@ -16,7 +16,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
     <div
       id={`product-card-${product.id}`}
       onClick={() => onSelect(product)}
-      className="group flex flex-col bg-white rounded-2xl border border-gray-100 hover:border-red-100 shadow-sm hover:shadow-md active:shadow-sm cursor-pointer overflow-hidden transition-all duration-300 transform hover:-translate-y-0.5"
+      className="group flex flex-col bg-white rounded-2xl border border-gray-100 hover:border-[#d4af37]/40 shadow-sm hover:shadow-md active:shadow-sm cursor-pointer overflow-hidden transition-all duration-300 transform hover:-translate-y-0.5"
     >
       {/* Product Image */}
       <div className="relative h-44 w-full bg-gray-50 overflow-hidden shrink-0">
@@ -32,8 +32,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
         />
 
         {product.isPopular && (
-          <div className="absolute top-3 left-3 flex items-center gap-1 rounded-full bg-red-600 px-2.5 py-1 text-xs font-bold text-white shadow-sm animate-pulse">
-            <Flame className="w-3 h-3 fill-white" />
+          <div className="absolute top-3 left-3 flex items-center gap-1 rounded-full bg-[#0b1c3f] text-[#d4af37] border border-[#d4af37]/30 px-2.5 py-1 text-xs font-bold shadow-sm animate-pulse">
+            <Flame className="w-3 h-3 fill-[#d4af37]" />
             <span>Mais Pedido</span>
           </div>
         )}
@@ -46,7 +46,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
 
       {/* Product Details */}
       <div className="flex flex-col flex-1 p-4">
-        <h3 className="text-base font-bold text-gray-900 group-hover:text-red-700 transition-colors line-clamp-1 leading-tight">
+        <h3 className="text-base font-bold text-gray-900 group-hover:text-[#0b1c3f] transition-colors line-clamp-1 leading-tight">
           {product.name}
         </h3>
         
@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
         <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
           <div className="flex flex-col">
             <span className="text-[10px] text-gray-400 font-medium leading-none">A partir de</span>
-            <span className="text-lg font-extrabold text-red-600 mt-0.5 leading-none">
+            <span className="text-lg font-extrabold text-[#0b1c3f] mt-0.5 leading-none">
               {formatPrice(product.price)}
             </span>
           </div>
@@ -69,9 +69,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
               e.stopPropagation();
               onSelect(product);
             }}
-            className="flex items-center gap-1 rounded-full bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95"
+            className="flex items-center gap-1 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] text-[#d4af37] border border-[#d4af37]/20 px-3 py-1.5 text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-3.5 h-3.5 text-[#d4af37]" />
             <span>Adicionar</span>
           </button>
         </div>

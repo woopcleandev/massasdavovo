@@ -87,10 +87,10 @@ export default function App() {
   const cartTotalValue = cartItems.reduce((acc, curr) => acc + curr.totalUnitPrice * curr.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-[#FCFBF7] text-gray-800 antialiased font-sans pb-24 selection:bg-red-100 selection:text-red-700">
+    <div className="min-h-screen bg-[#FCFBF7] text-gray-800 antialiased font-sans pb-24 selection:bg-[#0b1c3f]/10 selection:text-[#0b1c3f]">
       
       {/* 1. Header Banner / Cover */}
-      <div className="relative h-44 sm:h-52 w-full bg-red-800 overflow-hidden shrink-0">
+      <div className="relative h-44 sm:h-52 w-full bg-[#0b1c3f] overflow-hidden shrink-0">
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70 z-10" />
         <img
           src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=1200"
@@ -100,7 +100,7 @@ export default function App() {
         />
         
         {/* Decorative Top Accent */}
-        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-red-600 via-yellow-400 to-green-600 z-20" />
+        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#d4af37] via-[#f7e39d] to-[#d4af37] z-20" />
       </div>
 
       {/* 2. Restaurant Profile Header Area */}
@@ -113,7 +113,7 @@ export default function App() {
                 src={RESTAURANT_INFO.logo}
                 alt={RESTAURANT_INFO.name}
                 referrerPolicy="no-referrer"
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border border-red-50"
+                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border border-[#d4af37]/30"
               />
             </div>
             <span className="absolute bottom-1 right-1 flex h-4 w-4">
@@ -128,8 +128,8 @@ export default function App() {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight flex items-center gap-2 justify-center md:justify-start">
                   <span>{RESTAURANT_INFO.name}</span>
-                  <span className="inline-flex items-center gap-1 text-[10px] bg-red-50 text-red-600 font-bold px-2 py-0.5 rounded-sm border border-red-100">
-                    <Heart className="w-3 h-3 fill-red-600" />
+                  <span className="inline-flex items-center gap-1 text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] font-bold px-2 py-0.5 rounded-sm border border-[#0b1c3f]/20">
+                    <Heart className="w-3 h-3 fill-[#0b1c3f]" />
                     <span>Família</span>
                   </span>
                 </h1>
@@ -147,16 +147,16 @@ export default function App() {
             {/* Micro Details Row */}
             <div className="mt-4 pt-4 border-t border-gray-50 flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2.5 text-xs text-gray-600">
               <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-red-600 shrink-0" />
+                <Clock className="w-4 h-4 text-[#0b1c3f] shrink-0" />
                 <span className="font-semibold text-gray-800">{RESTAURANT_INFO.hours}</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-red-600 shrink-0" />
+                <MapPin className="w-4 h-4 text-[#0b1c3f] shrink-0" />
                 <a
                   href={RESTAURANT_INFO.googleMapsLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="hover:text-red-600 underline font-semibold transition truncate max-w-[200px] sm:max-w-xs"
+                  className="hover:text-[#0b1c3f] underline font-semibold transition truncate max-w-[200px] sm:max-w-xs"
                 >
                   {RESTAURANT_INFO.address}
                 </a>
@@ -187,7 +187,7 @@ export default function App() {
             }}
             className={`py-3.5 px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'menu'
-                ? 'border-red-600 text-red-600'
+                ? 'border-[#0b1c3f] text-[#0b1c3f]'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
@@ -198,7 +198,7 @@ export default function App() {
             onClick={() => setActiveTab('about')}
             className={`py-3.5 px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 ${
               activeTab === 'about'
-                ? 'border-red-600 text-red-600'
+                ? 'border-[#0b1c3f] text-[#0b1c3f]'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
             }`}
           >
@@ -229,7 +229,7 @@ export default function App() {
                     }}
                     className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-extrabold whitespace-nowrap transition-all border ${
                       selectedCategory === category.id && searchQuery === ''
-                        ? 'bg-red-600 text-white border-red-600 shadow-md scale-102'
+                        ? 'bg-[#0b1c3f] text-[#d4af37] border-[#d4af37]/30 shadow-md scale-102'
                         : 'bg-white text-gray-600 hover:text-gray-800 border-gray-200/80 hover:border-gray-300'
                     }`}
                   >
@@ -247,7 +247,7 @@ export default function App() {
                   placeholder="Buscar no cardápio..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-full border border-gray-200/80 bg-white py-2.5 pl-10 pr-4 text-xs focus:ring-red-500 focus:border-red-500 outline-hidden shadow-xs hover:border-gray-300 transition"
+                  className="w-full rounded-full border border-gray-200/80 bg-white py-2.5 pl-10 pr-4 text-xs focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden shadow-xs hover:border-gray-300 transition"
                 />
                 {searchQuery && (
                   <button
@@ -268,7 +268,7 @@ export default function App() {
                 <span className="text-gray-300">•</span>
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="text-red-600 hover:underline font-bold"
+                  className="text-[#0b1c3f] hover:underline font-bold"
                 >
                   Limpar busca
                 </button>
@@ -303,22 +303,22 @@ export default function App() {
       {cartItemsCount > 0 && (
         <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-100 shadow-[0_-8px_30px_rgb(0,0,0,0.06)] p-4 sm:p-5 flex items-center justify-between max-w-xl mx-auto rounded-t-3xl border-x">
           <div className="flex items-center gap-3">
-            <div className="relative p-3 rounded-2xl bg-red-600 text-white shadow-md animate-bounce">
+            <div className="relative p-3 rounded-2xl bg-[#0b1c3f] text-[#d4af37] border border-[#d4af37]/30 shadow-md animate-bounce">
               <ShoppingBag className="w-5.5 h-5.5" />
-              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-extrabold text-red-950 shadow-sm border border-white">
+              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-extrabold text-[#0b1c3f] shadow-sm border border-white">
                 {cartItemsCount}
               </span>
             </div>
             <div className="flex flex-col text-left">
               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none">Minha Sacola</span>
-              <span className="text-base font-extrabold text-red-600 mt-1 leading-none">{formatPrice(cartTotalValue)}</span>
+              <span className="text-base font-extrabold text-[#0b1c3f] mt-1 leading-none">{formatPrice(cartTotalValue)}</span>
             </div>
           </div>
 
           <button
             id="btn-open-checkout-drawer"
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-red-600 hover:bg-red-700 py-3.5 px-6 text-sm font-extrabold text-white transition-all shadow-md active:scale-95 transform hover:scale-101 shrink-0"
+            className="flex items-center gap-1.5 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] py-3.5 px-6 text-sm font-extrabold text-[#d4af37] border border-[#d4af37]/20 transition-all shadow-md active:scale-95 transform hover:scale-101 shrink-0"
           >
             <span>Ver Sacola</span>
             <ArrowRight className="w-4 h-4" />
