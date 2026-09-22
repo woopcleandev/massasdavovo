@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { CartItem, CustomerInfo, NEIGHBORHOODS, PaymentMethod, Order, OrderItem } from '../types';
 import { RESTAURANT_INFO } from '../data';
-import { X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, CreditCard, Clock, CheckCircle, Home, Briefcase, Tag, AlertCircle, Copy, Check } from 'lucide-react';
+import { 
+  X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, 
+  CreditCard, Clock, CheckCircle, Home, Briefcase, Tag, 
+  AlertCircle, Copy, Check, ChevronRight, ShieldCheck, Sparkles 
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import { OrderSuccessModal } from './OrderSuccessModal';
@@ -220,6 +224,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       };
     }
 
+    // Always fetch latest Master Admin WhatsApp Number
+    const activeMasterWhatsapp = (settings.whatsappNumber || RESTAURANT_INFO.whatsappNumber).replace(/\D/g, '');
+
     // Compile complete WhatsApp message
     let message = `*🍝 NOVO PEDIDO - MASSAS DA VOVÓ*\n`;
     message += `*Comanda:* ${savedOrder.orderNumber}\n`;
@@ -296,10 +303,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
     message += `_Pedido realizado pelo Cardápio Digital Massas da Vovó_ 👵❤`;
 
-    // Target WhatsApp number from dynamic company settings
-    const targetWhatsApp = (settings.whatsappNumber || RESTAURANT_INFO.whatsappNumber).replace(/\D/g, '');
     const cleanText = encodeURIComponent(message);
-    const waUrl = `https://api.whatsapp.com/send?phone=${targetWhatsApp}&text=${cleanText}`;
+    const waUrl = `https://api.whatsapp.com/send?phone=${activeMasterWhatsapp}&text=${cleanText}`;
 
     // Safely trigger WhatsApp
     try {
@@ -319,29 +324,29 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     setCompletedWaUrl(waUrl);
     setIsSubmitting(false);
 
-    // Empty cart so it doesn't duplicate
+    // Empty cart
     onClearCart();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/75 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/80 backdrop-blur-md">
       {/* Click outside to close */}
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
-      {/* Cart Drawer Panel */}
+      {/* Cart Drawer Panel - Uniform Dark Glass System */}
       <div
         id="cart-panel-drawer"
-        className="w-full max-w-lg dark-glass-panel h-full flex flex-col shadow-2xl relative animate-slide-left overflow-hidden border-l border-white/10 text-white"
+        className="w-full max-w-lg dark-glass-panel h-full flex flex-col shadow-2xl relative animate-slide-left overflow-hidden border-l border-white/10"
       >
         {/* Drawer Header */}
-        <div className="bg-black/50 backdrop-blur-md border-b border-white/10 p-5 shrink-0 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-amber-400/10 text-amber-400 border border-amber-400/20">
+        <div className="bg-black/40 backdrop-blur-md border-b border-white/10 p-4 sm:p-5 shrink-0 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-amber-400/10 text-amber-400 border border-amber-400/20">
               <ShoppingCart className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white">Sua Sacola de Massas</h2>
-              <p className="text-xs text-gray-400">
+              <h2 className="text-lg font-black tracking-tight">Sua Sacola de Massas</h2>
+              <p className="text-xs opacity-70">
                 {cartItems.length} {cartItems.length === 1 ? 'item artesanal' : 'itens artesanais'}
               </p>
             </div>
@@ -349,26 +354,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <button
             id="btn-close-cart"
             onClick={onClose}
-            className="p-2.5 rounded-full dark-glass-pill hover:bg-white/10 text-gray-400 hover:text-white transition cursor-pointer"
+            className="p-2.5 rounded-full dark-glass-pill hover:bg-white/10 opacity-70 hover:opacity-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Area (Scrollable) */}
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-6">
           {cartItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-center">
-              <div className="w-20 h-20 rounded-full bg-[#0b1c3f]/10 flex items-center justify-center text-[#0b1c3f] mb-5 animate-pulse">
+              <div className="w-20 h-20 rounded-full bg-amber-400/10 flex items-center justify-center text-amber-400 mb-5 border border-amber-400/20">
                 <ShoppingCart className="w-9 h-9" />
               </div>
-              <h3 className="text-base font-extrabold text-gray-800">Carrinho Vazio</h3>
-              <p className="mt-2 text-xs text-gray-400 max-w-xs leading-relaxed">
-                Navegue pelas nossas massas artesanais da vovó e adicione seus pratos favoritos ao pedido.
+              <h3 className="text-base font-extrabold">Sua sacola está vazia</h3>
+              <p className="mt-2 text-xs opacity-70 max-w-xs leading-relaxed">
+                Navegue pelas massas artesanais da vovó e monte sua refeição com muito carinho.
               </p>
               <button
                 onClick={onClose}
-                className="mt-6 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] text-[#d4af37] border border-[#d4af37]/20 font-bold text-sm py-3 px-6 shadow-xs transition"
+                className="mt-6 rounded-full dark-glass-button-gold font-bold text-xs py-3 px-6 shadow-md transition cursor-pointer"
               >
                 Ver Cardápio
               </button>
@@ -377,12 +382,12 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
             <>
               {/* Order Items List */}
               <div className="space-y-3">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-wider">Itens Escolhidos</h3>
+                <h3 className="text-xs font-black uppercase tracking-wider opacity-60">Itens Escolhidos</h3>
                 <div className="space-y-2.5">
                   {cartItems.map((item) => (
                     <div
                       key={item.id}
-                      className="dark-glass-card border border-white/10 rounded-2xl p-4 flex items-start gap-3 shadow-md"
+                      className="dark-glass-card border border-white/10 rounded-2xl p-3.5 sm:p-4 flex items-start gap-3 shadow-md"
                     >
                       {/* Product Thumbnail */}
                       <img
@@ -398,25 +403,25 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       {/* Info & Adjusters */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-1">
-                          <h4 className="text-sm font-bold text-white leading-tight truncate">
+                          <h4 className="text-sm font-bold leading-tight truncate">
                             {item.product.name}
                           </h4>
                           <button
                             onClick={() => onRemoveItem(item.id)}
-                            className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition shrink-0 cursor-pointer"
+                            className="p-1 opacity-60 hover:opacity-100 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition shrink-0 cursor-pointer"
                             title="Remover item"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
 
-                        {/* Customization Details */}
+                        {/* Customization Badges */}
                         {(item.customization?.selectedSize ||
                           item.customization?.selectedPasta ||
                           item.customization?.selectedSauce ||
                           (item.customization?.selectedToppings && item.customization.selectedToppings.length > 0) ||
                           item.notes) && (
-                          <div className="mt-1 flex flex-col gap-0.5 text-[11px] text-gray-300 leading-snug bg-white/5 rounded-lg p-2 border border-white/5">
+                          <div className="mt-1.5 flex flex-col gap-0.5 text-[11px] opacity-80 leading-snug bg-white/5 rounded-lg p-2 border border-white/5">
                             {item.customization?.selectedSize && (
                               <div><strong className="text-amber-400">Tamanho:</strong> {item.customization.selectedSize.name}</div>
                             )}
@@ -433,29 +438,26 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                               </div>
                             )}
                             {item.notes && (
-                              <div className="text-gray-300 italic"><strong className="text-amber-400">Obs:</strong> "{item.notes}"</div>
+                              <div className="italic"><strong className="text-amber-400">Obs:</strong> "{item.notes}"</div>
                             )}
                           </div>
                         )}
 
-                        <div className="mt-3.5 flex items-center justify-between">
-                          {/* Item unit subtotal */}
+                        <div className="mt-3 flex items-center justify-between">
                           <span className="text-sm font-black text-amber-400">
                             {formatPrice(item.totalUnitPrice * item.quantity)}
                           </span>
 
-                          {/* Adjust Quantity Buttons */}
                           <div className="flex items-center gap-2 border border-white/10 rounded-full bg-white/5 p-1">
                             <button
-                              onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
-                              className="p-1 rounded-full bg-white/10 hover:bg-white/20 text-gray-200 transition cursor-pointer"
-                              disabled={item.quantity <= 1}
+                              onClick={() => onUpdateQuantity(item.id, -1)}
+                              className="p-1 rounded-full bg-white/10 hover:bg-white/20 transition cursor-pointer"
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="text-xs font-black text-white w-4 text-center">{item.quantity}</span>
+                            <span className="text-xs font-black w-4 text-center">{item.quantity}</span>
                             <button
-                              onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                              onClick={() => onUpdateQuantity(item.id, 1)}
                               className="p-1 rounded-full bg-amber-400 text-black hover:bg-amber-300 transition cursor-pointer"
                             >
                               <Plus className="w-3 h-3 stroke-[3]" />
@@ -468,31 +470,31 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Delivery Settings */}
-              <div className="space-y-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-xs">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-50 pb-2">
-                  <MapPin className="w-4 h-4 text-gray-400" />
+              {/* Delivery Settings Card */}
+              <div className="space-y-4 dark-glass-card rounded-2xl p-4 border border-white/10 shadow-md text-left">
+                <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 border-b border-white/10 pb-2.5 opacity-80">
+                  <MapPin className="w-4 h-4 text-amber-400" />
                   <span>Método de Entrega</span>
                 </h3>
 
                 {/* Delivery tabs */}
-                <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl">
+                <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 rounded-2xl border border-white/5">
                   <button
                     onClick={() => setCustomer({ ...customer, deliveryType: 'delivery' })}
-                    className={`py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+                    className={`py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                       customer.deliveryType === 'delivery'
-                        ? 'bg-white text-[#0b1c3f] shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'dark-glass-button-gold text-black shadow-sm'
+                        : 'opacity-70 hover:opacity-100 hover:bg-white/5'
                     }`}
                   >
                     🚀 Entregar em Casa
                   </button>
                   <button
                     onClick={() => setCustomer({ ...customer, deliveryType: 'takeaway' })}
-                    className={`py-2 px-3 text-xs font-bold rounded-lg transition-all ${
+                    className={`py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
                       customer.deliveryType === 'takeaway'
-                        ? 'bg-white text-[#0b1c3f] shadow-sm'
-                        : 'text-gray-500 hover:text-gray-700'
+                        ? 'dark-glass-button-gold text-black shadow-sm'
+                        : 'opacity-70 hover:opacity-100 hover:bg-white/5'
                     }`}
                   >
                     🏪 Retirar no Local
@@ -501,23 +503,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                 {/* Local Pickup Notice */}
                 {customer.deliveryType === 'takeaway' && (
-                  <div className="bg-amber-50 text-amber-800 p-3 rounded-xl border border-amber-100 text-xs flex gap-2">
-                    <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="bg-amber-500/10 text-amber-300 p-3 rounded-xl border border-amber-400/20 text-xs flex gap-2">
+                    <Clock className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold">Retirada em 30-45 minutos!</span>
-                      <p className="mt-0.5 leading-snug">
+                      <span className="font-bold text-amber-400">Retirada em 30-45 minutos!</span>
+                      <p className="mt-0.5 leading-snug text-[11px] opacity-90">
                         Prepare-se para retirar seu pedido quentinho no nosso endereço: <br />
-                        <span className="font-semibold underline text-amber-900">{RESTAURANT_INFO.address}</span>
+                        <span className="font-semibold underline">{RESTAURANT_INFO.address}</span>
                       </p>
                     </div>
                   </div>
                 )}
 
                 {/* Contact and address form fields */}
-                <div className="space-y-3 text-left">
+                <div className="space-y-3.5 text-left">
                   {/* Name */}
                   <div id="field-name">
-                    <label className="text-xs font-bold text-gray-700 block mb-1">Seu Nome</label>
+                    <label className="text-xs font-bold block mb-1 opacity-90">Seu Nome</label>
                     <input
                       type="text"
                       placeholder="Ex: Maria Souza"
@@ -526,16 +528,16 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         setCustomer({ ...customer, name: e.target.value });
                         if (errors.name) setErrors({ ...errors, name: '' });
                       }}
-                      className={`w-full rounded-xl border p-3 text-sm focus:ring-red-500 focus:border-red-500 outline-hidden ${
-                        errors.name ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                      className={`w-full rounded-xl bg-white/5 border p-3 text-sm focus:border-amber-400/70 outline-none ${
+                        errors.name ? 'border-red-500 bg-red-500/10' : 'border-white/10'
                       }`}
                     />
-                    {errors.name && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.name}</span>}
+                    {errors.name && <span className="text-[11px] text-red-400 mt-1 block font-medium">{errors.name}</span>}
                   </div>
 
                   {/* Phone */}
                   <div id="field-phone">
-                    <label className="text-xs font-bold text-gray-700 block mb-1">WhatsApp de Contato</label>
+                    <label className="text-xs font-bold block mb-1 opacity-90">WhatsApp de Contato</label>
                     <input
                       type="tel"
                       placeholder="Ex: (66) 99652-3006"
@@ -544,28 +546,28 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         setCustomer({ ...customer, phone: e.target.value });
                         if (errors.phone) setErrors({ ...errors, phone: '' });
                       }}
-                      className={`w-full rounded-xl border p-3 text-sm focus:ring-red-500 focus:border-red-500 outline-hidden ${
-                        errors.phone ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                      className={`w-full rounded-xl bg-white/5 border p-3 text-sm focus:border-amber-400/70 outline-none ${
+                        errors.phone ? 'border-red-500 bg-red-500/10' : 'border-white/10'
                       }`}
                     />
-                    {errors.phone && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.phone}</span>}
+                    {errors.phone && <span className="text-[11px] text-red-400 mt-1 block font-medium">{errors.phone}</span>}
                   </div>
 
                   {/* Delivery Specific Fields */}
                   {customer.deliveryType === 'delivery' && (
-                    <div className="space-y-3 animate-fade-in">
+                    <div className="space-y-3.5 animate-fade-in">
                       {/* Saved addresses selector if user has saved addresses */}
                       {currentUser && savedAddresses.length > 0 && (
                         <div className="space-y-2 mb-3">
-                          <label className="text-xs font-bold text-gray-700 block">Seus Endereços Salvos</label>
-                          <div className="space-y-1.5 max-h-32 overflow-y-auto pr-1">
+                          <label className="text-xs font-bold block opacity-90">Seus Endereços Salvos</label>
+                          <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                             {savedAddresses.map((addr) => (
                               <label
                                 key={addr.id}
-                                className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition text-left ${
+                                className={`flex items-start gap-2.5 p-3 rounded-xl border transition text-left cursor-pointer ${
                                   selectedAddressId === addr.id
-                                    ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
-                                    : 'border-gray-100 hover:border-gray-200 bg-white'
+                                    ? 'border-amber-400 bg-amber-400/10 ring-1 ring-amber-400'
+                                    : 'border-white/10 hover:border-white/20 bg-white/5'
                                 }`}
                               >
                                 <input
@@ -573,20 +575,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                   name="saved-address"
                                   checked={selectedAddressId === addr.id}
                                   onChange={() => handleSelectSavedAddress(addr.id)}
-                                  className="mt-0.5 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                                  className="mt-0.5 text-amber-400 focus:ring-amber-400"
                                 />
                                 <div className="text-[11px] leading-snug">
-                                  <span className="font-extrabold capitalize text-[#0b1c3f]">{addr.label}:</span>{' '}
-                                  <span className="font-semibold text-gray-700">{addr.street}, {addr.number} ({addr.neighborhood})</span>
+                                  <span className="font-extrabold capitalize text-amber-400">{addr.label}:</span>{' '}
+                                  <span className="font-semibold">{addr.street}, {addr.number} ({addr.neighborhood})</span>
                                 </div>
                               </label>
                             ))}
 
                             <label
-                              className={`flex items-center gap-2.5 p-2.5 rounded-xl border transition text-left ${
+                              className={`flex items-center gap-2.5 p-3 rounded-xl border transition text-left cursor-pointer ${
                                 selectedAddressId === 'custom'
-                                  ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
-                                  : 'border-gray-100 hover:border-gray-200 bg-white'
+                                  ? 'border-amber-400 bg-amber-400/10 ring-1 ring-amber-400'
+                                  : 'border-white/10 hover:border-white/20 bg-white/5'
                               }`}
                             >
                               <input
@@ -594,9 +596,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                 name="saved-address"
                                 checked={selectedAddressId === 'custom'}
                                 onChange={() => handleSelectSavedAddress('custom')}
-                                className="text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                                className="text-amber-400 focus:ring-amber-400"
                               />
-                              <span className="text-[11px] font-extrabold text-gray-800">➕ Outro Endereço / Digitar Manualmente</span>
+                              <span className="text-[11px] font-extrabold text-amber-300">➕ Outro Endereço / Digitar Manualmente</span>
                             </label>
                           </div>
                         </div>
@@ -604,15 +606,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                       {/* Display read-only card if saved address is selected */}
                       {currentUser && selectedAddressId !== 'custom' && (
-                        <div className="bg-gray-50 border border-gray-100 rounded-xl p-3 text-xs flex items-center justify-between">
+                        <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-xs flex items-center justify-between">
                           <div>
-                            <span className="text-gray-400 font-bold uppercase tracking-wider text-[9px]">Entregando em</span>
-                            <p className="font-extrabold text-[#0b1c3f] mt-0.5">
+                            <span className="opacity-60 font-bold uppercase tracking-wider text-[9px]">Entregando em</span>
+                            <p className="font-extrabold text-amber-400 mt-0.5">
                               {customer.street}, {customer.number}
                             </p>
-                            <p className="text-gray-500 mt-0.5">{customer.neighborhood}</p>
+                            <p className="opacity-75 mt-0.5">{customer.neighborhood}</p>
                           </div>
-                          <span className="p-2 bg-white text-emerald-600 border border-emerald-50 rounded-lg font-bold text-[10px]">
+                          <span className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg font-bold text-[10px]">
                             Endereço Salvo ✓
                           </span>
                         </div>
@@ -623,19 +625,19 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                         <>
                           {/* Neighborhood / Bairro selector */}
                           <div id="field-neighborhood">
-                            <label className="text-xs font-bold text-gray-700 block mb-1">Seu Bairro (Primavera do Leste)</label>
+                            <label className="text-xs font-bold block mb-1 opacity-90">Seu Bairro (Primavera do Leste)</label>
                             <select
                               value={customer.neighborhood}
                               onChange={(e) => {
                                 setCustomer({ ...customer, neighborhood: e.target.value });
                                 if (errors.neighborhood) setErrors({ ...errors, neighborhood: '' });
                               }}
-                              className={`w-full rounded-xl border p-3 text-sm bg-white focus:ring-red-500 focus:border-red-500 outline-hidden ${
-                                errors.neighborhood ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                              className={`w-full rounded-xl border p-3 text-sm bg-black/60 text-white focus:border-amber-400/70 outline-none ${
+                                errors.neighborhood ? 'border-red-500 bg-red-500/10' : 'border-white/10'
                               }`}
                             >
                               {NEIGHBORHOODS.map((n) => (
-                                <option key={n.name} value={n.name}>
+                                <option key={n.name} value={n.name} className="bg-gray-900 text-white">
                                   {n.name} — Taxa: {formatPrice(n.fee)}
                                 </option>
                               ))}
@@ -645,7 +647,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                           {/* Street & Number in grid */}
                           <div className="grid grid-cols-3 gap-2.5">
                             <div className="col-span-2 text-left" id="field-street">
-                              <label className="text-xs font-bold text-gray-700 block mb-1">Rua / Avenida</label>
+                              <label className="text-xs font-bold block mb-1 opacity-90">Rua / Avenida</label>
                               <input
                                 type="text"
                                 placeholder="Ex: Av. Porto Alegre"
@@ -654,15 +656,15 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                   setCustomer({ ...customer, street: e.target.value });
                                   if (errors.street) setErrors({ ...errors, street: '' });
                                 }}
-                                className={`w-full rounded-xl border p-3 text-sm focus:ring-[#0b1c3f] focus:border-[#0b1c3f] outline-hidden ${
-                                  errors.street ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                                className={`w-full rounded-xl bg-white/5 border p-3 text-sm focus:border-amber-400/70 outline-none ${
+                                  errors.street ? 'border-red-500 bg-red-500/10' : 'border-white/10'
                                 }`}
                               />
-                              {errors.street && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.street}</span>}
+                              {errors.street && <span className="text-[11px] text-red-400 mt-1 block font-medium">{errors.street}</span>}
                             </div>
 
                             <div className="text-left" id="field-number">
-                              <label className="text-xs font-bold text-gray-700 block mb-1">Número</label>
+                              <label className="text-xs font-bold block mb-1 opacity-90">Número</label>
                               <input
                                 type="text"
                                 placeholder="Ex: 145"
@@ -671,11 +673,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                   setCustomer({ ...customer, number: e.target.value });
                                   if (errors.number) setErrors({ ...errors, number: '' });
                                 }}
-                                className={`w-full rounded-xl border p-3 text-sm focus:ring-[#0b1c3f] focus:border-[#0b1c3f] outline-hidden ${
-                                  errors.number ? 'border-red-500 bg-red-50/10' : 'border-gray-200'
+                                className={`w-full rounded-xl bg-white/5 border p-3 text-sm focus:border-amber-400/70 outline-none ${
+                                  errors.number ? 'border-red-500 bg-red-500/10' : 'border-white/10'
                                 }`}
                               />
-                              {errors.number && <span className="text-[11px] text-red-500 mt-1 block font-medium">{errors.number}</span>}
+                              {errors.number && <span className="text-[11px] text-red-400 mt-1 block font-medium">{errors.number}</span>}
                             </div>
                           </div>
 
@@ -686,9 +688,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                 type="checkbox"
                                 checked={saveThisAddress}
                                 onChange={(e) => setSaveThisAddress(e.target.checked)}
-                                className="rounded text-[#0b1c3f] focus:ring-[#0b1c3f] h-4 w-4"
+                                className="rounded text-amber-400 focus:ring-amber-400 h-4 w-4"
                               />
-                              <span className="text-[10px] text-gray-600 font-bold select-none">
+                              <span className="text-[10px] opacity-80 font-bold select-none">
                                 💾 Salvar este endereço na minha conta para os próximos pedidos
                               </span>
                             </label>
@@ -698,20 +700,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
                       {/* Log in prompt banner for guest checkout */}
                       {!currentUser && (
-                        <div className="bg-[#0b1c3f]/5 border border-[#d4af37]/20 rounded-xl p-3 text-[11px] text-[#0b1c3f] leading-snug text-left font-semibold">
-                          🔑 <span className="font-extrabold">Quer salvar seus endereços?</span> Faça login ou crie uma conta para salvar seus locais favoritos (Casa, Trabalho) e fazer pedidos mais rápido!
+                        <div className="bg-amber-400/10 border border-amber-400/20 rounded-xl p-3 text-[11px] text-amber-300 leading-snug text-left font-semibold">
+                          🔑 <span className="font-extrabold text-white">Dica:</span> Crie uma conta ou entre em <strong>Minha Conta</strong> para salvar seus endereços e ver o histórico de pedidos em tempo real!
                         </div>
                       )}
 
                       {/* Reference point */}
                       <div className="text-left">
-                        <label className="text-xs font-bold text-gray-700 block mb-1">Ponto de Referência</label>
+                        <label className="text-xs font-bold block mb-1 opacity-90">Ponto de Referência (Opcional)</label>
                         <input
                           type="text"
                           placeholder="Ex: Próximo à praça de eventos"
                           value={customer.reference}
                           onChange={(e) => setCustomer({ ...customer, reference: e.target.value })}
-                          className="w-full rounded-xl border border-gray-200 p-3 text-sm focus:ring-red-500 focus:border-red-500 outline-hidden"
+                          className="w-full rounded-xl bg-white/5 border border-white/10 p-3 text-sm focus:border-amber-400/70 outline-none"
                         />
                       </div>
                     </div>
@@ -719,20 +721,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 </div>
               </div>
 
-              {/* Payment Methods */}
-              <div className="space-y-4 bg-white rounded-2xl p-4 border border-gray-100 shadow-xs text-left">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-gray-100 pb-2">
-                  <CreditCard className="w-4 h-4 text-gray-400" />
+              {/* Payment Methods Card */}
+              <div className="space-y-4 dark-glass-card rounded-2xl p-4 border border-white/10 shadow-md text-left">
+                <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 border-b border-white/10 pb-2.5 opacity-80">
+                  <CreditCard className="w-4 h-4 text-amber-400" />
                   <span>Forma de Pagamento</span>
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {/* Pix Agora */}
                   <label
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
                       customer.paymentMethod === 'pix_now' || customer.paymentMethod === 'pix'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400 bg-amber-400/15 ring-1 ring-amber-400'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <input
@@ -740,22 +742,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'pix_now' || customer.paymentMethod === 'pix'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'pix_now' })}
-                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-amber-400 focus:ring-amber-400"
                     />
                     <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-gray-900 leading-none">🌀 Pix Agora (Chave Pix)</span>
-                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">
-                        Pague agora e envie o comprovante pelo WhatsApp
+                      <span className="text-xs font-bold leading-none">🌀 Pix Agora (Chave Pix)</span>
+                      <span className="text-[10px] opacity-70 mt-1 leading-snug">
+                        Pague agora e envie o comprovante no WhatsApp
                       </span>
                     </div>
                   </label>
 
                   {/* Pix na Entrega */}
                   <label
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
                       customer.paymentMethod === 'pix_delivery'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400 bg-amber-400/15 ring-1 ring-amber-400'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <input
@@ -763,22 +765,22 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'pix_delivery'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'pix_delivery' })}
-                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-amber-400 focus:ring-amber-400"
                     />
                     <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-gray-900 leading-none">📱 Pix na Entrega (QR Code)</span>
-                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">
-                        Entregador leva o QR Code Pix na maquininha
+                      <span className="text-xs font-bold leading-none">📱 Pix na Entrega (QR Code)</span>
+                      <span className="text-[10px] opacity-70 mt-1 leading-snug">
+                        Entregador leva o QR Code na maquininha
                       </span>
                     </div>
                   </label>
 
                   {/* Dinheiro */}
                   <label
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
                       customer.paymentMethod === 'cash'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400 bg-amber-400/15 ring-1 ring-amber-400'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <input
@@ -786,20 +788,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'cash'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'cash' })}
-                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-amber-400 focus:ring-amber-400"
                     />
                     <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-gray-900 leading-none">💵 Dinheiro</span>
-                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">Pagar em espécie na entrega</span>
+                      <span className="text-xs font-bold leading-none">💵 Dinheiro</span>
+                      <span className="text-[10px] opacity-70 mt-1 leading-snug">Pagar em espécie na entrega</span>
                     </div>
                   </label>
 
                   {/* Cartão de Crédito */}
                   <label
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
                       customer.paymentMethod === 'credit'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400 bg-amber-400/15 ring-1 ring-amber-400'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <input
@@ -807,20 +809,20 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'credit'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'credit' })}
-                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-amber-400 focus:ring-amber-400"
                     />
                     <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-gray-900 leading-none">💳 Cartão de Crédito</span>
-                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">Levar maquininha</span>
+                      <span className="text-xs font-bold leading-none">💳 Cartão de Crédito</span>
+                      <span className="text-[10px] opacity-70 mt-1 leading-snug">Levar maquininha na entrega</span>
                     </div>
                   </label>
 
                   {/* Cartão de Débito */}
                   <label
-                    className={`flex items-start gap-2.5 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`flex items-start gap-2.5 p-3 rounded-xl border transition-all cursor-pointer ${
                       customer.paymentMethod === 'debit'
-                        ? 'border-[#0b1c3f] bg-[#0b1c3f]/5 ring-1 ring-[#0b1c3f]'
-                        : 'border-gray-100 hover:border-gray-200 bg-white'
+                        ? 'border-amber-400 bg-amber-400/15 ring-1 ring-amber-400'
+                        : 'border-white/10 hover:border-white/20 bg-white/5'
                     }`}
                   >
                     <input
@@ -828,41 +830,41 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                       name="payment-method"
                       checked={customer.paymentMethod === 'debit'}
                       onChange={() => setCustomer({ ...customer, paymentMethod: 'debit' })}
-                      className="mt-0.5 w-4 h-4 text-[#0b1c3f] focus:ring-[#0b1c3f]"
+                      className="mt-0.5 w-4 h-4 text-amber-400 focus:ring-amber-400"
                     />
                     <div className="flex flex-col text-left">
-                      <span className="text-xs font-bold text-gray-900 leading-none">💳 Cartão de Débito</span>
-                      <span className="text-[10px] text-gray-500 mt-1 leading-snug">Levar maquininha</span>
+                      <span className="text-xs font-bold leading-none">💳 Cartão de Débito</span>
+                      <span className="text-[10px] opacity-70 mt-1 leading-snug">Levar maquininha na entrega</span>
                     </div>
                   </label>
                 </div>
 
                 {/* Pix Agora details info box */}
                 {(customer.paymentMethod === 'pix_now' || customer.paymentMethod === 'pix') && (
-                  <div className="bg-amber-50/80 text-amber-950 p-3.5 rounded-xl border border-amber-200/80 text-xs space-y-2">
-                    <div className="flex items-center gap-2 font-bold text-amber-900">
-                      <CheckCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div className="bg-amber-500/10 text-amber-300 p-3.5 rounded-xl border border-amber-400/20 text-xs space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-amber-400">
+                      <CheckCircle className="w-4 h-4 text-amber-400 shrink-0" />
                       <span>Chave PIX da Vovó ({settings.pixKeyType}):</span>
                     </div>
-                    <div className="bg-white p-2.5 rounded-lg border border-amber-200 flex items-center justify-between font-mono font-bold text-xs text-gray-900">
+                    <div className="bg-black/40 p-2.5 rounded-lg border border-amber-400/30 flex items-center justify-between font-mono font-bold text-xs text-amber-300">
                       <span className="select-all">{settings.pixKey}</span>
-                      <span className="text-[10px] text-gray-400 font-sans font-medium">{settings.pixBeneficiary}</span>
+                      <span className="text-[10px] opacity-70 font-sans font-medium">{settings.pixBeneficiary}</span>
                     </div>
-                    <p className="text-[11px] text-amber-800 leading-tight">
-                      Após o clique em finalizar, a mensagem já incluirá a chave PIX e ficaremos aguardando o envio do comprovante nesta mesma conversa para iniciar o preparo!
+                    <p className="text-[11px] opacity-90 leading-tight">
+                      Ao clicar em finalizar, a mensagem já incluirá os dados do PIX e aguardaremos o comprovante no WhatsApp para iniciar o preparo!
                     </p>
                   </div>
                 )}
 
                 {/* Pix na Entrega details info box */}
                 {customer.paymentMethod === 'pix_delivery' && (
-                  <div className="bg-blue-50 text-blue-900 p-3.5 rounded-xl border border-blue-200 text-xs space-y-1">
-                    <div className="flex items-center gap-2 font-bold text-blue-950">
+                  <div className="bg-blue-500/10 text-blue-300 p-3.5 rounded-xl border border-blue-400/20 text-xs space-y-1">
+                    <div className="flex items-center gap-2 font-bold text-blue-400">
                       <span className="text-sm">📱</span>
                       <span>QR Code Pix com o Entregador</span>
                     </div>
-                    <p className="text-[11px] text-blue-800 leading-tight">
-                      O entregador levará a maquininha ou o celular com o QR Code Pix pronto para você ler e pagar com segurança na entrega.
+                    <p className="text-[11px] opacity-90 leading-tight">
+                      O entregador levará a maquininha ou o celular com o QR Code Pix pronto para você escanear e pagar na entrega.
                     </p>
                   </div>
                 )}
@@ -870,13 +872,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                 {/* Cash change field */}
                 {customer.paymentMethod === 'cash' && (
                   <div className="mt-3 text-left animate-fade-in">
-                    <label className="text-xs font-bold text-gray-700 block mb-1">Precisa de troco para quanto?</label>
+                    <label className="text-xs font-bold block mb-1 opacity-90">Precisa de troco para quanto?</label>
                     <input
                       type="text"
                       placeholder="Ex: R$ 50, R$ 100 (ou deixe em branco se não precisar)"
                       value={customer.changeFor}
                       onChange={(e) => setCustomer({ ...customer, changeFor: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 p-3 text-sm focus:ring-[#0b1c3f] focus:border-[#0b1c3f] outline-hidden"
+                      className="w-full rounded-xl bg-white/5 border border-white/10 p-3 text-sm focus:border-amber-400/70 outline-none"
                     />
                   </div>
                 )}
@@ -887,44 +889,43 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
         {/* Drawer Footer Summary & Send Button */}
         {cartItems.length > 0 && (
-          <div className="bg-black/60 backdrop-blur-md border-t border-white/10 p-5 shrink-0 space-y-4">
+          <div className="bg-black/50 backdrop-blur-md border-t border-white/10 p-4 sm:p-5 shrink-0 space-y-4">
             <div className="space-y-1.5 text-sm">
-              <div className="flex items-center justify-between text-gray-400">
+              <div className="flex items-center justify-between opacity-70">
                 <span>Subtotal dos itens</span>
-                <span className="text-gray-200 font-mono">{formatPrice(itemsSubtotal)}</span>
+                <span className="font-mono">{formatPrice(itemsSubtotal)}</span>
               </div>
               {customer.deliveryType === 'delivery' && (
-                <div className="flex items-center justify-between text-gray-400">
+                <div className="flex items-center justify-between opacity-70">
                   <span>Taxa de Entrega ({customer.neighborhood})</span>
-                  <span className="text-gray-200 font-mono">{formatPrice(deliveryFee)}</span>
+                  <span className="font-mono">{formatPrice(deliveryFee)}</span>
                 </div>
               )}
-              <div className="pt-2.5 border-t border-white/10 flex items-center justify-between text-white font-black text-lg">
+              <div className="pt-2.5 border-t border-white/10 flex items-center justify-between font-black text-lg">
                 <span>Total do Pedido</span>
                 <span className="text-amber-400 font-mono text-xl">{formatPrice(grandTotal)}</span>
               </div>
             </div>
 
-            {/* Clear Cart link */}
-            <div className="text-center">
+            <div className="flex items-center justify-between pt-1">
               <button
+                type="button"
                 onClick={() => {
-                  if (confirm('Tem certeza que deseja esvaziar o carrinho?')) {
+                  if (window.confirm('Tem certeza de que deseja esvaziar a sacola?')) {
                     onClearCart();
                   }
                 }}
-                className="text-xs text-gray-400 hover:text-red-400 underline font-medium transition cursor-pointer"
+                className="text-xs opacity-60 hover:opacity-100 hover:text-red-400 underline font-medium transition cursor-pointer"
               >
-                Limpar carrinho de compras
+                Limpar sacola
               </button>
             </div>
 
-            {/* Submit Order to WhatsApp Button */}
             <button
               id="btn-send-whatsapp-order"
               disabled={isSubmitting}
               onClick={handleSendOrder}
-              className="w-full flex items-center justify-center gap-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 py-3.5 px-6 text-sm font-black text-white transition shadow-lg active:scale-98 transform hover:scale-101 cursor-pointer"
+              className="w-full flex items-center justify-center gap-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 py-4 px-6 text-sm font-black text-white transition shadow-lg active:scale-98 transform hover:scale-[1.01] cursor-pointer"
             >
               <Send className="w-4 h-4 fill-white" />
               <span>{isSubmitting ? 'Gerando Comanda...' : 'Finalizar e Enviar Pedido pelo WhatsApp'}</span>
@@ -933,13 +934,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         )}
       </div>
 
-      {/* Order Success & PIX Modal */}
+      {/* Success Modal */}
       {completedOrder && (
         <OrderSuccessModal
           order={completedOrder}
           whatsappUrl={completedWaUrl}
           onClose={() => {
             setCompletedOrder(null);
+            setCompletedWaUrl('');
             onClose();
           }}
         />

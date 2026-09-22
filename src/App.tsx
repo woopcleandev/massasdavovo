@@ -10,19 +10,20 @@ import { ProductCard } from './components/ProductCard';
 import { ProductModal } from './components/ProductModal';
 import { CartDrawer } from './components/CartDrawer';
 import { AboutTab } from './components/AboutTab';
-import { PWAInstallButton } from './components/PWAInstallButton';
 import { 
   ShoppingBag, Search, Clock, MapPin, X, Info, Phone, 
   ArrowRight, Heart, User, Sparkles, SlidersHorizontal,
-  ChevronRight, Utensils, Star, Flame, Check
+  ChevronRight, Utensils, Star, Flame, Check, Sun, Moon, Monitor
 } from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { CompanyProvider, useCompany } from './context/CompanyContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { MyAccountView } from './components/MyAccountView';
 import { MasterAdminView } from './components/MasterAdminView';
 
 function MainApp() {
   const { allProducts, settings } = useCompany();
+  const { themeMode, setThemeMode, resolvedTheme } = useTheme();
 
   // Navigation & filtering state
   const [activeTab, setActiveTab] = useState<'menu' | 'about' | 'account'>('menu');
@@ -62,39 +63,48 @@ function MainApp() {
     });
   };
 
-  const handleUpdateCartQuantity = (id: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      handleRemoveCartItem(id);
-      return;
-    }
+  const handleUpdateCartQuantity = (itemId: string, delta: number) => {
     setCartItems((prevItems) =>
-      prevItems.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item))
+      prevItems
+        .map((item) => {
+          if (item.id === itemId) {
+            const newQty = item.quantity + delta;
+            return newQty > 0 ? { ...item, quantity: newQty } : null;
+          }
+          return item;
+        })
+        .filter(Boolean) as CartItem[]
     );
   };
 
-  const handleRemoveCartItem = (id: string) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+  const handleRemoveCartItem = (itemId: string) => {
+    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
   };
 
   const handleClearCart = () => {
     setCartItems([]);
   };
 
-  const formatPrice = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
-
-  // Filter products based on active category, search query, and popular toggle
+  // Filter products by selected category, popular badge, and search query
   const filteredProducts = allProducts.filter((product) => {
+    // Category match
     const matchesCategory = selectedCategory === 'all' || product.categoryId === selectedCategory;
+
+    // Popular match
     const matchesPopular = !filterPopularOnly || product.isPopular;
+
+    // Search query match (name, description, ingredients)
     const matchesSearch =
-      searchQuery.trim() === '' ||
+      !searchQuery.trim() ||
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesCategory && matchesPopular && matchesSearch;
   });
+
+  const formatPrice = (value: number) => {
+    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
 
   const cartItemsCount = cartItems.reduce((acc, curr) => acc + curr.quantity, 0);
   const cartTotalValue = cartItems.reduce((acc, curr) => acc + curr.totalUnitPrice * curr.quantity, 0);
@@ -105,8 +115,18 @@ function MainApp() {
   // Signature featured product for desktop spotlight banner
   const featuredProduct = allProducts.find(p => p.id === 'lasanha-bolonhesa') || allProducts[0];
 
+  const toggleTheme = () => {
+    if (themeMode === 'light') {
+      setThemeMode('dark');
+    } else if (themeMode === 'dark') {
+      setThemeMode('system');
+    } else {
+      setThemeMode('light');
+    }
+  };
+
   return (
-    <div className="min-h-screen obsidian-ambient-bg text-gray-100 antialiased font-sans pb-28 selection:bg-amber-400 selection:text-black relative overflow-x-hidden">
+    <div className="min-h-screen obsidian-ambient-bg antialiased font-sans pb-28 selection:bg-amber-400 selection:text-black relative overflow-x-hidden transition-colors duration-300">
       
       {/* Background Ambient Glow Orbs */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -115,16 +135,16 @@ function MainApp() {
         <div className="absolute bottom-20 left-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-[140px]" />
       </div>
 
-      {/* 1. Header & Navigation (Liquid Dark Glass System) */}
+      {/* 1. Header & Navigation (Liquid Glass System - Completely Rounded) */}
       <header className="sticky top-3 z-40 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full transition-all duration-300">
-        <nav className="dark-glass-panel rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-6 border border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.7)]">
+        <nav className="dark-glass-panel rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-6 border shadow-[0_12px_40px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.7)]">
           
           {/* Brand Identity / Logo */}
           <div 
             onClick={() => { setActiveTab('menu'); setSelectedCategory('all'); setSearchQuery(''); }}
             className="flex items-center gap-3 cursor-pointer shrink-0 group select-none"
           >
-            <div className="relative p-0.5 rounded-full bg-white/5 backdrop-blur-md border border-amber-400/40 group-hover:scale-105 transition-transform duration-300">
+            <div className="relative p-0.5 rounded-full bg-white/20 dark:bg-white/5 backdrop-blur-md border border-amber-400/40 group-hover:scale-105 transition-transform duration-300 shadow-sm">
               <img
                 src={RESTAURANT_INFO.logo}
                 alt={RESTAURANT_INFO.name}
@@ -138,20 +158,20 @@ function MainApp() {
             </div>
             
             <div className="flex flex-col text-left">
-              <span className="text-sm sm:text-base font-black text-white tracking-tight leading-none group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
+              <span className="text-sm sm:text-base font-black text-stone-900 dark:text-white tracking-tight leading-none group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
                 <span>{RESTAURANT_INFO.name}</span>
-                <span className="hidden sm:inline-flex items-center text-[10px] font-extrabold text-amber-300 bg-amber-400/15 border border-amber-400/30 px-1.5 py-0.5 rounded-full">
+                <span className="hidden sm:inline-flex items-center text-[10px] font-black text-amber-600 dark:text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
                   Artesanal
                 </span>
               </span>
-              <span className="text-[10px] sm:text-[11px] text-gray-400 font-semibold tracking-wide leading-none mt-1 truncate">
+              <span className="text-[10px] sm:text-[11px] text-stone-500 dark:text-gray-400 font-semibold tracking-wide leading-none mt-1 truncate">
                 Primavera do Leste - MT • Aberto
               </span>
             </div>
           </div>
 
           {/* Desktop Central Navigation Capsule */}
-          <div className="hidden md:flex items-center gap-1 p-1 rounded-full dark-glass-pill border border-white/10 shadow-inner">
+          <div className="hidden md:flex items-center gap-1 p-1 rounded-full dark-glass-pill border shadow-inner">
             <button
               onClick={() => {
                 setActiveTab('menu');
@@ -160,7 +180,7 @@ function MainApp() {
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'menu'
                   ? 'bg-amber-400 text-black shadow-md scale-102 font-extrabold'
-                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  : 'text-stone-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
               }`}
             >
               <Utensils className="w-3.5 h-3.5" />
@@ -172,7 +192,7 @@ function MainApp() {
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'about'
                   ? 'bg-amber-400 text-black shadow-md scale-102 font-extrabold'
-                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  : 'text-stone-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
               }`}
             >
               <Info className="w-3.5 h-3.5" />
@@ -184,7 +204,7 @@ function MainApp() {
               className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
                 activeTab === 'account'
                   ? 'bg-amber-400 text-black shadow-md scale-102 font-extrabold'
-                  : 'text-gray-300 hover:text-white hover:bg-white/5'
+                  : 'text-stone-700 dark:text-gray-300 hover:text-black dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'
               }`}
             >
               <User className="w-3.5 h-3.5" />
@@ -192,25 +212,41 @@ function MainApp() {
             </button>
           </div>
 
-          {/* Right Island: WhatsApp + Sacola */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-            {/* Quick WhatsApp Contact Pill */}
+          {/* Right Island: WhatsApp (100% rounded) + Theme Switcher + Sacola */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {/* Quick Theme Toggle Button (Round) */}
+            <button
+              onClick={toggleTheme}
+              className="dark-glass-pill rounded-full p-2.5 text-stone-700 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 cursor-pointer transition shadow-xs flex items-center justify-center"
+              title={`Tema atual: ${themeMode === 'system' ? 'Automático (' + resolvedTheme + ')' : themeMode === 'light' ? 'Claro' : 'Escuro'}. Clique para alterar.`}
+              aria-label="Alternar modo claro e escuro"
+            >
+              {themeMode === 'system' ? (
+                <Monitor className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+              ) : resolvedTheme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-amber-600" />
+              )}
+            </button>
+
+            {/* Quick WhatsApp Contact Pill - ALWAYS completely rounded */}
             <a
               href={`https://wa.me/${activeWhatsApp}`}
               target="_blank"
               rel="noreferrer"
-              className="dark-glass-pill hidden lg:inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 hover:border-emerald-400/40"
+              className="dark-glass-pill hidden lg:inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 hover:border-emerald-400/40 cursor-pointer shadow-xs"
               title="Falar no WhatsApp"
             >
-              <Phone className="w-3.5 h-3.5 text-emerald-400" />
+              <Phone className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
               <span>WhatsApp</span>
             </a>
 
-            {/* Sacola Trigger Button */}
+            {/* Sacola Trigger Button - ALWAYS completely rounded */}
             <button
               id="btn-nav-cart"
               onClick={() => setIsCartOpen(true)}
-              className="dark-glass-button-gold rounded-full px-4 py-2 text-xs font-black flex items-center gap-2 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-transform shrink-0"
+              className="dark-glass-button-gold rounded-full px-4 py-2.5 text-xs font-black flex items-center gap-2 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-transform shrink-0"
               title="Abrir Sacola"
             >
               <div className="relative">
@@ -223,7 +259,7 @@ function MainApp() {
               </div>
               <span className="hidden sm:inline">Sacola</span>
               {cartItemsCount > 0 && (
-                <span className="font-mono font-bold text-black/80">
+                <span className="font-mono font-bold text-black/90">
                   {formatPrice(cartTotalValue)}
                 </span>
               )}
@@ -231,8 +267,8 @@ function MainApp() {
           </div>
         </nav>
 
-        {/* Mobile Navigation Segmented Row (Small screens) */}
-        <div className="flex md:hidden mt-2 p-1 rounded-full dark-glass-panel border border-white/10 shadow-md justify-between">
+        {/* Mobile Navigation Segmented Row (Small screens - Completely Rounded) */}
+        <div className="flex md:hidden mt-2 p-1 rounded-full dark-glass-panel border shadow-md justify-between items-center">
           <button
             onClick={() => {
               setActiveTab('menu');
@@ -241,7 +277,7 @@ function MainApp() {
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer ${
               activeTab === 'menu'
                 ? 'bg-amber-400 text-black shadow-xs font-extrabold'
-                : 'text-gray-400 hover:text-white'
+                : 'text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white'
             }`}
           >
             <Utensils className="w-3.5 h-3.5" />
@@ -253,7 +289,7 @@ function MainApp() {
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer ${
               activeTab === 'about'
                 ? 'bg-amber-400 text-black shadow-xs font-extrabold'
-                : 'text-gray-400 hover:text-white'
+                : 'text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white'
             }`}
           >
             <Info className="w-3.5 h-3.5" />
@@ -265,7 +301,7 @@ function MainApp() {
             className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer ${
               activeTab === 'account'
                 ? 'bg-amber-400 text-black shadow-xs font-extrabold'
-                : 'text-gray-400 hover:text-white'
+                : 'text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white'
             }`}
           >
             <User className="w-3.5 h-3.5" />
@@ -281,40 +317,40 @@ function MainApp() {
         {activeTab === 'menu' && (
           <div className="space-y-6">
 
-            {/* A. Top Search & Filter Bar (Matching reference image: "Search your favorite" + Filter icon) */}
+            {/* A. Top Search & Filter Bar (Completely Rounded) */}
             <div className="flex flex-col sm:flex-row items-center gap-3">
               <div className="relative flex-1 w-full">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                <Search className="absolute left-4.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-gray-400 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Buscar seu prato artesanal favorito..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-2xl dark-glass-search py-3.5 pl-11 pr-11 text-sm placeholder-gray-500 outline-none font-medium border border-white/10"
+                  className="w-full rounded-full dark-glass-search py-3.5 pl-12 pr-12 text-sm placeholder-stone-400 dark:placeholder-gray-500 outline-none font-medium border"
                 />
                 {searchQuery ? (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white cursor-pointer"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-stone-400 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-stone-200 dark:hover:bg-white/10 cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 ) : (
                   <button
                     onClick={() => setFilterPopularOnly(!filterPopularOnly)}
-                    className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-xl border cursor-pointer transition ${
+                    className={`absolute right-3.5 top-1/2 -translate-y-1/2 p-2 rounded-full border cursor-pointer transition ${
                       filterPopularOnly
-                        ? 'bg-amber-400 text-black border-amber-300'
-                        : 'text-gray-400 hover:text-white border-white/10 hover:bg-white/5'
+                        ? 'bg-amber-400 text-black border-amber-300 shadow-xs'
+                        : 'text-stone-500 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white border-stone-200 dark:border-white/10 hover:bg-stone-100 dark:hover:bg-white/5'
                     }`}
                     title="Filtrar mais pedidos"
                   >
-                    <SlidersHorizontal className="w-4 h-4" />
+                    <SlidersHorizontal className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
 
-              {/* Quick Filter Pill Buttons */}
+              {/* Quick Filter Pill Buttons - Completely Rounded */}
               <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto no-scrollbar shrink-0 pb-1 sm:pb-0">
                 <button
                   onClick={() => {
@@ -322,10 +358,10 @@ function MainApp() {
                     setFilterPopularOnly(false);
                     setSearchQuery('');
                   }}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border whitespace-nowrap cursor-pointer ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all border whitespace-nowrap cursor-pointer ${
                     selectedCategory === 'all' && !filterPopularOnly
-                      ? 'bg-white/15 text-white border-amber-400/50 shadow-sm'
-                      : 'dark-glass-pill text-gray-400 hover:text-white'
+                      ? 'bg-amber-400 text-black border-amber-400 shadow-sm font-extrabold'
+                      : 'dark-glass-pill text-stone-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
                   }`}
                 >
                   Todos ({allProducts.length})
@@ -333,19 +369,19 @@ function MainApp() {
 
                 <button
                   onClick={() => setFilterPopularOnly(!filterPopularOnly)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all border whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                     filterPopularOnly
-                      ? 'bg-amber-400/20 text-amber-300 border-amber-400/60 shadow-sm'
-                      : 'dark-glass-pill text-gray-400 hover:text-white'
+                      ? 'bg-amber-400 text-black border-amber-400 shadow-sm font-extrabold'
+                      : 'dark-glass-pill text-stone-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  <Flame className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <Flame className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                   <span>Mais Pedidos</span>
                 </button>
               </div>
             </div>
 
-            {/* B. Category Squircle Bar (Directly from reference image: Burger, Pizza, Cookies, Cakes style!) */}
+            {/* B. Category Squircle Bar (Rounded smoothly) */}
             <div className="w-full overflow-hidden">
               <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
                 {CATEGORIES.map((category) => {
@@ -361,8 +397,8 @@ function MainApp() {
                       }}
                       className={`group flex flex-col items-center justify-center p-3 rounded-2xl min-w-[5.25rem] sm:min-w-[6rem] transition-all border cursor-pointer select-none shrink-0 ${
                         isSelected
-                          ? 'bg-amber-400/15 border-amber-400 text-white shadow-[0_0_20px_rgba(212,175,55,0.25)] scale-103'
-                          : 'dark-glass-card hover:border-white/20 text-gray-400 hover:text-gray-200'
+                          ? 'bg-amber-400/20 border-amber-400 text-stone-900 dark:text-white shadow-[0_0_20px_rgba(212,175,55,0.25)] scale-103'
+                          : 'dark-glass-card hover:border-amber-400/40 text-stone-600 dark:text-gray-300 hover:text-stone-900 dark:hover:text-white'
                       }`}
                     >
                       {/* Emoji / Food Icon */}
@@ -371,12 +407,12 @@ function MainApp() {
                       </span>
                       {/* Category Label */}
                       <span className={`text-[11px] sm:text-xs font-extrabold tracking-tight truncate max-w-[5rem] text-center ${
-                        isSelected ? 'text-amber-300' : 'text-gray-300'
+                        isSelected ? 'text-amber-600 dark:text-amber-300' : 'text-stone-700 dark:text-gray-300'
                       }`}>
                         {category.name}
                       </span>
                       {/* Mini count badge */}
-                      <span className="text-[9px] text-gray-500 font-semibold mt-0.5">
+                      <span className="text-[9px] text-stone-400 dark:text-gray-500 font-semibold mt-0.5">
                         {categoryCount} opções
                       </span>
                     </button>
@@ -389,30 +425,30 @@ function MainApp() {
             {selectedCategory === 'all' && !searchQuery && !filterPopularOnly && featuredProduct && (
               <div 
                 onClick={() => setSelectedProduct(featuredProduct)}
-                className="hidden lg:flex dark-glass-card rounded-3xl p-6 border border-white/10 items-center justify-between gap-8 cursor-pointer hover:border-amber-400/40 transition-all group overflow-hidden relative shadow-2xl"
+                className="hidden lg:flex dark-glass-card rounded-3xl p-6 border items-center justify-between gap-8 cursor-pointer hover:border-amber-400/50 transition-all group overflow-hidden relative shadow-2xl"
               >
                 {/* Ambient glow inside */}
                 <div className="absolute -left-20 -top-20 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-                <div className="space-y-3 max-w-xl z-10">
+                <div className="space-y-3 max-w-xl z-10 text-left">
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-xs font-black flex items-center gap-1">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="px-3 py-1 rounded-full bg-amber-400/20 text-amber-700 dark:text-amber-300 border border-amber-400/30 text-xs font-black flex items-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
                       Destaque da Vovó em Primavera do Leste
                     </span>
-                    <span className="text-xs text-gray-400 font-medium">★ 4.9 (Mais de 500 pedidos)</span>
+                    <span className="text-xs text-stone-500 dark:text-gray-400 font-medium">★ 4.9 (Mais de 500 pedidos)</span>
                   </div>
 
-                  <h2 className="text-2xl xl:text-3xl font-black text-white tracking-tight group-hover:text-amber-300 transition-colors">
+                  <h2 className="text-2xl xl:text-3xl font-black text-stone-900 dark:text-white tracking-tight group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors">
                     {featuredProduct.name}
                   </h2>
 
-                  <p className="text-xs xl:text-sm text-gray-400 leading-relaxed font-normal">
-                    {featuredProduct.description} Feito com massa artesanal fresca, molho slowly-cooked e muito carinho de vó.
+                  <p className="text-xs xl:text-sm text-stone-600 dark:text-gray-400 leading-relaxed font-normal">
+                    {featuredProduct.description} Feito com massa artesanal fresca, molho lentamente cozido e muito carinho de vó.
                   </p>
 
                   <div className="pt-2 flex items-center gap-4">
-                    <span className="text-2xl font-black text-amber-400 font-mono">
+                    <span className="text-2xl font-black text-amber-500 dark:text-amber-400 font-mono">
                       {formatPrice(featuredProduct.price)}
                     </span>
                     <button className="dark-glass-button-gold rounded-full px-5 py-2.5 text-xs font-black flex items-center gap-2 cursor-pointer shadow-md">
@@ -428,7 +464,7 @@ function MainApp() {
                     src={featuredProduct.image}
                     alt={featuredProduct.name}
                     referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover rounded-2xl shadow-2xl border border-white/10 group-hover:scale-105 transition-transform duration-500 relative z-10"
+                    className="w-full h-full object-cover rounded-3xl shadow-2xl border border-stone-200 dark:border-white/10 group-hover:scale-105 transition-transform duration-500 relative z-10"
                   />
                 </div>
               </div>
@@ -437,13 +473,13 @@ function MainApp() {
             {/* D. Category Heading & Count */}
             <div className="flex items-center justify-between pt-1">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-white tracking-tight flex items-center gap-2">
+                <h3 className="text-base sm:text-lg font-black text-stone-900 dark:text-white tracking-tight flex items-center gap-2">
                   <span>
                     {selectedCategory === 'all' 
                       ? (filterPopularOnly ? 'Pratos Mais Populares 🔥' : 'Nosso Cardápio Completo') 
                       : CATEGORIES.find(c => c.id === selectedCategory)?.name}
                   </span>
-                  <span className="text-xs text-gray-400 font-semibold">
+                  <span className="text-xs text-stone-500 dark:text-gray-400 font-semibold">
                     ({filteredProducts.length} {filteredProducts.length === 1 ? 'prato' : 'pratos'})
                   </span>
                 </h3>
@@ -452,19 +488,19 @@ function MainApp() {
               {selectedCategory !== 'all' && (
                 <button
                   onClick={() => setSelectedCategory('all')}
-                  className="text-xs text-amber-400 hover:underline font-bold cursor-pointer"
+                  className="text-xs text-amber-600 dark:text-amber-400 hover:underline font-bold cursor-pointer"
                 >
                   Ver todas as categorias
                 </button>
               )}
             </div>
 
-            {/* E. Product Dishes Grid (4 cols on desktop, responsive for great ergonomics!) */}
+            {/* E. Product Dishes Grid (4 cols on desktop) */}
             {filteredProducts.length === 0 ? (
-              <div className="text-center py-16 dark-glass-card rounded-3xl p-8 border border-white/10 shadow-lg">
+              <div className="text-center py-16 dark-glass-card rounded-3xl p-8 border border-stone-200 dark:border-white/10 shadow-lg">
                 <div className="text-5xl mb-3">🍝</div>
-                <h3 className="text-base font-black text-white">Nenhum prato encontrado</h3>
-                <p className="mt-1 text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                <h3 className="text-base font-black text-stone-900 dark:text-white">Nenhum prato encontrado</h3>
+                <p className="mt-1 text-xs text-stone-500 dark:text-gray-400 max-w-xs mx-auto leading-relaxed">
                   Não encontramos pratos com os termos digitados. Tente outra busca ou limpe os filtros.
                 </p>
                 <button
@@ -505,16 +541,16 @@ function MainApp() {
       </main>
 
       {/* 3. Footer */}
-      <footer className="mt-20 text-center text-xs text-gray-500 max-w-4xl mx-auto px-4 space-y-1 relative z-10 pb-8">
-        <p className="font-semibold text-gray-400">© Massas da Vovó • Tradição, Afeto e Sabor Artesanal</p>
-        <p className="text-[11px] text-gray-500 flex items-center justify-center gap-1.5 flex-wrap">
+      <footer className="mt-20 text-center text-xs text-stone-500 dark:text-gray-400 max-w-4xl mx-auto px-4 space-y-1 relative z-10 pb-8">
+        <p className="font-semibold text-stone-600 dark:text-gray-300">© Massas da Vovó • Tradição, Afeto e Sabor Artesanal</p>
+        <p className="text-[11px] text-stone-500 dark:text-gray-400 flex items-center justify-center gap-1.5 flex-wrap">
           <span>Primavera do Leste - MT</span>
           <span>•</span>
           <a
             href={RESTAURANT_INFO.googleMapsLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-amber-400 hover:underline font-bold"
+            className="text-amber-600 dark:text-amber-400 hover:underline font-bold"
           >
             Ver localização no mapa
           </a>
@@ -524,7 +560,7 @@ function MainApp() {
       {/* 4. Mobile Bottom Floating Cart Summary (Active when cart has items) */}
       {cartItemsCount > 0 && (
         <div className="fixed bottom-4 inset-x-4 max-w-md mx-auto z-40">
-          <div className="dark-glass-panel rounded-full p-3 sm:p-3.5 border border-white/20 shadow-[0_16px_50px_rgba(0,0,0,0.85)] flex items-center justify-between gap-3">
+          <div className="dark-glass-panel rounded-full p-3 sm:p-3.5 border shadow-[0_16px_50px_rgba(0,0,0,0.4)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.85)] flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 pl-1">
               <div className="relative p-2 rounded-full bg-amber-400 text-black shadow-md">
                 <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
@@ -533,8 +569,8 @@ function MainApp() {
                 </span>
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none">Sua Sacola</span>
-                <span className="text-base font-black text-amber-400 mt-0.5 leading-none font-mono">
+                <span className="text-[10px] text-stone-500 dark:text-gray-400 font-bold uppercase tracking-wider leading-none">Sua Sacola</span>
+                <span className="text-base font-black text-amber-500 dark:text-amber-400 mt-0.5 leading-none font-mono">
                   {formatPrice(cartTotalValue)}
                 </span>
               </div>
@@ -616,14 +652,16 @@ export default function App() {
   };
 
   return (
-    <CompanyProvider>
-      <AuthProvider>
-        {isMasterRoute ? (
-          <MasterAdminView onBackToMenu={handleBackToMenu} />
-        ) : (
-          <MainApp />
-        )}
-      </AuthProvider>
-    </CompanyProvider>
+    <ThemeProvider>
+      <CompanyProvider>
+        <AuthProvider>
+          {isMasterRoute ? (
+            <MasterAdminView onBackToMenu={handleBackToMenu} />
+          ) : (
+            <MainApp />
+          )}
+        </AuthProvider>
+      </CompanyProvider>
+    </ThemeProvider>
   );
 }

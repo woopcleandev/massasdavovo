@@ -14,7 +14,7 @@ import carneMolhoMadeiraImage from './assets/images/carne_molho_madeira_17900998
 
 export const RESTAURANT_INFO = {
   name: 'Massas da Vovó',
-  logo: logoImage,
+  logo: '/logo.png',
   phone: '+55 66 9652-3006',
   whatsappNumber: '556696523006', // used for send wa links
   address: 'Rua Manaus, 203, Primavera do Leste - MT',

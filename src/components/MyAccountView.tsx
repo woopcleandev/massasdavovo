@@ -1,9 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { NEIGHBORHOODS } from '../types';
+import { useCompany } from '../context/CompanyContext';
+import { useTheme, ThemeMode } from '../context/ThemeContext';
+import { NEIGHBORHOODS, Order, OrderStatus } from '../types';
+import { RESTAURANT_INFO } from '../data';
+import { OrderReceiptModal } from './OrderReceiptModal';
 import { 
   User, Lock, Phone, MapPin, Plus, Trash2, LogOut, 
-  Home, Briefcase, Tag, Sparkles, CheckCircle, AlertCircle, Loader2 
+  Home, Briefcase, Tag, Sparkles, CheckCircle, AlertCircle, Loader2,
+  Sun, Moon, Monitor, Palette, Clock, ChefHat, Bike, Check, XCircle,
+  Receipt, MessageCircle, ChevronRight, Package, ArrowUpRight
 } from 'lucide-react';
 
 export const MyAccountView: React.FC = () => {
@@ -18,6 +24,9 @@ export const MyAccountView: React.FC = () => {
     addSavedAddress, 
     deleteSavedAddress 
   } = useAuth();
+
+  const { orders, settings } = useCompany();
+  const { themeMode, setThemeMode, resolvedTheme } = useTheme();
 
   // Mode: 'login' | 'register'
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -41,9 +50,72 @@ export const MyAccountView: React.FC = () => {
   const [editName, setEditName] = useState('');
   const [editWhatsapp, setEditWhatsapp] = useState('');
 
+  // Order Receipt Modal
+  const [selectedReceiptOrder, setSelectedReceiptOrder] = useState<Order | null>(null);
+
   // General States
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Optional manual phone lookup for guest order tracking
+  const [lookupPhone, setLookupPhone] = useState('');
+
+  const formatPrice = (val: number) => {
+    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  };
+
+  const formatDate = (iso: string) => {
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return iso;
+    }
+  };
+
+  const normalizePhone = (p: string) => (p || '').replace(/\D/g, '');
+
+  // Filter orders relevant to this user
+  const userOrders = useMemo(() => {
+    let localSavedIds: string[] = [];
+    try {
+      localSavedIds = JSON.parse(localStorage.getItem('vovo_my_order_ids') || '[]');
+    } catch (e) {
+      console.error(e);
+    }
+
+    const currentWa = normalizePhone(userProfile?.whatsapp || '');
+    const currentName = (userProfile?.name || '').trim().toLowerCase();
+    const queryWa = normalizePhone(lookupPhone);
+
+    return orders.filter(o => {
+      // If order ID was generated on this device
+      if (localSavedIds.includes(o.id) || localSavedIds.includes(o.orderNumber)) return true;
+
+      // If matches phone number from profile
+      const orderWa = normalizePhone(o.customerPhone);
+      if (currentWa && (orderWa === currentWa || orderWa.endsWith(currentWa) || currentWa.endsWith(orderWa))) {
+        return true;
+      }
+
+      // If user is searching by phone
+      if (queryWa && (orderWa === queryWa || orderWa.includes(queryWa))) {
+        return true;
+      }
+
+      // If user is logged in and name matches
+      if (currentName && o.customerName.trim().toLowerCase() === currentName) {
+        return true;
+      }
+
+      return false;
+    });
+  }, [orders, userProfile, lookupPhone]);
 
   const clearForm = () => {
     setWhatsapp('');
@@ -159,93 +231,376 @@ export const MyAccountView: React.FC = () => {
     }
   };
 
-  // 1. GUEST FORM (NOT LOGGED IN)
-  if (!currentUser) {
+  // Helper for Order Status Configuration & Multi-Step Progress
+  const getStatusConfig = (status: OrderStatus) => {
+    switch (status) {
+      case 'novo':
+        return {
+          label: 'Recebido na Cozinha',
+          step: 1,
+          color: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
+          badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+          icon: Clock,
+          desc: 'Aguardando confirmação do pagamento / preparo.'
+        };
+      case 'preparo':
+        return {
+          label: 'Em Preparo Artesanal',
+          step: 2,
+          color: 'text-orange-400 bg-orange-400/10 border-orange-400/30',
+          badgeBg: 'bg-orange-500/20 text-orange-300 border-orange-400/40',
+          icon: ChefHat,
+          desc: 'Nossa equipe está montando sua massa fresquinha!'
+        };
+      case 'entrega':
+        return {
+          label: 'Saiu para Entrega',
+          step: 3,
+          color: 'text-sky-400 bg-sky-400/10 border-sky-400/30',
+          badgeBg: 'bg-sky-500/20 text-sky-300 border-sky-400/40',
+          icon: Bike,
+          desc: 'O entregador já está a caminho com seu pedido.'
+        };
+      case 'concluido':
+        return {
+          label: 'Entregue / Concluído',
+          step: 4,
+          color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30',
+          badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
+          icon: Check,
+          desc: 'Pedido entregue com carinho. Bom apetite!'
+        };
+      case 'cancelado':
+        return {
+          label: 'Cancelado',
+          step: 0,
+          color: 'text-red-400 bg-red-400/10 border-red-400/30',
+          badgeBg: 'bg-red-500/20 text-red-300 border-red-400/40',
+          icon: XCircle,
+          desc: 'Este pedido foi cancelado.'
+        };
+      default:
+        return {
+          label: status,
+          step: 1,
+          color: 'text-gray-400 bg-gray-400/10 border-gray-400/30',
+          badgeBg: 'bg-gray-500/20 text-gray-300 border-gray-400/40',
+          icon: Clock,
+          desc: ''
+        };
+    }
+  };
+
+  // Reusable Orders History & Real-Time Tracking Panel
+  const renderOrdersHistory = () => {
     return (
-      <div className="max-w-md mx-auto dark-glass-panel border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl mt-2 text-white">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-amber-400/10 text-amber-400 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-400/20">
-            <User className="w-8 h-8" />
+      <div className="dark-glass-panel rounded-3xl p-5 sm:p-7 border border-white/10 shadow-xl text-left space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2.5 rounded-2xl bg-amber-400/10 text-amber-400 border border-amber-400/20 shrink-0">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-base font-black tracking-tight flex items-center gap-2">
+                <span>Meus Pedidos & Status em Tempo Real</span>
+                <span className="text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
+                  {userOrders.length}
+                </span>
+              </h3>
+              <p className="text-xs opacity-70 mt-0.5">
+                Acompanhe o andamento da sua comanda diretamente pela cozinha
+              </p>
+            </div>
           </div>
-          <h2 className="text-2xl font-black text-white tracking-tight">
-            {authMode === 'login' ? 'Entre na sua Conta' : 'Crie sua Conta'}
-          </h2>
-          <p className="text-xs text-gray-400 mt-1 max-w-xs mx-auto leading-relaxed">
-            {authMode === 'login' 
-              ? 'Acesse para salvar seus endereços e fazer pedidos na sacola mais rápido!' 
-              : 'Cadastre-se rapidinho e guarde seus endereços de Casa ou do Trabalho.'}
-          </p>
+
+          {/* Quick filter by phone if needed */}
+          {!currentUser && (
+            <div className="w-full sm:w-auto">
+              <input
+                type="tel"
+                placeholder="Buscar por telefone..."
+                value={lookupPhone}
+                onChange={(e) => setLookupPhone(e.target.value)}
+                className="w-full sm:w-48 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-amber-400 outline-none"
+              />
+            </div>
+          )}
         </div>
 
-        {message && (
-          <div className={`mb-5 p-4 rounded-xl border flex gap-2.5 text-xs text-left leading-relaxed ${
-            message.type === 'success' 
-              ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
-              : 'bg-red-500/10 text-red-300 border-red-500/20'
-          }`}>
-            {message.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
-            <span>{message.text}</span>
+        {userOrders.length === 0 ? (
+          <div className="text-center py-10 dark-glass-card border border-dashed border-white/10 rounded-2xl p-6">
+            <span className="text-4xl block mb-2">🍝</span>
+            <h4 className="text-sm font-black">Nenhum pedido encontrado</h4>
+            <p className="text-xs opacity-70 mt-1 max-w-xs mx-auto">
+              {currentUser 
+                ? 'Você ainda não realizou pedidos com esta conta. Escolha suas massas no cardápio e monte sua refeição!'
+                : 'Quando você fizer um pedido pela sacola, o histórico e o status ao vivo aparecerão aqui.'}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {userOrders.map((ord) => {
+              const statusCfg = getStatusConfig(ord.status);
+              const StatusIcon = statusCfg.icon;
+              const isFinished = ord.status === 'concluido' || ord.status === 'cancelado';
+
+              return (
+                <div
+                  key={ord.id}
+                  className="dark-glass-card border border-white/10 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3.5 transition-all hover:border-amber-400/30"
+                >
+                  {/* Order Top Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-sm font-black text-amber-400">
+                        {ord.orderNumber}
+                      </span>
+                      <span className="text-xs opacity-60">•</span>
+                      <span className="text-xs opacity-70">{formatDate(ord.createdAt)}</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border ${statusCfg.badgeBg}`}>
+                        <StatusIcon className="w-3.5 h-3.5" />
+                        <span>{statusCfg.label}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Stepper Progress Bar (for active orders) */}
+                  {ord.status !== 'cancelado' && (
+                    <div className="pt-1">
+                      <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[10px] sm:text-[11px] font-bold">
+                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 1 ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                          1. Recebido
+                        </div>
+                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 2 ? 'bg-orange-400/20 text-orange-300 border-orange-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                          2. Preparo
+                        </div>
+                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 3 ? 'bg-sky-400/20 text-sky-300 border-sky-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                          3. Em Rota
+                        </div>
+                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 4 ? 'bg-emerald-400/20 text-emerald-300 border-emerald-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                          4. Entregue
+                        </div>
+                      </div>
+                      <p className="text-[11px] opacity-80 mt-2 text-center italic">
+                        {statusCfg.desc}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Items list preview */}
+                  <div className="bg-black/30 rounded-xl p-3 border border-white/5 space-y-1.5 text-xs">
+                    <div className="text-[11px] font-bold opacity-60 uppercase tracking-wider">
+                      Itens do Pedido:
+                    </div>
+                    {ord.items.map((it, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-2">
+                        <span className="truncate">
+                          <strong className="text-amber-400">{it.quantity}x</strong> {it.productName}
+                          {it.size ? ` (${it.size})` : ''}
+                        </span>
+                        <span className="font-mono text-amber-300 shrink-0">
+                          {formatPrice(it.totalPrice)}
+                        </span>
+                      </div>
+                    ))}
+
+                    <div className="pt-2 border-t border-white/10 flex items-center justify-between font-black text-sm">
+                      <span>Total ({ord.deliveryType === 'delivery' ? 'Entrega' : 'Retirada'})</span>
+                      <span className="text-amber-400 font-mono text-base">{formatPrice(ord.grandTotal)}</span>
+                    </div>
+                  </div>
+
+                  {/* Bottom Actions */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <div className="text-[11px] opacity-70">
+                      {ord.deliveryType === 'delivery' ? (
+                        <span>📍 Entrega em: <strong>{ord.neighborhood}</strong></span>
+                      ) : (
+                        <span>🏪 Retirada no balcão da Vovó</span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setSelectedReceiptOrder(ord)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/15 hover:bg-white/10 text-xs font-bold transition cursor-pointer"
+                      >
+                        <Receipt className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Ver Comanda</span>
+                      </button>
+
+                      <a
+                        href={`https://api.whatsapp.com/send?phone=${(settings.whatsappNumber || RESTAURANT_INFO.whatsappNumber).replace(/\D/g, '')}&text=${encodeURIComponent(`Olá! Gostaria de acompanhar o status da minha comanda *${ord.orderNumber}*.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>WhatsApp</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
+      </div>
+    );
+  };
 
-        <form onSubmit={handleAuthSubmit} className="space-y-4 text-left">
-          {authMode === 'register' && (
-            <div>
-              <label className="text-xs font-bold text-gray-300 block mb-1">Seu Nome Completo</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Maria Souza"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-amber-400/60 outline-none"
-                />
-              </div>
+  // Reusable Theme Selector Component
+  const renderThemeSelector = () => {
+    const options: { mode: ThemeMode; label: string; desc: string; icon: any }[] = [
+      {
+        mode: 'light',
+        label: 'Versão Clara',
+        desc: 'Tons quentes e suaves de marfim e ouro',
+        icon: Sun,
+      },
+      {
+        mode: 'dark',
+        label: 'Versão Escura',
+        desc: 'Obsidian líquido e vidro escuro refinado',
+        icon: Moon,
+      },
+      {
+        mode: 'system',
+        label: 'Automático',
+        desc: 'Acompanha o tema do seu celular/computador',
+        icon: Monitor,
+      },
+    ];
+
+    return (
+      <div className="dark-glass-panel rounded-3xl p-5 sm:p-7 border border-white/10 shadow-xl text-left">
+        <div className="flex items-center gap-2.5 mb-2">
+          <div className="p-2.5 rounded-2xl bg-amber-400/10 text-amber-400 border border-amber-400/20 shrink-0">
+            <Palette className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-base font-black tracking-tight">
+              Aparência do Aplicativo
+            </h3>
+            <p className="text-xs opacity-70 mt-0.5">
+              Escolha a sua versão de visualização favorita (Clara, Escura ou Automática)
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+          {options.map((opt) => {
+            const Icon = opt.icon;
+            const isSelected = themeMode === opt.mode;
+
+            return (
+              <button
+                key={opt.mode}
+                type="button"
+                onClick={() => setThemeMode(opt.mode)}
+                className={`flex flex-col items-start p-4 rounded-2xl border transition-all cursor-pointer text-left select-none ${
+                  isSelected
+                    ? 'border-amber-400 bg-amber-400/15 shadow-md ring-2 ring-amber-400/40'
+                    : 'border-white/10 bg-white/5 hover:border-amber-400/40 hover:bg-white/10'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-2">
+                  <div className={`p-2 rounded-xl ${isSelected ? 'bg-amber-400 text-black' : 'bg-white/10 text-white'}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  {isSelected && (
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                      Ativo
+                    </span>
+                  )}
+                </div>
+                <span className="text-sm font-black leading-tight">
+                  {opt.label}
+                </span>
+                <span className="text-[11px] opacity-70 mt-1 leading-snug font-medium">
+                  {opt.desc}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // 1. GUEST VIEW (NOT LOGGED IN)
+  if (!currentUser) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-6 mt-2">
+        {/* Auth Box */}
+        <div className="dark-glass-panel border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-amber-400/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-400/20">
+              <User className="w-8 h-8" />
+            </div>
+            <h2 className="text-2xl font-black tracking-tight">
+              {authMode === 'login' ? 'Entre na sua Conta' : 'Crie sua Conta'}
+            </h2>
+            <p className="text-xs opacity-70 mt-1 max-w-xs mx-auto leading-relaxed">
+              {authMode === 'login' 
+                ? 'Acesse para salvar seus endereços e acompanhar seus pedidos em tempo real!' 
+                : 'Cadastre-se rapidinho e guarde seus endereços de Casa ou do Trabalho.'}
+            </p>
+          </div>
+
+          {message && (
+            <div className={`mb-5 p-4 rounded-2xl border flex gap-2.5 text-xs text-left leading-relaxed ${
+              message.type === 'success' 
+                ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
+                : 'bg-red-500/10 text-red-300 border-red-500/20'
+            }`}>
+              {message.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
+              <span>{message.text}</span>
             </div>
           )}
 
-          {/* WhatsApp Field */}
-          <div>
-            <label className="text-xs font-bold text-gray-300 block mb-1">Seu WhatsApp</label>
-            <div className="relative">
-              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
-              <input
-                type="tel"
-                required
-                placeholder="Ex: (66) 99652-3006"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                className="w-full rounded-xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-amber-400/60 outline-none"
-              />
-            </div>
-          </div>
+          <form onSubmit={handleAuthSubmit} className="space-y-4 text-left">
+            {authMode === 'register' && (
+              <div>
+                <label className="text-xs font-bold block mb-1 opacity-90">Seu Nome Completo</label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ex: Maria Souza"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none"
+                  />
+                </div>
+              </div>
+            )}
 
-          {/* PIN de 4 dígitos */}
-          <div>
-            <label className="text-xs font-bold text-gray-300 block mb-1">PIN de 4 dígitos</label>
-            <div className="relative">
-              <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
-              <input
-                type="password"
-                required
-                inputMode="numeric"
-                pattern="[0-9]*"
-                maxLength={4}
-                placeholder="Ex: 1234"
-                value={pin}
-                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                className="w-full rounded-xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-amber-400/60 outline-none font-mono text-base tracking-widest"
-              />
-            </div>
-          </div>
-
-          {authMode === 'register' && (
+            {/* WhatsApp Field */}
             <div>
-              <label className="text-xs font-bold text-gray-300 block mb-1">Confirmar PIN de 4 dígitos</label>
+              <label className="text-xs font-bold block mb-1 opacity-90">Seu WhatsApp</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
+                <input
+                  type="tel"
+                  required
+                  placeholder="Ex: (66) 99652-3006"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* PIN de 4 dígitos */}
+            <div>
+              <label className="text-xs font-bold block mb-1 opacity-90">PIN de 4 dígitos</label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
                 <input
                   type="password"
                   required
@@ -253,51 +608,85 @@ export const MyAccountView: React.FC = () => {
                   pattern="[0-9]*"
                   maxLength={4}
                   placeholder="Ex: 1234"
-                  value={confirmPin}
-                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
-                  className="w-full rounded-xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm text-white placeholder-gray-500 focus:border-amber-400/60 outline-none font-mono text-base tracking-widest"
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                  className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none font-mono text-base tracking-widest"
                 />
               </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl dark-glass-button-gold font-bold py-3.5 px-6 transition-all shadow-md active:scale-98 mt-6 cursor-pointer"
-          >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin text-black" />
-            ) : (
-              <span>{authMode === 'login' ? 'Entrar Agora' : 'Criar Conta Grátis'}</span>
+            {authMode === 'register' && (
+              <div>
+                <label className="text-xs font-bold block mb-1 opacity-90">Confirmar PIN de 4 dígitos</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
+                  <input
+                    type="password"
+                    required
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={4}
+                    placeholder="Ex: 1234"
+                    value={confirmPin}
+                    onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                    className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none font-mono text-base tracking-widest"
+                  />
+                </div>
+              </div>
             )}
-          </button>
-        </form>
 
-        <div className="mt-6 pt-4 border-t border-white/10 text-center">
-          <p className="text-xs text-gray-400">
-            {authMode === 'login' ? 'Não possui uma conta?' : 'Já possui uma conta?'}
             <button
-              onClick={() => {
-                setAuthMode(authMode === 'login' ? 'register' : 'login');
-                setMessage(null);
-              }}
-              className="text-amber-400 hover:underline font-bold ml-1 cursor-pointer"
+              type="submit"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 rounded-full dark-glass-button-gold font-black py-3.5 px-6 transition-all shadow-md active:scale-98 mt-6 cursor-pointer"
             >
-              {authMode === 'login' ? 'Cadastre-se aqui' : 'Entre por aqui'}
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-black" />
+              ) : (
+                <span>{authMode === 'login' ? 'Entrar Agora' : 'Criar Conta Grátis'}</span>
+              )}
             </button>
-          </p>
+          </form>
+
+          <div className="mt-6 pt-4 border-t border-white/10 text-center">
+            <p className="text-xs opacity-70">
+              {authMode === 'login' ? 'Não possui uma conta?' : 'Já possui uma conta?'}
+              <button
+                onClick={() => {
+                  setAuthMode(authMode === 'login' ? 'register' : 'login');
+                  setMessage(null);
+                }}
+                className="text-amber-400 hover:underline font-bold ml-1 cursor-pointer"
+              >
+                {authMode === 'login' ? 'Cadastre-se aqui' : 'Entre por aqui'}
+              </button>
+            </p>
+          </div>
         </div>
+
+        {/* Orders History & Live Tracking */}
+        {renderOrdersHistory()}
+
+        {/* Theme Selector */}
+        {renderThemeSelector()}
+
+        {/* Receipt modal */}
+        {selectedReceiptOrder && (
+          <OrderReceiptModal
+            order={selectedReceiptOrder}
+            onClose={() => setSelectedReceiptOrder(null)}
+          />
+        )}
       </div>
     );
   }
 
   // 2. LOGGED IN CUSTOMER DASHBOARD
   return (
-    <div className="max-w-2xl mx-auto space-y-6 mt-2 text-white">
+    <div className="max-w-2xl mx-auto space-y-6 mt-2">
       {/* Messages */}
       {message && (
-        <div className={`p-4 rounded-xl border flex gap-2.5 text-xs text-left leading-relaxed ${
+        <div className={`p-4 rounded-2xl border flex gap-2.5 text-xs text-left leading-relaxed ${
           message.type === 'success' 
             ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
             : 'bg-red-500/10 text-red-300 border-red-500/20'
@@ -311,19 +700,19 @@ export const MyAccountView: React.FC = () => {
       <div className="dark-glass-panel rounded-3xl p-6 sm:p-8 border border-white/10 shadow-xl">
         <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-            <div className="w-16 h-16 rounded-2xl bg-amber-400/10 text-amber-400 border border-amber-400/20 flex items-center justify-center font-black text-xl shrink-0">
+            <div className="w-16 h-16 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20 flex items-center justify-center font-black text-xl shrink-0">
               {userProfile?.name?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() || 'V'}
             </div>
             <div>
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <h2 className="text-xl font-extrabold text-white">{userProfile?.name || 'Cliente da Vovó'}</h2>
-                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-sm px-1.5 py-0.5">
+                <h2 className="text-xl font-extrabold">{userProfile?.name || 'Cliente da Vovó'}</h2>
+                <span className="inline-flex items-center gap-1 text-[10px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-full px-2.5 py-0.5">
                   <Sparkles className="w-2.5 h-2.5 fill-amber-400" />
                   <span>VIP</span>
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-0.5">{currentUser?.email}</p>
-              <p className="text-xs text-gray-300 mt-1 font-semibold">📲 WhatsApp: {userProfile?.whatsapp || 'Não informado'}</p>
+              <p className="text-xs opacity-70 mt-0.5">{currentUser?.email}</p>
+              <p className="text-xs opacity-90 mt-1 font-semibold">📲 WhatsApp: {userProfile?.whatsapp || 'Não informado'}</p>
             </div>
           </div>
 
@@ -331,21 +720,21 @@ export const MyAccountView: React.FC = () => {
             {!isEditingProfile ? (
               <button
                 onClick={startEditProfile}
-                className="rounded-xl border border-white/15 hover:bg-white/10 text-gray-200 font-bold text-xs py-2 px-4 transition cursor-pointer"
+                className="rounded-full border border-white/15 hover:bg-white/10 font-bold text-xs py-2 px-4 transition cursor-pointer"
               >
                 Editar Perfil
               </button>
             ) : (
               <button
                 onClick={() => setIsEditingProfile(false)}
-                className="rounded-xl border border-white/15 hover:bg-white/10 text-gray-200 font-bold text-xs py-2 px-4 transition cursor-pointer"
+                className="rounded-full border border-white/15 hover:bg-white/10 font-bold text-xs py-2 px-4 transition cursor-pointer"
               >
                 Cancelar
               </button>
             )}
             <button
               onClick={logout}
-              className="rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 font-bold text-xs py-2 px-4 transition flex items-center gap-1.5 border border-red-500/20 cursor-pointer"
+              className="rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-300 font-bold text-xs py-2 px-4 transition flex items-center gap-1.5 border border-red-500/20 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sair</span>
@@ -356,33 +745,33 @@ export const MyAccountView: React.FC = () => {
         {/* Editing Profile Form */}
         {isEditingProfile && (
           <form onSubmit={handleProfileUpdate} className="mt-6 pt-6 border-t border-white/10 space-y-4 text-left">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">Atualizar Meus Dados</h3>
+            <h3 className="text-xs font-bold opacity-60 uppercase tracking-wider">Atualizar Meus Dados</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1">Seu Nome</label>
+                <label className="text-[11px] font-bold block mb-1 opacity-90">Seu Nome</label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-xl bg-white/5 border border-white/10 p-2.5 text-xs text-white focus:border-amber-400/60 outline-none"
+                  className="w-full rounded-2xl bg-white/5 border border-white/10 p-3 text-xs focus:border-amber-400 outline-none"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1">WhatsApp para Contato</label>
+                <label className="text-[11px] font-bold block mb-1 opacity-90">WhatsApp para Contato</label>
                 <input
                   type="tel"
                   required
                   value={editWhatsapp}
                   onChange={(e) => setEditWhatsapp(e.target.value)}
-                  className="w-full rounded-xl bg-white/5 border border-white/10 p-2.5 text-xs text-white focus:border-amber-400/60 outline-none"
+                  className="w-full rounded-2xl bg-white/5 border border-white/10 p-3 text-xs focus:border-amber-400 outline-none"
                 />
               </div>
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="rounded-xl dark-glass-button-gold text-xs font-bold py-2.5 px-5 transition shadow-xs cursor-pointer"
+              className="rounded-full dark-glass-button-gold text-xs font-black py-2.5 px-6 transition shadow-md cursor-pointer"
             >
               {loading ? 'Salvando...' : 'Salvar Alterações'}
             </button>
@@ -390,22 +779,28 @@ export const MyAccountView: React.FC = () => {
         )}
       </div>
 
+      {/* Orders History & Live Status Section */}
+      {renderOrdersHistory()}
+
+      {/* Theme selector section */}
+      {renderThemeSelector()}
+
       {/* Saved addresses manager panel */}
       <div className="dark-glass-panel rounded-3xl p-6 border border-white/10 shadow-md text-left">
         <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
           <div>
-            <h3 className="text-base font-extrabold text-white flex items-center gap-2">
+            <h3 className="text-base font-extrabold flex items-center gap-2">
               <MapPin className="w-5 h-5 text-amber-400" />
               <span>Meus Endereços Salvos</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">Gerencie os locais de entrega para agilizar seu pedido</p>
+            <p className="text-xs opacity-70 mt-0.5">Gerencie os locais de entrega para agilizar seu pedido</p>
           </div>
           {!isAddingAddress && (
             <button
               onClick={() => setIsAddingAddress(true)}
-              className="rounded-xl dark-glass-button-gold text-xs font-bold py-2.5 px-4 transition flex items-center gap-1 shadow-xs cursor-pointer"
+              className="rounded-full dark-glass-button-gold text-xs font-black py-2.5 px-5 transition flex items-center gap-1 shadow-xs cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-3.5 h-3.5 stroke-[3]" />
               <span>Adicionar</span>
             </button>
           )}
@@ -413,17 +808,17 @@ export const MyAccountView: React.FC = () => {
 
         {/* Add Address Form Panel */}
         {isAddingAddress && (
-          <form onSubmit={handleAddAddressSubmit} className="dark-glass-card border border-white/10 rounded-2xl p-4 mb-5 space-y-4 animate-fade-in text-left">
-            <h4 className="text-xs font-extrabold text-white">Novo Local de Entrega</h4>
+          <form onSubmit={handleAddAddressSubmit} className="dark-glass-card border border-white/10 rounded-3xl p-5 mb-5 space-y-4 animate-fade-in text-left">
+            <h4 className="text-xs font-black uppercase tracking-wider opacity-80">Novo Local de Entrega</h4>
             
             <div className="space-y-3">
               {/* Neighborhood selection */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1">Bairro (Primavera do Leste)</label>
+                <label className="text-[11px] font-bold block mb-1 opacity-90">Bairro (Primavera do Leste)</label>
                 <select
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-black/60 text-white p-2.5 text-xs focus:border-amber-400/60 outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/60 text-white p-3 text-xs focus:border-amber-400 outline-none"
                 >
                   {NEIGHBORHOODS.map((n) => (
                     <option key={n.name} value={n.name} className="bg-gray-900 text-white">{n.name}</option>
@@ -434,52 +829,52 @@ export const MyAccountView: React.FC = () => {
               {/* Street & Number */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-2">
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Rua / Avenida</label>
+                  <label className="text-[11px] font-bold block mb-1 opacity-90">Rua / Avenida</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: Av. Porto Alegre"
                     value={street}
                     onChange={(e) => setStreet(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 text-white p-2.5 text-xs focus:border-amber-400/60 outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs focus:border-amber-400 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold text-gray-300 block mb-1">Número</label>
+                  <label className="text-[11px] font-bold block mb-1 opacity-90">Número</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: 203"
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 text-white p-2.5 text-xs focus:border-amber-400/60 outline-none"
+                    className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs focus:border-amber-400 outline-none"
                   />
                 </div>
               </div>
 
               {/* Complement */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1">Complemento (Opcional)</label>
+                <label className="text-[11px] font-bold block mb-1 opacity-90">Complemento (Opcional)</label>
                 <input
                   type="text"
                   placeholder="Ex: Apto 302, Bloco B"
                   value={complement}
                   onChange={(e) => setComplement(e.target.value)}
-                  className="w-full rounded-xl border border-white/10 bg-white/5 text-white p-2.5 text-xs focus:border-amber-400/60 outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs focus:border-amber-400 outline-none"
                 />
               </div>
 
               {/* Label selector (Casa, Trabalho, Outro) */}
               <div>
-                <label className="text-[11px] font-bold text-gray-300 block mb-1">Identificação / Tipo</label>
+                <label className="text-[11px] font-bold block mb-1 opacity-90">Identificação / Tipo</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setLabel('casa')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-xl text-xs font-bold transition cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-bold transition cursor-pointer ${
                       label === 'casa'
-                        ? 'bg-amber-400 text-black border-amber-300 font-extrabold shadow-sm'
-                        : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border-white/10'
+                        ? 'dark-glass-button-gold text-black shadow-sm'
+                        : 'bg-white/5 opacity-70 hover:opacity-100 border-white/10'
                     }`}
                   >
                     <Home className="w-3.5 h-3.5" />
@@ -488,10 +883,10 @@ export const MyAccountView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setLabel('trabalho')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-xl text-xs font-bold transition cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-bold transition cursor-pointer ${
                       label === 'trabalho'
-                        ? 'bg-amber-400 text-black border-amber-300 font-extrabold shadow-sm'
-                        : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border-white/10'
+                        ? 'dark-glass-button-gold text-black shadow-sm'
+                        : 'bg-white/5 opacity-70 hover:opacity-100 border-white/10'
                     }`}
                   >
                     <Briefcase className="w-3.5 h-3.5" />
@@ -500,10 +895,10 @@ export const MyAccountView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setLabel('outro')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-xl text-xs font-bold transition cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-bold transition cursor-pointer ${
                       label === 'outro'
-                        ? 'bg-amber-400 text-black border-amber-300 font-extrabold shadow-sm'
-                        : 'bg-white/5 text-gray-300 hover:text-white hover:bg-white/10 border-white/10'
+                        ? 'dark-glass-button-gold text-black shadow-sm'
+                        : 'bg-white/5 opacity-70 hover:opacity-100 border-white/10'
                     }`}
                   >
                     <Tag className="w-3.5 h-3.5" />
@@ -517,14 +912,14 @@ export const MyAccountView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAddingAddress(false)}
-                className="rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs py-2 px-4 transition cursor-pointer"
+                className="rounded-full border border-white/15 bg-white/5 hover:bg-white/10 font-bold text-xs py-2 px-5 transition cursor-pointer"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl dark-glass-button-gold font-bold text-xs py-2 px-4 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                className="rounded-full dark-glass-button-gold font-black text-xs py-2 px-5 transition flex items-center gap-1.5 shadow-xs cursor-pointer"
               >
                 {loading && <Loader2 className="w-3 h-3 animate-spin text-black" />}
                 <span>Salvar Local</span>
@@ -535,42 +930,42 @@ export const MyAccountView: React.FC = () => {
 
         {/* Addresses list */}
         {savedAddresses.length === 0 ? (
-          <div className="text-center py-8 dark-glass-card border border-dashed border-white/10 rounded-2xl p-4">
-            <span className="text-2xl block mb-2">🏠</span>
-            <p className="text-xs text-gray-400 font-medium">Nenhum endereço cadastrado.</p>
-            <p className="text-[10px] text-gray-500 mt-0.5">Adicione os locais que você mais pede para facilitar a sua entrega.</p>
+          <div className="text-center py-8 dark-glass-card border border-dashed border-white/10 rounded-3xl p-6">
+            <span className="text-3xl block mb-2">🏠</span>
+            <p className="text-xs font-bold opacity-80">Nenhum endereço cadastrado ainda.</p>
+            <p className="text-[11px] opacity-60 mt-0.5">Adicione os locais que você mais pede para agilizar sua entrega.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {savedAddresses.map((addr) => (
               <div 
                 key={addr.id}
-                className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-white/10 dark-glass-card shadow-xs hover:border-amber-400/30 transition"
+                className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-white/10 dark-glass-card shadow-xs hover:border-amber-400/40 transition"
               >
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="p-2.5 rounded-xl bg-amber-400/10 text-amber-400 shrink-0 border border-amber-400/20">
+                  <div className="p-2.5 rounded-full bg-amber-400/10 text-amber-400 shrink-0 border border-amber-400/20">
                     {addr.label === 'casa' && <Home className="w-4 h-4" />}
                     {addr.label === 'trabalho' && <Briefcase className="w-4 h-4" />}
                     {addr.label === 'outro' && <Tag className="w-4 h-4" />}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-extrabold text-white capitalize">{addr.label}</span>
+                      <span className="text-xs font-black capitalize text-amber-400">{addr.label}</span>
                       <span className="inline-flex h-1.5 w-1.5 rounded-full bg-amber-400" />
-                      <span className="text-[10px] text-gray-400 font-bold">{addr.neighborhood}</span>
+                      <span className="text-[10px] opacity-70 font-bold">{addr.neighborhood}</span>
                     </div>
-                    <p className="text-xs text-gray-300 font-semibold mt-0.5 truncate">
+                    <p className="text-xs font-semibold mt-0.5 truncate">
                       {addr.street}, Nº {addr.number}
                     </p>
                     {addr.complement && (
-                      <p className="text-[10px] text-gray-500 mt-0.5 font-medium">Compl: {addr.complement}</p>
+                      <p className="text-[10px] opacity-60 mt-0.5 font-medium">Compl: {addr.complement}</p>
                     )}
                   </div>
                 </div>
                 
                 <button
                   onClick={() => handleDeleteAddress(addr.id)}
-                  className="p-2 rounded-xl text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition shrink-0 cursor-pointer"
+                  className="p-2 rounded-full opacity-60 hover:opacity-100 hover:text-red-400 hover:bg-red-500/10 transition shrink-0 cursor-pointer"
                   title="Remover endereço"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -580,6 +975,14 @@ export const MyAccountView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Receipt modal */}
+      {selectedReceiptOrder && (
+        <OrderReceiptModal
+          order={selectedReceiptOrder}
+          onClose={() => setSelectedReceiptOrder(null)}
+        />
+      )}
     </div>
   );
 };

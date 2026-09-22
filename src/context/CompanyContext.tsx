@@ -435,6 +435,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const updatedOrders = [newOrder, ...orders];
     setOrders(updatedOrders);
     localStorage.setItem('vovo_orders_history', JSON.stringify(updatedOrders));
+    try {
+      const myIds = JSON.parse(localStorage.getItem('vovo_my_order_ids') || '[]');
+      if (!myIds.includes(id)) {
+        localStorage.setItem('vovo_my_order_ids', JSON.stringify([id, ...myIds]));
+      }
+    } catch (e) {
+      console.warn('Error saving my_order_ids:', e);
+    }
 
     // Save to Firestore
     try {
