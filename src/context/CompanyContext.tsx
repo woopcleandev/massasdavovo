@@ -38,6 +38,44 @@ const DEFAULT_SETTINGS: CompanySettings = {
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 
+// Helper to get initial products list
+const getInitialProducts = (): Product[] => {
+  try {
+    const savedMenu = localStorage.getItem('vovo_menu_items');
+    if (savedMenu) {
+      const parsed = JSON.parse(savedMenu);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+    const legacyCustom = localStorage.getItem('vovo_custom_products');
+    if (legacyCustom) {
+      const parsedCustom: Product[] = JSON.parse(legacyCustom);
+      if (Array.isArray(parsedCustom) && parsedCustom.length > 0) {
+        return [
+          ...parsedCustom,
+          ...PRODUCTS.filter(p => !parsedCustom.some(cp => cp.id === p.id))
+        ];
+      }
+    }
+  } catch (e) {
+    console.error('Error reading initial products:', e);
+  }
+  return PRODUCTS;
+};
+
+// Helper to get initial deleted product IDs
+const getInitialDeletedIds = (): string[] => {
+  try {
+    const saved = localStorage.getItem('vovo_deleted_products');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {
+    console.error('Error reading deleted products:', e);
+  }
+  return [];
+};
+
 export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   // 1. Settings state
   const [settings, setSettings] = useState<CompanySettings>(() => {
@@ -50,18 +88,13 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return DEFAULT_SETTINGS;
   });
 
-  // 2. Custom Products state
-  const [customProducts, setCustomProducts] = useState<Product[]>(() => {
-    try {
-      const saved = localStorage.getItem('vovo_custom_products');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error(e);
-    }
-    return [];
-  });
+  // 2. Full Products list (defaults + custom + overrides)
+  const [productsList, setProductsList] = useState<Product[]>(getInitialProducts);
 
-  // 3. Orders state
+  // 3. Deleted product IDs
+  const [deletedProductIds, setDeletedProductIds] = useState<string[]>(getInitialDeletedIds);
+
+  // 4. Orders state
   const [orders, setOrders] = useState<Order[]>(() => {
     try {
       const saved = localStorage.getItem('vovo_orders_history');
@@ -72,7 +105,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return [];
   });
 
-  // 4. Master Auth state
+  // 5. Master Auth state
   const [isMasterAuth, setIsMasterAuth] = useState<boolean>(() => {
     try {
       return sessionStorage.getItem('vovo_master_auth') === 'true';
@@ -115,30 +148,63 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, []);
 
-  // Fetch Custom Menu Items from Firestore
+  // Fetch Menu Items from Firestore
   useEffect(() => {
     try {
       const menuRef = collection(db, 'menu_items');
       getDocs(menuRef)
         .then((snapshot) => {
-          const loaded: Product[] = [];
+          if (snapshot.empty) return;
+          const remoteMap = new Map<string, Product>();
+          const remoteDeleted: string[] = [];
+
           snapshot.forEach(docSnap => {
             const data = docSnap.data();
-            loaded.push({
-              id: docSnap.id,
-              name: data.name || '',
-              categoryId: data.categoryId,
-              description: data.description || '',
-              price: Number(data.price) || 0,
-              image: data.image || '',
-              isPopular: Boolean(data.isPopular),
-              customizable: data.customizable,
-              sizes: data.sizes,
-            });
+            if (data.isActive === false) {
+              remoteDeleted.push(docSnap.id);
+            } else if (data.name) {
+              const baseProd = PRODUCTS.find(p => p.id === docSnap.id);
+              remoteMap.set(docSnap.id, {
+                id: docSnap.id,
+                name: data.name,
+                categoryId: data.categoryId || baseProd?.categoryId || 'lasanhas' as any,
+                description: data.description !== undefined ? data.description : (baseProd?.description || ''),
+                price: Number(data.price) || baseProd?.price || 0,
+                image: data.image || baseProd?.image || '',
+                isPopular: Boolean(data.isPopular),
+                customizable: data.customizable || baseProd?.customizable,
+                sizes: data.sizes || baseProd?.sizes,
+              });
+            }
           });
-          if (loaded.length > 0) {
-            setCustomProducts(loaded);
-            localStorage.setItem('vovo_custom_products', JSON.stringify(loaded));
+
+          if (remoteDeleted.length > 0) {
+            setDeletedProductIds(prev => {
+              const merged = Array.from(new Set([...prev, ...remoteDeleted]));
+              localStorage.setItem('vovo_deleted_products', JSON.stringify(merged));
+              return merged;
+            });
+          }
+
+          if (remoteMap.size > 0) {
+            setProductsList(prev => {
+              const map = new Map<string, Product>();
+              // Initialize with base list
+              prev.forEach(p => map.set(p.id, p));
+              // Apply remote items
+              remoteMap.forEach((remProd, id) => {
+                const existing = map.get(id);
+                map.set(id, {
+                  ...existing,
+                  ...remProd,
+                  image: remProd.image || existing?.image || '',
+                });
+              });
+              // Filter out deleted
+              const combined = Array.from(map.values()).filter(p => !remoteDeleted.includes(p.id));
+              localStorage.setItem('vovo_menu_items', JSON.stringify(combined));
+              return combined;
+            });
           }
         })
         .catch(err => {
@@ -215,14 +281,17 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const id = 'item-' + Date.now();
     const product: Product = { ...newProd, id };
 
-    const updated = [product, ...customProducts];
-    setCustomProducts(updated);
-    localStorage.setItem('vovo_custom_products', JSON.stringify(updated));
+    setProductsList(prev => {
+      const updated = [product, ...prev];
+      localStorage.setItem('vovo_menu_items', JSON.stringify(updated));
+      return updated;
+    });
 
     try {
       const prodRef = doc(db, 'menu_items', id);
       await setDoc(prodRef, {
         ...product,
+        isActive: true,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -235,26 +304,78 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Update Product
   const updateProduct = async (id: string, updatedFields: Partial<Product>) => {
-    const updated = customProducts.map(p => p.id === id ? { ...p, ...updatedFields } : p);
-    setCustomProducts(updated);
-    localStorage.setItem('vovo_custom_products', JSON.stringify(updated));
+    let fullProduct: Product | undefined;
+
+    setProductsList(prev => {
+      const index = prev.findIndex(p => p.id === id);
+      let updated: Product[];
+      if (index >= 0) {
+        fullProduct = { ...prev[index], ...updatedFields };
+        updated = [...prev];
+        updated[index] = fullProduct;
+      } else {
+        const base = PRODUCTS.find(p => p.id === id);
+        fullProduct = {
+          id,
+          name: updatedFields.name || base?.name || 'Item',
+          categoryId: updatedFields.categoryId || base?.categoryId || 'lasanhas' as any,
+          description: updatedFields.description ?? (base?.description || ''),
+          price: updatedFields.price ?? (base?.price || 0),
+          image: updatedFields.image || base?.image || '',
+          isPopular: updatedFields.isPopular ?? (base?.isPopular || false),
+          customizable: base?.customizable,
+          sizes: base?.sizes,
+          ...updatedFields,
+        };
+        updated = [fullProduct, ...prev];
+      }
+      localStorage.setItem('vovo_menu_items', JSON.stringify(updated));
+      return updated;
+    });
+
+    // Remove from deleted list if it was there
+    setDeletedProductIds(prev => {
+      if (prev.includes(id)) {
+        const updated = prev.filter(item => item !== id);
+        localStorage.setItem('vovo_deleted_products', JSON.stringify(updated));
+        return updated;
+      }
+      return prev;
+    });
 
     try {
       const prodRef = doc(db, 'menu_items', id);
-      await updateDoc(prodRef, {
-        ...updatedFields,
-        updatedAt: serverTimestamp(),
+      const dataToSave = fullProduct ? { ...fullProduct } : { ...updatedFields, id };
+      // Clean undefined fields to avoid Firestore errors
+      Object.keys(dataToSave).forEach(key => {
+        if ((dataToSave as any)[key] === undefined) {
+          delete (dataToSave as any)[key];
+        }
       });
+      await setDoc(prodRef, {
+        ...dataToSave,
+        id,
+        isActive: true,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
     } catch (err) {
-      console.warn('Could not update product in Firestore:', err);
+      console.warn('Could not update product in Firestore, local update preserved:', err);
     }
   };
 
   // Delete Product
   const deleteProduct = async (id: string) => {
-    const updated = customProducts.filter(p => p.id !== id);
-    setCustomProducts(updated);
-    localStorage.setItem('vovo_custom_products', JSON.stringify(updated));
+    setDeletedProductIds(prev => {
+      const updated = Array.from(new Set([...prev, id]));
+      localStorage.setItem('vovo_deleted_products', JSON.stringify(updated));
+      return updated;
+    });
+
+    setProductsList(prev => {
+      const updated = prev.filter(p => p.id !== id);
+      localStorage.setItem('vovo_menu_items', JSON.stringify(updated));
+      return updated;
+    });
 
     try {
       const prodRef = doc(db, 'menu_items', id);
@@ -344,12 +465,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return true;
   };
 
-  // Merge default products with custom products
-  // If custom product has same id, it overrides; otherwise custom products are prepended
-  const allProducts: Product[] = [
-    ...customProducts,
-    ...PRODUCTS.filter(p => !customProducts.some(cp => cp.id === p.id))
-  ];
+  // Active products: all in productsList that are not in deletedProductIds
+  const allProducts: Product[] = productsList.filter(p => !deletedProductIds.includes(p.id));
 
   return (
     <CompanyContext.Provider

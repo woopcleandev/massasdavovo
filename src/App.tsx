@@ -17,11 +17,7 @@ import { CompanyProvider, useCompany } from './context/CompanyContext';
 import { MyAccountView } from './components/MyAccountView';
 import { MasterAdminView } from './components/MasterAdminView';
 
-interface MainAppProps {
-  onOpenMaster: () => void;
-}
-
-function MainApp({ onOpenMaster }: MainAppProps) {
+function MainApp() {
   const { allProducts, settings } = useCompany();
 
   // Navigation & filtering state
@@ -334,20 +330,9 @@ function MainApp({ onOpenMaster }: MainAppProps) {
       </div>
 
       {/* Discreet Footer */}
-      <footer className="mt-16 text-center text-xs text-gray-400 max-w-4xl mx-auto px-4 space-y-2">
+      <footer className="mt-16 text-center text-xs text-gray-400 max-w-4xl mx-auto px-4 space-y-1">
         <p>© Massas da Vovó • Feito com tradição e amor de família</p>
-        <div className="flex items-center justify-center gap-4 text-[11px]">
-          <span>Sorriso - MT</span>
-          <span>•</span>
-          <button
-            onClick={onOpenMaster}
-            className="text-gray-300 hover:text-gray-500 transition-colors flex items-center gap-1 cursor-pointer"
-            title="Área Administrativa Master"
-          >
-            <ShieldCheck className="w-3 h-3" />
-            <span>Acesso /Master</span>
-          </button>
-        </div>
+        <p className="text-[11px] text-gray-400">Sorriso - MT</p>
       </footer>
 
       {/* 5. Floating Bottom Cart Summary (Anota Aí Style) */}
@@ -405,11 +390,14 @@ export default function App() {
     if (typeof window === 'undefined') return false;
     const path = window.location.pathname.toLowerCase();
     const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
     return (
       path === '/master' ||
       path.startsWith('/master/') ||
       hash === '#/master' ||
-      hash === '#master'
+      hash === '#master' ||
+      hash.startsWith('#/master') ||
+      search.includes('master')
     );
   };
 
@@ -429,15 +417,6 @@ export default function App() {
     };
   }, []);
 
-  const handleGoToMaster = () => {
-    try {
-      window.history.pushState(null, '', '/Master');
-    } catch {
-      window.location.hash = '/Master';
-    }
-    setIsMasterRoute(true);
-  };
-
   const handleBackToMenu = () => {
     try {
       window.history.pushState(null, '', '/');
@@ -453,7 +432,7 @@ export default function App() {
         {isMasterRoute ? (
           <MasterAdminView onBackToMenu={handleBackToMenu} />
         ) : (
-          <MainApp onOpenMaster={handleGoToMaster} />
+          <MainApp />
         )}
       </AuthProvider>
     </CompanyProvider>

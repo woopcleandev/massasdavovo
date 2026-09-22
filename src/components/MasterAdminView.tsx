@@ -76,6 +76,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Settings form state
+  const [productSuccess, setProductSuccess] = useState('');
   const [companyForm, setCompanyForm] = useState({
     whatsappNumber: settings.whatsappNumber,
     phone: settings.phone,
@@ -124,20 +125,20 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check size limit (compress if large)
+    // Check size limit (compress to clean web dimensions)
     const reader = new FileReader();
     reader.onload = (event) => {
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 800;
-        const scaleSize = MAX_WIDTH / img.width;
-        canvas.width = Math.min(img.width, MAX_WIDTH);
-        canvas.height = img.width > MAX_WIDTH ? img.height * scaleSize : img.height;
+        const MAX_WIDTH = 640;
+        const scale = img.width > MAX_WIDTH ? MAX_WIDTH / img.width : 1;
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
 
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
         setProductForm(prev => ({ ...prev, image: dataUrl }));
       };
       img.src = event.target?.result as string;
@@ -160,26 +161,31 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     }
 
     const defaultImg = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800';
+    const finalImage = (productForm.image && productForm.image.trim()) ? productForm.image.trim() : defaultImg;
 
     if (editingProductId) {
       await updateProduct(editingProductId, {
-        name: productForm.name,
+        name: productForm.name.trim(),
         categoryId: productForm.categoryId,
-        description: productForm.description,
+        description: productForm.description.trim(),
         price: priceNum,
-        image: productForm.image || defaultImg,
+        image: finalImage,
         isPopular: productForm.isPopular,
       });
+      setProductSuccess('Prato e foto atualizados com sucesso!');
     } else {
       await addProduct({
-        name: productForm.name,
+        name: productForm.name.trim(),
         categoryId: productForm.categoryId,
-        description: productForm.description,
+        description: productForm.description.trim(),
         price: priceNum,
-        image: productForm.image || defaultImg,
+        image: finalImage,
         isPopular: productForm.isPopular,
       });
+      setProductSuccess('Novo prato adicionado com sucesso!');
     }
+
+    setTimeout(() => setProductSuccess(''), 3500);
 
     setIsProductModalOpen(false);
     setEditingProductId(null);
@@ -597,6 +603,13 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         {/* ============================================================ */}
         {adminTab === 'menu' && (
           <div className="space-y-6 animate-fade-in">
+            {productSuccess && (
+              <div className="bg-emerald-50 text-emerald-800 p-4 rounded-2xl border border-emerald-200 text-xs font-bold flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span>{productSuccess}</span>
+              </div>
+            )}
+
             {/* Action Bar */}
             <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -961,14 +974,35 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                 </div>
 
                 {/* Photo Preview */}
-                {productForm.image && (
-                  <div className="relative w-24 h-24 rounded-xl overflow-hidden border border-gray-200 mt-2">
-                    <img
-                      src={productForm.image}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
+                {productForm.image ? (
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200 mt-2">
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden border border-gray-200 bg-white shrink-0">
+                      <img
+                        src={productForm.image}
+                        alt="Preview"
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800';
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-[11px] font-bold text-emerald-700 block">✓ Pré-visualização da imagem</span>
+                      <p className="text-[10px] text-gray-500 truncate mt-0.5">{productForm.image}</p>
+                      <button
+                        type="button"
+                        onClick={() => setProductForm(prev => ({ ...prev, image: '' }))}
+                        className="text-[10px] text-red-500 font-bold hover:underline mt-1 cursor-pointer"
+                      >
+                        Remover ou trocar imagem
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <p className="text-[11px] text-gray-400 italic">
+                    Nenhuma foto selecionada. Será utilizada a foto padrão de massas da casa.
+                  </p>
                 )}
               </div>
 
