@@ -10,6 +10,7 @@ import {
   doc, 
   getDoc, 
   setDoc, 
+  updateDoc,
   collection, 
   getDocs, 
   deleteDoc,
@@ -70,7 +71,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (docSnap.exists()) {
             setUserProfile(docSnap.data() as UserProfile);
           } else {
-            setUserProfile(null);
+            // Document doesn't exist yet: initialize with fallback values
+            const phone = user.email ? user.email.split('@')[0] : '';
+            const nowString = new Date().toISOString();
+            const initialProfile: UserProfile = {
+              id: user.uid,
+              name: user.displayName || 'Cliente',
+              whatsapp: phone,
+              email: user.email || '',
+              createdAt: nowString,
+              updatedAt: nowString
+            };
+            try {
+              await setDoc(userRef, {
+                ...initialProfile,
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp()
+              });
+              setUserProfile(initialProfile);
+            } catch (err) {
+              console.warn("Could not auto-create profile doc:", err);
+              setUserProfile(initialProfile);
+            }
           }
         } catch (error) {
           console.error("Error fetching user profile:", error);
@@ -201,20 +223,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const usersPath = `users/${currentUser.uid}`;
     try {
       const userDocRef = doc(db, 'users', currentUser.uid);
-      const updatedProfile = {
-        ...userProfile,
-        name,
-        whatsapp,
-        updatedAt: new Date().toISOString()
-      };
+      const userDocSnap = await getDoc(userDocRef);
+      const nowString = new Date().toISOString();
+      const email = currentUser.email || `${whatsapp.replace(/\D/g, '')}@massasdavovo.com`;
 
-      await setDoc(userDocRef, {
-        name,
-        whatsapp,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-
-      setUserProfile(updatedProfile as UserProfile);
+      if (!userDocSnap.exists()) {
+        const newProfile: UserProfile = {
+          id: currentUser.uid,
+          name,
+          whatsapp,
+          email,
+          createdAt: nowString,
+          updatedAt: nowString
+        };
+        await setDoc(userDocRef, {
+          ...newProfile,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp()
+        });
+        setUserProfile(newProfile);
+      } else {
+        await updateDoc(userDocRef, {
+          name,
+          whatsapp,
+          updatedAt: serverTimestamp()
+        });
+        setUserProfile({
+          ...(userDocSnap.data() as UserProfile),
+          name,
+          whatsapp,
+          updatedAt: nowString
+        });
+      }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, usersPath);
     }

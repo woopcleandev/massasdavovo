@@ -59,8 +59,16 @@ service cloud.firestore {
       allow get: if isOwner(userId) && isValidId(userId);
       allow create: if isOwner(userId) && isValidId(userId) && isValidUser(incoming())
         && incoming().createdAt == request.time;
-      allow update: if isOwner(userId) && isValidId(userId) && isValidUser(incoming())
-        && incoming().createdAt == existing().createdAt; // Prevent overwriting createdAt
+      allow update: if isOwner(userId) && isValidId(userId)
+        && (
+          (incoming().diff(existing()).affectedKeys().hasOnly(['name', 'whatsapp', 'updatedAt'])
+            && incoming().name is string && incoming().name.size() >= 2 && incoming().name.size() <= 100
+            && incoming().whatsapp is string && incoming().whatsapp.size() >= 8 && incoming().whatsapp.size() <= 20
+            && incoming().updatedAt == request.time)
+          ||
+          (isValidUser(incoming())
+            && incoming().createdAt == existing().createdAt)
+        );
       allow delete: if false; // Deletion is not allowed from the client for security
 
       // Saved Address subcollection rules
@@ -69,8 +77,19 @@ service cloud.firestore {
         allow get: if isOwner(userId) && isValidId(addressId);
         allow create: if isOwner(userId) && isValidId(addressId) && isValidAddress(incoming(), userId)
           && incoming().createdAt == request.time;
-        allow update: if isOwner(userId) && isValidId(addressId) && isValidAddress(incoming(), userId)
-          && incoming().createdAt == existing().createdAt; // Prevent overwriting createdAt
+        allow update: if isOwner(userId) && isValidId(addressId)
+          && (
+            (incoming().diff(existing()).affectedKeys().hasOnly(['street', 'number', 'complement', 'neighborhood', 'label', 'updatedAt'])
+              && incoming().street is string && incoming().street.size() >= 3 && incoming().street.size() <= 150
+              && incoming().number is string && incoming().number.size() >= 1 && incoming().number.size() <= 10
+              && (!incoming().keys().contains('complement') || (incoming().complement is string && incoming().complement.size() <= 100))
+              && incoming().neighborhood is string && incoming().neighborhood.size() >= 2 && incoming().neighborhood.size() <= 100
+              && incoming().label is string && (incoming().label == 'casa' || incoming().label == 'trabalho' || incoming().label == 'outro')
+              && incoming().updatedAt == request.time)
+            ||
+            (isValidAddress(incoming(), userId)
+              && incoming().createdAt == existing().createdAt)
+          );
         allow delete: if isOwner(userId) && isValidId(addressId);
       }
     }
