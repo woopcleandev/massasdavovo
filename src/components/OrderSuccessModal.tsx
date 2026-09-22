@@ -33,12 +33,12 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const isPixDelivery = order.paymentMethod === 'pix_delivery';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-xs p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 overflow-y-auto">
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in my-8 border border-gray-100 flex flex-col text-left">
+      <div className="glass-panel rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in my-8 border border-white/80 flex flex-col text-left">
         {/* Top Success Banner */}
-        <div className="bg-gradient-to-br from-[#0b1c3f] via-[#0e2450] to-[#0b1c3f] text-white p-6 text-center relative">
+        <div className="bg-gradient-to-br from-[#0b1c3f]/95 via-[#0e2450]/90 to-[#0b1c3f]/95 backdrop-blur-md text-white p-6 text-center relative border-b border-[#d4af37]/20">
           <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 ring-8 ring-emerald-500/10">
             <CheckCircle2 className="w-9 h-9 text-emerald-400" />
           </div>

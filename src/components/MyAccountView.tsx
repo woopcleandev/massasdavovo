@@ -169,7 +169,7 @@ export const MyAccountView: React.FC = () => {
   // 1. GUEST FORM (NOT LOGGED IN)
   if (!currentUser) {
     return (
-      <div className="max-w-md mx-auto bg-white border border-gray-100 rounded-3xl p-6 sm:p-8 shadow-lg mt-2">
+      <div className="max-w-md mx-auto glass-panel border border-white/80 rounded-3xl p-6 sm:p-8 shadow-xl mt-2">
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-[#0b1c3f]/10 text-[#0b1c3f] rounded-2xl flex items-center justify-center mx-auto mb-4 border border-[#0b1c3f]/5">
             <User className="w-8 h-8" />
@@ -317,7 +317,7 @@ export const MyAccountView: React.FC = () => {
       )}
 
       {/* Customer profile details panel */}
-      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-md">
+      <div className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/80 shadow-xl">
         <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
             <div className="w-16 h-16 rounded-2xl bg-[#0b1c3f]/5 text-[#0b1c3f] border border-[#0b1c3f]/10 flex items-center justify-center font-black text-xl shrink-0">

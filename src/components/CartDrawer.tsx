@@ -324,23 +324,23 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-md">
       {/* Click outside to close */}
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
       {/* Cart Drawer Panel */}
       <div
         id="cart-panel-drawer"
-        className="w-full max-w-lg bg-gray-50 h-full flex flex-col shadow-2xl relative animate-slide-left overflow-hidden"
+        className="w-full max-w-lg glass-panel h-full flex flex-col shadow-2xl relative animate-slide-left overflow-hidden border-l border-white/80"
       >
         {/* Drawer Header */}
-        <div className="bg-white border-b border-gray-100 p-5 shrink-0 flex items-center justify-between">
+        <div className="bg-white/60 backdrop-blur-md border-b border-white/60 p-5 shrink-0 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-[#0b1c3f]/10 text-[#0b1c3f]">
+            <div className="p-2 rounded-xl bg-[#0b1c3f]/10 text-[#0b1c3f] border border-[#0b1c3f]/15">
               <ShoppingCart className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-lg font-extrabold text-gray-900">Seu Carrinho</h2>
+              <h2 className="text-lg font-black text-gray-950">Seu Carrinho</h2>
               <p className="text-xs text-gray-400">
                 {cartItems.length} {cartItems.length === 1 ? 'item selecionado' : 'itens selecionados'}
               </p>
@@ -349,7 +349,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
           <button
             id="btn-close-cart"
             onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition"
+            className="p-2.5 rounded-full hover:bg-white text-gray-500 hover:text-gray-800 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

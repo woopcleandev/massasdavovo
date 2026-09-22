@@ -98,10 +98,10 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-md p-4 overflow-y-auto">
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
-      <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in my-8 border border-gray-100 flex flex-col max-h-[90vh]">
+      <div className="glass-panel rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in my-8 border border-white/80 flex flex-col max-h-[90vh]">
         {/* Modal Top Bar */}
         <div className="p-4 bg-gray-900 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">

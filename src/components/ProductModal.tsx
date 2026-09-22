@@ -101,14 +101,14 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-md p-0 sm:p-4 overflow-y-auto">
       {/* Click outside to close */}
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
       {/* Modal Card */}
       <div
         id="product-customizer-modal"
-        className="w-full sm:max-w-xl bg-white rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up"
+        className="w-full sm:max-w-xl glass-panel rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] sm:max-h-[85vh] animate-slide-up border border-white/80"
       >
         {/* Header Image banner */}
         <div className="relative h-48 sm:h-56 w-full bg-gray-100 shrink-0">
@@ -125,7 +125,7 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
           <button
             id="btn-close-modal"
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 rounded-full bg-black/40 text-white hover:bg-black/60 transition shadow-md"
+            className="absolute top-4 right-4 p-2.5 rounded-full bg-white/70 hover:bg-white/90 backdrop-blur-md text-gray-800 transition shadow-md border border-white/80 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -134,8 +134,8 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
         {/* Scrollable Content */}
         <div className="flex-1 p-6 overflow-y-auto space-y-6">
           <div>
-            <h2 className="text-xl font-extrabold text-gray-900">{product.name}</h2>
-            <p className="mt-2 text-sm text-gray-500 leading-relaxed">{product.description}</p>
+            <h2 className="text-xl font-black text-gray-950">{product.name}</h2>
+            <p className="mt-2 text-sm text-gray-600 leading-relaxed font-normal">{product.description}</p>
           </div>
 
           {/* Size Options */}
@@ -289,20 +289,20 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
         </div>
 
         {/* Footer actions: Quantity + Add button */}
-        <div className="p-6 border-t border-gray-100 bg-gray-50/80 shrink-0 flex flex-col sm:flex-row gap-4 items-center">
+        <div className="p-6 border-t border-white/60 bg-white/50 backdrop-blur-md shrink-0 flex flex-col sm:flex-row gap-4 items-center">
           {/* Quantity Selector */}
-          <div className="flex items-center justify-between border border-gray-200 rounded-full bg-white p-1.5 shrink-0 w-32 shadow-xs">
+          <div className="flex items-center justify-between border border-white/80 rounded-full bg-white/70 backdrop-blur-md p-1.5 shrink-0 w-32 shadow-xs">
             <button
               onClick={() => setQuantity(Math.max(1, quantity - 1))}
-              className="p-1.5 rounded-full hover:bg-gray-100 text-gray-600 disabled:opacity-40 transition"
+              className="p-1.5 rounded-full hover:bg-white text-gray-700 disabled:opacity-40 transition cursor-pointer"
               disabled={quantity <= 1}
             >
               <Minus className="w-4 h-4" />
             </button>
-            <span className="text-base font-bold text-gray-800">{quantity}</span>
+            <span className="text-base font-extrabold text-gray-900">{quantity}</span>
             <button
               onClick={() => setQuantity(quantity + 1)}
-              className="p-1.5 rounded-full hover:bg-gray-100 text-gray-600 transition"
+              className="p-1.5 rounded-full hover:bg-white text-gray-700 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -312,9 +312,9 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
           <button
             id="btn-confirm-add-cart"
             onClick={handleAddToCart}
-            className="flex-1 w-full flex items-center justify-center gap-2 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] py-4 px-6 text-base font-bold text-[#d4af37] border border-[#d4af37]/30 transition shadow-md active:scale-98"
+            className="flex-1 w-full flex items-center justify-center gap-2 rounded-full glass-button-primary py-4 px-6 text-base font-black shadow-lg cursor-pointer"
           >
-            <ShoppingBag className="w-5 h-5 text-[#d4af37]" />
+            <ShoppingBag className="w-5 h-5 text-[#f6e09e]" />
             <span>Adicionar {formatPrice(unitPrice * quantity)}</span>
           </button>
         </div>

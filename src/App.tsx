@@ -11,7 +11,11 @@ import { ProductModal } from './components/ProductModal';
 import { CartDrawer } from './components/CartDrawer';
 import { AboutTab } from './components/AboutTab';
 import { PWAInstallButton } from './components/PWAInstallButton';
-import { ShoppingBag, Search, Clock, MapPin, Menu, X, Info, Phone, ArrowRight, Heart, User, ShieldCheck } from 'lucide-react';
+import { 
+  ShoppingBag, Search, Clock, MapPin, Menu, X, Info, Phone, 
+  ArrowRight, Heart, User, Plus, Minus, Trash2, Sparkles, Check,
+  ExternalLink, ChevronRight, Utensils
+} from 'lucide-react';
 import { AuthProvider } from './context/AuthContext';
 import { CompanyProvider, useCompany } from './context/CompanyContext';
 import { MyAccountView } from './components/MyAccountView';
@@ -21,8 +25,7 @@ function MainApp() {
   const { allProducts, settings } = useCompany();
 
   // Navigation & filtering state
-  const [activeTab, setActiveTab] = useState<string>('menu'); // 'menu' | 'about' | 'account'
-
+  const [activeTab, setActiveTab] = useState<'menu' | 'about' | 'account'>('menu');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>(CategoryId.LASANHAS);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -50,7 +53,6 @@ function MainApp() {
     setCartItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex((item) => item.id === newItem.id);
       if (existingItemIndex > -1) {
-        // Increment quantity if identical item exists
         const updated = [...prevItems];
         updated[existingItemIndex].quantity += newItem.quantity;
         return updated;
@@ -60,6 +62,10 @@ function MainApp() {
   };
 
   const handleUpdateCartQuantity = (id: string, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      handleRemoveCartItem(id);
+      return;
+    }
     setCartItems((prevItems) =>
       prevItems.map((item) => (item.id === id ? { ...item, quantity: newQuantity } : item))
     );
@@ -77,7 +83,7 @@ function MainApp() {
     return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  // Filter products based on active category AND search query (from dynamic allProducts)
+  // Filter products based on active category AND search query
   const filteredProducts = allProducts.filter((product) => {
     const matchesCategory = activeTab === 'menu' && product.categoryId === selectedCategory;
     const matchesSearch =
@@ -85,7 +91,7 @@ function MainApp() {
       product.description.toLowerCase().includes(searchQuery.toLowerCase());
     
     if (searchQuery.trim() !== '') {
-      return matchesSearch; // ignore category constraint when searching actively
+      return matchesSearch;
     }
     return matchesCategory;
   });
@@ -97,283 +103,573 @@ function MainApp() {
   const activePhone = settings.phone || RESTAURANT_INFO.phone;
 
   return (
-    <div className="min-h-screen bg-[#FCFBF7] text-gray-800 antialiased font-sans pb-24 selection:bg-[#0b1c3f]/10 selection:text-[#0b1c3f]">
+    <div className="min-h-screen liquid-ambient-bg text-gray-800 antialiased font-sans pb-28 selection:bg-[#0b1c3f]/10 selection:text-[#0b1c3f] relative overflow-x-hidden">
       
-      {/* 1. Header Banner / Cover */}
-      <div className="relative h-44 sm:h-52 w-full bg-[#0b1c3f] overflow-hidden shrink-0">
-        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/70 z-10" />
-        <img
-          src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=1200"
-          alt="Massas da Vovó"
-          referrerPolicy="no-referrer"
-          className="w-full h-full object-cover opacity-85 scale-102 filter blur-xs"
-        />
-        
-        {/* Decorative Top Accent */}
-        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-[#d4af37] via-[#f7e39d] to-[#d4af37] z-20" />
+      {/* 0. Ambient Light Refraction Orbs (Provides liquid glass optical depth) */}
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-200/25 rounded-full blur-[110px]" />
+        <div className="absolute top-1/4 -right-32 w-[32rem] h-[32rem] bg-sky-200/20 rounded-full blur-[130px]" />
+        <div className="absolute bottom-20 left-1/3 w-[30rem] h-[30rem] bg-rose-200/15 rounded-full blur-[140px]" />
       </div>
 
-      {/* 2. Restaurant Profile Header Area */}
-      <div className="max-w-4xl mx-auto px-4 -mt-16 sm:-mt-20 relative z-20">
-        <div className="bg-white rounded-3xl border border-gray-100 p-5 sm:p-6 shadow-xl flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-5">
-          {/* Circular Logo */}
-          <div className="relative -mt-16 sm:-mt-20 md:mt-0 shrink-0">
-            <div className="p-1 rounded-full bg-white shadow-lg">
+      {/* 1. Floating Desktop & Mobile Liquid Glass Topbar */}
+      <header className="sticky top-3 z-40 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full transition-all duration-300">
+        <nav className="glass-panel rounded-full px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-6 border border-white/80 shadow-[0_12px_36px_rgba(0,0,0,0.06),inset_0_1px_1.5px_rgba(255,255,255,0.95)]">
+          
+          {/* Brand Identity / Logo */}
+          <div 
+            onClick={() => { setActiveTab('menu'); setSearchQuery(''); }}
+            className="flex items-center gap-3 cursor-pointer shrink-0 group"
+          >
+            <div className="relative p-0.5 rounded-full bg-white/80 backdrop-blur-md shadow-sm border border-[#d4af37]/40 group-hover:scale-105 transition-transform duration-300">
               <img
                 src={RESTAURANT_INFO.logo}
                 alt={RESTAURANT_INFO.name}
                 referrerPolicy="no-referrer"
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover border border-[#d4af37]/30"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover"
               />
+              <span className="absolute bottom-0 right-0 flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-white" />
+              </span>
             </div>
-            <span className="absolute bottom-1 right-1 flex h-4 w-4">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 border-2 border-white"></span>
-            </span>
-          </div>
-
-          {/* Core Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex flex-wrap items-center justify-center md:justify-between gap-3">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-950 tracking-tight flex items-center gap-2 justify-center md:justify-start">
-                  <span>{RESTAURANT_INFO.name}</span>
-                  <span className="inline-flex items-center gap-1 text-[10px] bg-[#0b1c3f]/10 text-[#0b1c3f] font-bold px-2 py-0.5 rounded-sm border border-[#0b1c3f]/20">
-                    <Heart className="w-3 h-3 fill-[#0b1c3f]" />
-                    <span>Família</span>
-                  </span>
-                </h1>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-lg leading-relaxed line-clamp-1 sm:line-clamp-none">
-                  {RESTAURANT_INFO.description}
-                </p>
-              </div>
-
-              {/* Install PWA Button */}
-              <div className="shrink-0 mt-2 sm:mt-0">
-                <PWAInstallButton />
-              </div>
-            </div>
-
-            {/* Micro Details Row */}
-            <div className="mt-4 pt-4 border-t border-gray-50 flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2.5 text-xs text-gray-600">
-              <div className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-[#0b1c3f] shrink-0" />
-                <span className="font-semibold text-gray-800">{RESTAURANT_INFO.hours}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-[#0b1c3f] shrink-0" />
-                <a
-                  href={RESTAURANT_INFO.googleMapsLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-[#0b1c3f] underline font-semibold transition truncate max-w-[200px] sm:max-w-xs"
-                >
-                  {RESTAURANT_INFO.address}
-                </a>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
-                <a
-                  href={`https://wa.me/${activeWhatsApp}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-emerald-600 underline font-semibold transition"
-                >
-                  {activePhone}
-                </a>
-              </div>
+            
+            <div className="flex flex-col text-left">
+              <span className="text-sm sm:text-base font-black text-gray-950 tracking-tight leading-none group-hover:text-[#0b1c3f] transition-colors flex items-center gap-1.5">
+                <span>{RESTAURANT_INFO.name}</span>
+                <span className="hidden sm:inline-flex items-center text-[10px] font-extrabold text-[#d4af37] bg-[#0b1c3f] px-1.5 py-0.2 rounded-full">
+                  Artesanal
+                </span>
+              </span>
+              <span className="text-[10px] sm:text-[11px] text-gray-400 font-semibold tracking-wide leading-none mt-1 truncate max-w-[130px] sm:max-w-none">
+                Primavera do Leste - MT • Aberto
+              </span>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* 3. Navigation Tabs (Cardápio vs Quem Somos vs Minha Conta) */}
-      <div className="max-w-4xl mx-auto px-4 mt-6 overflow-hidden">
-        <div className="flex border-b border-gray-200 overflow-x-auto no-scrollbar whitespace-nowrap scroll-smooth">
-          <button
-            onClick={() => {
-              setActiveTab('menu');
-              setSearchQuery('');
-            }}
-            className={`py-3.5 px-4 sm:px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 shrink-0 ${
-              activeTab === 'menu'
-                ? 'border-[#0b1c3f] text-[#0b1c3f]'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Menu className="w-4 h-4" />
-            <span>CARDÁPIO DIGITAL</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('about')}
-            className={`py-3.5 px-4 sm:px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 shrink-0 ${
-              activeTab === 'about'
-                ? 'border-[#0b1c3f] text-[#0b1c3f]'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <Info className="w-4 h-4" />
-            <span>QUEM SOMOS / CONTATO</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('account')}
-            className={`py-3.5 px-4 sm:px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 shrink-0 ${
-              activeTab === 'account'
-                ? 'border-[#0b1c3f] text-[#0b1c3f]'
-                : 'border-transparent text-gray-400 hover:text-gray-600'
-            }`}
-          >
-            <User className="w-4 h-4" />
-            <span>MINHA CONTA</span>
-          </button>
-        </div>
-      </div>
+          {/* Desktop Central Liquid Glass Navigation Capsule */}
+          <div className="hidden md:flex items-center gap-1 p-1 rounded-full glass-panel-subtle border border-white/70 shadow-xs">
+            <button
+              onClick={() => {
+                setActiveTab('menu');
+                setSearchQuery('');
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
+                activeTab === 'menu'
+                  ? 'bg-white text-[#0b1c3f] shadow-sm border border-white/90 scale-102'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-white/40'
+              }`}
+            >
+              <Utensils className="w-3.5 h-3.5" />
+              <span>Cardápio Digital</span>
+            </button>
 
-      {/* 4. Active Tab Content Rendering */}
-      <div className="max-w-4xl mx-auto px-4 mt-6">
-        {activeTab === 'about' && (
-          <AboutTab />
-        )}
+            <button
+              onClick={() => setActiveTab('about')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
+                activeTab === 'about'
+                  ? 'bg-white text-[#0b1c3f] shadow-sm border border-white/90 scale-102'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-white/40'
+              }`}
+            >
+              <Info className="w-3.5 h-3.5" />
+              <span>Quem Somos</span>
+            </button>
 
-        {activeTab === 'account' && (
-          <MyAccountView />
-        )}
+            <button
+              onClick={() => setActiveTab('account')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-black transition-all cursor-pointer ${
+                activeTab === 'account'
+                  ? 'bg-white text-[#0b1c3f] shadow-sm border border-white/90 scale-102'
+                  : 'text-gray-500 hover:text-gray-900 hover:bg-white/40'
+              }`}
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Minha Conta</span>
+            </button>
+          </div>
 
-        {activeTab === 'menu' && (
-          <div className="space-y-6">
-
-            {/* Search and Category filters */}
-            <div className="flex flex-col gap-4">
-              
-              {/* Search bar input - Max width constrained */}
-              <div className="relative w-full max-w-md">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          {/* Right Action Island: Search + WhatsApp + Sacola */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            
+            {/* Desktop Instant Search Pill */}
+            {activeTab === 'menu' && (
+              <div className="relative hidden sm:flex items-center">
+                <Search className="absolute left-3 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Buscar no cardápio..."
+                  placeholder="Buscar massas..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-full border border-gray-200/80 bg-white py-2.5 pl-10 pr-4 text-xs focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden shadow-xs hover:border-gray-300 transition"
+                  className="glass-search rounded-full py-1.5 pl-8.5 pr-7 text-xs text-gray-800 placeholder-gray-400 w-32 md:w-44 lg:w-56 focus:w-64 outline-hidden border border-white/80 transition-all font-medium"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                    className="absolute right-2.5 p-0.5 text-gray-400 hover:text-gray-700 cursor-pointer"
                   >
                     <X className="w-3 h-3" />
                   </button>
                 )}
               </div>
+            )}
 
-              {/* Category selector pills */}
-              <div className="w-full max-w-full overflow-hidden">
-                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
-                  {CATEGORIES.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => {
-                        setSelectedCategory(category.id);
-                        setSearchQuery('');
-                      }}
-                      className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-extrabold whitespace-nowrap transition-all border shrink-0 ${
-                        selectedCategory === category.id && searchQuery === ''
-                          ? 'bg-[#0b1c3f] text-[#d4af37] border-[#d4af37]/30 shadow-md scale-102'
-                          : 'bg-white text-gray-600 hover:text-gray-800 border-gray-200/80 hover:border-gray-300'
-                      }`}
+            {/* Quick WhatsApp Contact Pill */}
+            <a
+              href={`https://wa.me/${activeWhatsApp}`}
+              target="_blank"
+              rel="noreferrer"
+              className="glass-pill hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-black text-emerald-800 hover:text-emerald-900"
+              title="Falar no WhatsApp"
+            >
+              <Phone className="w-3.5 h-3.5 text-emerald-600" />
+              <span>WhatsApp</span>
+            </a>
+
+            {/* Sacola Trigger Button */}
+            <button
+              id="btn-nav-cart"
+              onClick={() => setIsCartOpen(true)}
+              className="glass-button-primary rounded-full px-3.5 sm:px-4 py-2 text-xs font-black flex items-center gap-2 shadow-md cursor-pointer hover:scale-102 transition-transform shrink-0"
+              title="Abrir Sacola"
+            >
+              <div className="relative">
+                <ShoppingBag className="w-4 h-4 text-[#f6e09e]" />
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-yellow-400 text-[9px] font-black text-[#0b1c3f] shadow-xs">
+                    {cartItemsCount}
+                  </span>
+                )}
+              </div>
+              <span className="hidden sm:inline">Sacola</span>
+              {cartItemsCount > 0 && (
+                <span className="hidden xl:inline text-[#f6e09e] font-mono">
+                  • {formatPrice(cartTotalValue)}
+                </span>
+              )}
+            </button>
+          </div>
+        </nav>
+
+        {/* Mobile Navigation Segmented Row (When on mobile screens) */}
+        <div className="flex md:hidden mt-2.5 p-1 rounded-full glass-panel border border-white/80 shadow-sm justify-between">
+          <button
+            onClick={() => {
+              setActiveTab('menu');
+              setSearchQuery('');
+            }}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer ${
+              activeTab === 'menu'
+                ? 'bg-white text-[#0b1c3f] shadow-xs border border-white/90'
+                : 'text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            <Utensils className="w-3.5 h-3.5" />
+            <span>Cardápio</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('about')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer ${
+              activeTab === 'about'
+                ? 'bg-white text-[#0b1c3f] shadow-xs border border-white/90'
+                : 'text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            <Info className="w-3.5 h-3.5" />
+            <span>Sobre</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer ${
+              activeTab === 'account'
+                ? 'bg-white text-[#0b1c3f] shadow-xs border border-white/90'
+                : 'text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Conta</span>
+          </button>
+        </div>
+      </header>
+
+      {/* 2. Main Workspace Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 sm:mt-6 relative z-10">
+        
+        {/* TAB 1: CARDÁPIO (MENU) */}
+        {activeTab === 'menu' && (
+          <div className="space-y-6">
+
+            {/* A. Hero Showcase Banner with iOS Liquid Glass Depth */}
+            <div className="glass-panel rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/80 shadow-xl overflow-hidden relative">
+              {/* Subtle ambient lighting vignette inside banner */}
+              <div className="absolute -right-20 -top-20 w-80 h-80 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-15 hidden lg:block pointer-events-none">
+                <img
+                  src="https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=1200"
+                  alt="Massas"
+                  className="w-full h-full object-cover object-center mask-radial"
+                />
+              </div>
+
+              <div className="relative z-10 max-w-2xl text-left">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="glass-pill inline-flex items-center gap-1.5 px-3 py-1 text-xs font-black text-[#0b1c3f]">
+                    <Heart className="w-3.5 h-3.5 fill-[#0b1c3f]" />
+                    <span>Feito com Tradição & Amor de Família</span>
+                  </span>
+                  <span className="glass-pill inline-flex items-center gap-1 px-2.5 py-1 text-xs font-extrabold text-emerald-800">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Primavera do Leste - MT</span>
+                  </span>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-950 tracking-tight leading-tight">
+                  Massas Frescas e Molhos Artesanais da Vovó
+                </h1>
+
+                <p className="mt-2.5 text-xs sm:text-sm text-gray-600 leading-relaxed font-normal max-w-xl">
+                  {RESTAURANT_INFO.description} Monte seu prato artesanal, escolha tamanhos, molhos caseiros e receba quentinho no conforto da sua casa.
+                </p>
+
+                {/* Feature Highlights Row */}
+                <div className="mt-5 pt-4 border-t border-white/60 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-bold text-gray-700">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-[#0b1c3f]" />
+                    <span>{RESTAURANT_INFO.hours}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-4 h-4 text-[#0b1c3f]" />
+                    <a
+                      href={RESTAURANT_INFO.googleMapsLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-[#0b1c3f] underline transition"
                     >
-                      <span className="text-sm leading-none">{category.icon}</span>
-                      <span>{category.name}</span>
+                      {RESTAURANT_INFO.address}
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <span>Sem Conservantes • Ingredientes Nobres</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* B. Mobile Search Bar (Only visible on small screens) */}
+            <div className="sm:hidden relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Buscar no cardápio..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-full glass-search py-2.5 pl-10 pr-4 text-xs text-gray-800 placeholder-gray-400 border border-white/80 outline-hidden font-medium"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* C. Split Workspace: Left (Catalog) + Right (Desktop Sticky Cart) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              
+              {/* Left Column: Category Pills + Dish Grid (Spans 8 cols on desktop) */}
+              <div className="lg:col-span-8 space-y-6">
+
+                {/* Category Pills Navigation (Horizontal Liquid Glass Track) */}
+                <div className="w-full overflow-hidden">
+                  <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
+                    {CATEGORIES.map((category) => {
+                      const isSelected = selectedCategory === category.id && searchQuery === '';
+                      return (
+                        <button
+                          key={category.id}
+                          onClick={() => {
+                            setSelectedCategory(category.id);
+                            setSearchQuery('');
+                          }}
+                          className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-xs font-black whitespace-nowrap transition-all border shrink-0 cursor-pointer ${
+                            isSelected
+                              ? 'glass-button-primary scale-102 shadow-md'
+                              : 'glass-pill text-gray-700 hover:text-gray-950'
+                          }`}
+                        >
+                          <span className="text-sm leading-none">{category.icon}</span>
+                          <span>{category.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Search feedback indicator */}
+                {searchQuery.trim() !== '' && (
+                  <div className="text-xs text-gray-600 flex items-center justify-between glass-panel p-3.5 rounded-2xl border border-white/80">
+                    <div className="flex items-center gap-1.5">
+                      <span>Resultados para:</span>
+                      <strong className="text-gray-950 font-black">"{searchQuery}"</strong>
+                      <span className="text-gray-400">•</span>
+                      <span>{filteredProducts.length} pratos encontrados</span>
+                    </div>
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="text-[#0b1c3f] hover:underline font-extrabold cursor-pointer"
+                    >
+                      Limpar busca
                     </button>
-                  ))}
+                  </div>
+                )}
+
+                {/* Product Dishes Grid */}
+                {filteredProducts.length === 0 ? (
+                  <div className="text-center py-16 glass-panel rounded-3xl p-8 border border-white/80 shadow-sm">
+                    <div className="text-4xl mb-3">🍝</div>
+                    <h3 className="text-base font-black text-gray-900">Nenhum prato encontrado</h3>
+                    <p className="mt-1 text-xs text-gray-500 max-w-xs mx-auto leading-relaxed">
+                      Não encontramos pratos correspondentes aos termos digitados. Tente outra busca ou selecione outra categoria.
+                    </p>
+                    <button
+                      onClick={() => {
+                        setSearchQuery('');
+                        setSelectedCategory(CategoryId.LASANHAS);
+                      }}
+                      className="mt-4 glass-button-primary rounded-full px-4 py-2 text-xs font-black"
+                    >
+                      Ver Lasanhas da Vovó
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {filteredProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        product={product}
+                        onSelect={(p) => setSelectedProduct(p)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Right Column: Desktop Persistent Liquid Glass Order Comanda (Spans 4 cols on desktop) */}
+              <div className="hidden lg:block lg:col-span-4 sticky top-22 self-start">
+                <div className="glass-panel rounded-3xl p-6 border border-white/80 shadow-xl flex flex-col text-left">
+                  
+                  {/* Comanda Header */}
+                  <div className="flex items-center justify-between pb-4 border-b border-white/60">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-[#0b1c3f] text-[#d4af37] shadow-sm">
+                        <ShoppingBag className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-black text-gray-950 tracking-tight">Sua Sacola</h3>
+                        <p className="text-[11px] text-gray-400 font-semibold">
+                          {cartItemsCount} {cartItemsCount === 1 ? 'item adicionado' : 'itens adicionados'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {cartItems.length > 0 && (
+                      <button
+                        onClick={handleClearCart}
+                        className="text-[11px] text-gray-400 hover:text-red-600 transition font-bold cursor-pointer"
+                        title="Limpar todos os itens"
+                      >
+                        Limpar
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Comanda Body: Items or Empty State */}
+                  <div className="py-4">
+                    {cartItems.length === 0 ? (
+                      <div className="py-12 text-center flex flex-col items-center">
+                        <div className="w-14 h-14 rounded-full bg-white/70 backdrop-blur-md border border-white/90 flex items-center justify-center text-2xl shadow-inner mb-3">
+                          🥣
+                        </div>
+                        <h4 className="text-sm font-black text-gray-800">Sacola Vazia</h4>
+                        <p className="mt-1 text-xs text-gray-500 max-w-[200px] leading-relaxed">
+                          Escolha seus pratos artesanais ao lado para montar seu pedido.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1 no-scrollbar">
+                        {cartItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="p-3 rounded-2xl bg-white/70 backdrop-blur-md border border-white/90 shadow-xs flex items-start gap-2.5"
+                          >
+                            <img
+                              src={item.product.image}
+                              alt={item.product.name}
+                              referrerPolicy="no-referrer"
+                              className="w-12 h-12 rounded-xl object-cover shrink-0 border border-white"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600';
+                              }}
+                            />
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-1">
+                                <h5 className="text-xs font-extrabold text-gray-950 truncate leading-tight">
+                                  {item.product.name}
+                                </h5>
+                                <button
+                                  onClick={() => handleRemoveCartItem(item.id)}
+                                  className="text-gray-300 hover:text-red-500 transition p-0.5 cursor-pointer"
+                                  title="Remover"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              {/* Customization Details snippet */}
+                              {(item.customization?.selectedSize || item.customization?.selectedPasta || item.customization?.selectedSauce) && (
+                                <p className="text-[10px] text-gray-500 truncate mt-0.5 font-medium">
+                                  {[
+                                    item.customization.selectedSize?.name,
+                                    item.customization.selectedPasta?.name,
+                                    item.customization.selectedSauce?.name
+                                  ].filter(Boolean).join(' • ')}
+                                </p>
+                              )}
+
+                              <div className="mt-2 flex items-center justify-between">
+                                <span className="text-xs font-black text-[#0b1c3f]">
+                                  {formatPrice(item.totalUnitPrice * item.quantity)}
+                                </span>
+
+                                {/* Stepper */}
+                                <div className="flex items-center gap-1.5 border border-white/80 rounded-full bg-white/80 px-1 py-0.5 shadow-xs">
+                                  <button
+                                    onClick={() => handleUpdateCartQuantity(item.id, item.quantity - 1)}
+                                    className="p-1 rounded-full hover:bg-white text-gray-600 cursor-pointer"
+                                  >
+                                    <Minus className="w-2.5 h-2.5" />
+                                  </button>
+                                  <span className="text-[11px] font-black text-gray-900 w-3.5 text-center">
+                                    {item.quantity}
+                                  </span>
+                                  <button
+                                    onClick={() => handleUpdateCartQuantity(item.id, item.quantity + 1)}
+                                    className="p-1 rounded-full hover:bg-white text-gray-600 cursor-pointer"
+                                  >
+                                    <Plus className="w-2.5 h-2.5" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Comanda Footer: Totals and Checkout CTA */}
+                  {cartItems.length > 0 && (
+                    <div className="pt-4 border-t border-white/60 space-y-3">
+                      <div className="space-y-1.5 text-xs">
+                        <div className="flex justify-between text-gray-500">
+                          <span>Subtotal dos Pratos</span>
+                          <span className="font-extrabold text-gray-900">{formatPrice(cartTotalValue)}</span>
+                        </div>
+                        <div className="flex justify-between text-gray-500">
+                          <span>Entrega (Primavera do Leste)</span>
+                          <span className="font-semibold text-emerald-700">Calculada no checkout</span>
+                        </div>
+                        <div className="pt-2 border-t border-white/60 flex justify-between items-baseline">
+                          <span className="font-black text-sm text-gray-950">Total Estimado</span>
+                          <span className="font-black text-lg text-[#0b1c3f] tracking-tight">{formatPrice(cartTotalValue)}</span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => setIsCartOpen(true)}
+                        className="w-full flex items-center justify-center gap-2 rounded-full glass-button-primary py-3.5 px-5 text-sm font-black shadow-lg cursor-pointer hover:scale-101 transition-all"
+                      >
+                        <span>Finalizar Pedido</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+
+                      <p className="text-[10px] text-gray-400 text-center font-medium">
+                        ✨ Pagamento via Pix, Cartão ou Dinheiro na Entrega
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
             </div>
-
-            {/* Active filters summary */}
-            {searchQuery.trim() !== '' && (
-              <div className="text-xs text-gray-500 flex items-center gap-1 border bg-gray-50 p-3 rounded-xl">
-                <span>Buscando por:</span>
-                <strong className="text-gray-800">"{searchQuery}"</strong>
-                <span className="text-gray-300">•</span>
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="text-[#0b1c3f] hover:underline font-bold"
-                >
-                  Limpar busca
-                </button>
-              </div>
-            )}
-
-            {/* Product cards listings grid */}
-            {filteredProducts.length === 0 ? (
-              <div className="text-center py-16 bg-white border border-gray-100 rounded-3xl p-6 shadow-xs">
-                <div className="text-4xl">🍝</div>
-                <h3 className="mt-3 text-base font-extrabold text-gray-800">Nenhum produto encontrado</h3>
-                <p className="mt-1 text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
-                  Não encontramos nenhum prato correspondente aos termos digitados ou à categoria selecionada.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    onSelect={(p) => setSelectedProduct(p)}
-                  />
-                ))}
-              </div>
-            )}
           </div>
         )}
-      </div>
 
-      {/* Discreet Footer */}
-      <footer className="mt-16 text-center text-xs text-gray-400 max-w-4xl mx-auto px-4 space-y-1.5">
-        <p>© Massas da Vovó • Feito com tradição e amor de família</p>
-        <p className="text-[11px] text-gray-400">
+        {/* TAB 2: QUEM SOMOS / CONTATO */}
+        {activeTab === 'about' && (
+          <AboutTab />
+        )}
+
+        {/* TAB 3: MINHA CONTA */}
+        {activeTab === 'account' && (
+          <MyAccountView />
+        )}
+      </main>
+
+      {/* 3. Discreet Footer */}
+      <footer className="mt-20 text-center text-xs text-gray-400 max-w-4xl mx-auto px-4 space-y-1.5 relative z-10">
+        <p className="font-semibold text-gray-500">© Massas da Vovó • Feito com tradição e amor de família</p>
+        <p className="text-[11px] text-gray-400 flex items-center justify-center gap-1.5 flex-wrap">
           <span>Primavera do Leste - MT</span>
-          <span className="mx-1.5">•</span>
+          <span>•</span>
           <a
-            href="https://maps.app.goo.gl/hecpUqJLLVd8EghW9"
+            href={RESTAURANT_INFO.googleMapsLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-red-600 hover:text-red-700 underline font-semibold transition inline-flex items-center gap-1"
+            className="text-red-600 hover:text-red-700 underline font-extrabold transition inline-flex items-center gap-1"
           >
             <span>Ver no Google Maps</span>
+            <ExternalLink className="w-3 h-3" />
           </a>
         </p>
       </footer>
 
-      {/* 5. Floating Bottom Cart Summary (Anota Aí Style) */}
+      {/* 4. Mobile Bottom Floating Cart Summary (Only shows on mobile/tablet when cart has items) */}
       {cartItemsCount > 0 && (
-        <div className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-100 shadow-[0_-8px_30px_rgb(0,0,0,0.06)] p-4 sm:p-5 flex items-center justify-between max-w-xl mx-auto rounded-t-3xl border-x">
-          <div className="flex items-center gap-3">
-            <div className="relative p-3 rounded-2xl bg-[#0b1c3f] text-[#d4af37] border border-[#d4af37]/30 shadow-md animate-bounce">
-              <ShoppingBag className="w-5.5 h-5.5" />
-              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-extrabold text-[#0b1c3f] shadow-sm border border-white">
-                {cartItemsCount}
-              </span>
+        <div className="lg:hidden fixed bottom-4 inset-x-4 max-w-lg mx-auto z-40">
+          <div className="glass-panel rounded-full p-3 sm:p-4 border border-white/90 shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 pl-1">
+              <div className="relative p-2.5 rounded-full bg-[#0b1c3f] text-[#d4af37] shadow-sm">
+                <ShoppingBag className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-yellow-400 text-[10px] font-black text-[#0b1c3f] shadow-xs">
+                  {cartItemsCount}
+                </span>
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none">Sua Sacola</span>
+                <span className="text-base font-black text-[#0b1c3f] mt-0.5 leading-none">{formatPrice(cartTotalValue)}</span>
+              </div>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none">Minha Sacola</span>
-              <span className="text-base font-extrabold text-[#0b1c3f] mt-1 leading-none">{formatPrice(cartTotalValue)}</span>
-            </div>
-          </div>
 
-          <button
-            id="btn-open-checkout-drawer"
-            onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-1.5 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] py-3.5 px-6 text-sm font-extrabold text-[#d4af37] border border-[#d4af37]/20 transition-all shadow-md active:scale-95 transform hover:scale-101 shrink-0 cursor-pointer"
-          >
-            <span>Ver Sacola</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+            <button
+              id="btn-open-checkout-drawer-mobile"
+              onClick={() => setIsCartOpen(true)}
+              className="flex items-center gap-1.5 rounded-full glass-button-primary py-3 px-5 text-xs font-black shadow-md cursor-pointer active:scale-95 transition-transform shrink-0"
+            >
+              <span>Ver Sacola</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* 6. Modals & Drawer Overlays */}
+      {/* 5. Modals & Drawer Overlays */}
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}
@@ -470,10 +766,9 @@ export const OfflineIndicator: React.FC = () => {
   if (isOnline) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-lg bg-amber-500 px-3.5 py-2 text-xs font-bold text-white shadow-lg border border-amber-400/20">
-      <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-      Modo Offline — Exibindo informações armazenadas em cache.
+    <div className="fixed bottom-4 left-4 z-50 flex items-center gap-2 rounded-full glass-panel px-4 py-2 text-xs font-bold text-amber-800 shadow-lg border border-amber-300/40">
+      <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+      Modo Offline — Exibindo dados locais.
     </div>
   );
 };
-

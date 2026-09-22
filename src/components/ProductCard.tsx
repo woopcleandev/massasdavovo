@@ -16,49 +16,54 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
     <div
       id={`product-card-${product.id}`}
       onClick={() => onSelect(product)}
-      className="group flex flex-col bg-white rounded-2xl border border-gray-100 hover:border-[#d4af37]/40 shadow-sm hover:shadow-md active:shadow-sm cursor-pointer overflow-hidden transition-all duration-300 transform hover:-translate-y-0.5"
+      className="group flex flex-col glass-card rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.015]"
     >
-      {/* Product Image */}
-      <div className="relative h-44 w-full bg-gray-50 overflow-hidden shrink-0">
+      {/* Product Image Container */}
+      <div className="relative h-48 sm:h-52 w-full bg-gray-100/60 overflow-hidden shrink-0">
         <img
           src={product.image}
           alt={product.name}
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
           onError={(e) => {
-            // fallback image
             (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600';
           }}
         />
 
+        {/* Liquid Glass Overlay Gradients */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/10 opacity-70 pointer-events-none" />
+
+        {/* Most Popular Liquid Pill */}
         {product.isPopular && (
-          <div className="absolute top-3 left-3 flex items-center gap-1 rounded-full bg-[#0b1c3f] text-[#d4af37] border border-[#d4af37]/30 px-2.5 py-1 text-xs font-bold shadow-sm animate-pulse">
-            <Flame className="w-3 h-3 fill-[#d4af37]" />
+          <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-full bg-[#0b1c3f]/85 backdrop-blur-md text-[#d4af37] border border-[#d4af37]/40 px-3 py-1 text-[11px] font-extrabold shadow-md">
+            <Flame className="w-3.5 h-3.5 fill-[#d4af37]" />
             <span>Mais Pedido</span>
           </div>
         )}
 
-        {/* Floating Category Tag */}
-        <div className="absolute bottom-3 right-3 rounded-lg bg-black/60 backdrop-blur-xs px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-          {product.sizes ? 'Tamanhos' : product.customizable ? 'Personalizável' : 'Unitário'}
+        {/* Tag Pill (Sizes / Customizable / Unit) */}
+        <div className="absolute bottom-3 right-3 rounded-full bg-white/80 backdrop-blur-md border border-white/90 px-2.5 py-0.5 text-[10px] font-bold text-gray-800 shadow-sm uppercase tracking-wider">
+          {product.sizes ? 'Tamanhos' : product.customizable ? 'Personalizável' : 'Porção Artesanal'}
         </div>
       </div>
 
-      {/* Product Details */}
-      <div className="flex flex-col flex-1 p-4">
-        <h3 className="text-base font-bold text-gray-900 group-hover:text-[#0b1c3f] transition-colors line-clamp-1 leading-tight">
+      {/* Product Details Content */}
+      <div className="flex flex-col flex-1 p-5">
+        <h3 className="text-base font-extrabold text-gray-900 group-hover:text-[#0b1c3f] transition-colors line-clamp-1 leading-snug">
           {product.name}
         </h3>
         
-        <p className="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed flex-1">
+        <p className="mt-1.5 text-xs text-gray-500 line-clamp-2 leading-relaxed flex-1 font-normal">
           {product.description}
         </p>
 
-        {/* Price and Action button */}
-        <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
+        {/* Price and Liquid Glass Action Button */}
+        <div className="mt-4 pt-3.5 border-t border-gray-200/50 flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-[10px] text-gray-400 font-medium leading-none">A partir de</span>
-            <span className="text-lg font-extrabold text-[#0b1c3f] mt-0.5 leading-none">
+            <span className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider leading-none">
+              A partir de
+            </span>
+            <span className="text-lg font-black text-[#0b1c3f] mt-1 leading-none tracking-tight">
               {formatPrice(product.price)}
             </span>
           </div>
@@ -69,10 +74,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
               e.stopPropagation();
               onSelect(product);
             }}
-            className="flex items-center gap-1 rounded-full bg-[#0b1c3f] hover:bg-[#07132c] text-[#d4af37] border border-[#d4af37]/20 px-3 py-1.5 text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95"
+            className="flex items-center gap-1.5 rounded-full glass-button-primary px-4 py-2 text-xs font-black shadow-md cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-[#d4af37]" />
-            <span>Adicionar</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Escolher</span>
           </button>
         </div>
       </div>
