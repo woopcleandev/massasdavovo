@@ -136,35 +136,35 @@ function MainApp() {
       </div>
 
       {/* 1. Header & Navigation (Liquid Glass System - Completely Rounded) */}
-      <header className="sticky top-3 z-40 px-3 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full transition-all duration-300">
-        <nav className="dark-glass-panel rounded-full px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sm:gap-6 border shadow-[0_12px_40px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.7)]">
+      <header className="sticky top-2 sm:top-3 z-40 px-2 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full transition-all duration-300">
+        <nav className="dark-glass-panel rounded-full px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between gap-1.5 sm:gap-4 border shadow-[0_12px_40px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.7)]">
           
           {/* Brand Identity / Logo */}
           <div 
             onClick={() => { setActiveTab('menu'); setSelectedCategory('all'); setSearchQuery(''); }}
-            className="flex items-center gap-3 cursor-pointer shrink-0 group select-none"
+            className="flex items-center gap-2 sm:gap-3 cursor-pointer shrink-0 min-w-0 max-w-[150px] xs:max-w-[200px] sm:max-w-none group select-none"
           >
-            <div className="relative p-0.5 rounded-full bg-white/20 dark:bg-white/5 backdrop-blur-md border border-amber-400/40 group-hover:scale-105 transition-transform duration-300 shadow-sm">
+            <div className="relative p-0.5 rounded-full bg-white/20 dark:bg-white/5 backdrop-blur-md border border-amber-400/40 group-hover:scale-105 transition-transform duration-300 shadow-sm shrink-0">
               <img
                 src={RESTAURANT_INFO.logo}
                 alt={RESTAURANT_INFO.name}
                 referrerPolicy="no-referrer"
-                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover"
+                className="w-8 h-8 sm:w-11 sm:h-11 rounded-full object-cover"
               />
-              <span className="absolute bottom-0 right-0 flex h-2.5 w-2.5">
+              <span className="absolute bottom-0 right-0 flex h-2 w-2 sm:h-2.5 sm:w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 border border-black" />
+                <span className="relative inline-flex rounded-full h-2 w-2 sm:h-2.5 sm:w-2.5 bg-emerald-500 border border-black" />
               </span>
             </div>
             
-            <div className="flex flex-col text-left">
-              <span className="text-sm sm:text-base font-black text-stone-900 dark:text-white tracking-tight leading-none group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors flex items-center gap-1.5">
-                <span>{RESTAURANT_INFO.name}</span>
-                <span className="hidden sm:inline-flex items-center text-[10px] font-black text-amber-600 dark:text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
+            <div className="flex flex-col text-left min-w-0">
+              <span className="text-xs sm:text-base font-black text-stone-900 dark:text-white tracking-tight leading-none group-hover:text-amber-500 dark:group-hover:text-amber-400 transition-colors flex items-center gap-1.5 truncate">
+                <span className="truncate">{RESTAURANT_INFO.name}</span>
+                <span className="hidden lg:inline-flex items-center text-[10px] font-black text-amber-600 dark:text-amber-300 bg-amber-400/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
                   Artesanal
                 </span>
               </span>
-              <span className="text-[10px] sm:text-[11px] text-stone-500 dark:text-gray-400 font-semibold tracking-wide leading-none mt-1 truncate">
+              <span className="text-[9px] sm:text-[11px] text-stone-500 dark:text-gray-400 font-semibold tracking-wide leading-none mt-1 truncate">
                 Primavera do Leste - MT • Aberto
               </span>
             </div>
@@ -212,25 +212,25 @@ function MainApp() {
             </button>
           </div>
 
-          {/* Right Island: WhatsApp (100% rounded) + Theme Switcher + Sacola */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* Right Island: Theme Switcher + WhatsApp + Sacola */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Quick Theme Toggle Button (Round) */}
             <button
               onClick={toggleTheme}
-              className="dark-glass-pill rounded-full p-2.5 text-stone-700 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 cursor-pointer transition shadow-xs flex items-center justify-center"
+              className="dark-glass-pill rounded-full p-2 sm:p-2.5 text-stone-700 dark:text-gray-300 hover:text-amber-500 dark:hover:text-amber-400 cursor-pointer transition shadow-xs flex items-center justify-center shrink-0"
               title={`Tema atual: ${themeMode === 'system' ? 'Automático (' + resolvedTheme + ')' : themeMode === 'light' ? 'Claro' : 'Escuro'}. Clique para alterar.`}
               aria-label="Alternar modo claro e escuro"
             >
               {themeMode === 'system' ? (
-                <Monitor className="w-4 h-4 text-amber-500 dark:text-amber-400" />
+                <Monitor className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500 dark:text-amber-400" />
               ) : resolvedTheme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
+                <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
               ) : (
-                <Moon className="w-4 h-4 text-amber-600" />
+                <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-600" />
               )}
             </button>
 
-            {/* Quick WhatsApp Contact Pill - ALWAYS completely rounded */}
+            {/* Quick WhatsApp Contact Pill - Desktop only */}
             <a
               href={`https://wa.me/${activeWhatsApp}`}
               target="_blank"
@@ -242,24 +242,24 @@ function MainApp() {
               <span>WhatsApp</span>
             </a>
 
-            {/* Sacola Trigger Button - ALWAYS completely rounded */}
+            {/* Sacola Trigger Button - Compact & Perfectly fitted on Mobile */}
             <button
               id="btn-nav-cart"
               onClick={() => setIsCartOpen(true)}
-              className="dark-glass-button-gold rounded-full px-4 py-2.5 text-xs font-black flex items-center gap-2 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-transform shrink-0"
+              className="dark-glass-button-gold rounded-full px-2.5 sm:px-4 py-1.5 sm:py-2.5 text-xs font-black flex items-center gap-1.5 sm:gap-2 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-transform shrink-0"
               title="Abrir Sacola"
             >
-              <div className="relative">
+              <div className="relative flex items-center">
                 <ShoppingBag className="w-4 h-4 text-black stroke-[2.5]" />
                 {cartItemsCount > 0 && (
-                  <span className="absolute -top-2 -right-2.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white shadow-md">
+                  <span className="absolute -top-1.5 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white shadow-md">
                     {cartItemsCount}
                   </span>
                 )}
               </div>
-              <span className="hidden sm:inline">Sacola</span>
+              <span className="hidden md:inline">Sacola</span>
               {cartItemsCount > 0 && (
-                <span className="font-mono font-bold text-black/90">
+                <span className="font-mono font-black text-black text-[11px] sm:text-xs">
                   {formatPrice(cartTotalValue)}
                 </span>
               )}
@@ -557,20 +557,20 @@ function MainApp() {
         </p>
       </footer>
 
-      {/* 4. Mobile Bottom Floating Cart Summary (Active when cart has items) */}
-      {cartItemsCount > 0 && (
-        <div className="fixed bottom-4 inset-x-4 max-w-md mx-auto z-40">
-          <div className="dark-glass-panel rounded-full p-3 sm:p-3.5 border shadow-[0_16px_50px_rgba(0,0,0,0.4)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.85)] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 pl-1">
-              <div className="relative p-2 rounded-full bg-amber-400 text-black shadow-md">
+      {/* 4. Mobile Bottom Floating Cart Summary (Active when cart has items and no modal/drawer open) */}
+      {cartItemsCount > 0 && !isCartOpen && !selectedProduct && activeTab === 'menu' && (
+        <div className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 max-w-md mx-auto z-30 animate-fade-in">
+          <div className="dark-glass-panel rounded-full p-2.5 sm:p-3.5 border shadow-[0_16px_50px_rgba(0,0,0,0.4)] dark:shadow-[0_16px_50px_rgba(0,0,0,0.85)] flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 pl-1 min-w-0">
+              <div className="relative p-2 rounded-full bg-amber-400 text-black shadow-md shrink-0">
                 <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
                 <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-black text-white shadow-xs">
                   {cartItemsCount}
                 </span>
               </div>
-              <div className="flex flex-col text-left">
-                <span className="text-[10px] text-stone-500 dark:text-gray-400 font-bold uppercase tracking-wider leading-none">Sua Sacola</span>
-                <span className="text-base font-black text-amber-500 dark:text-amber-400 mt-0.5 leading-none font-mono">
+              <div className="flex flex-col text-left min-w-0">
+                <span className="text-[10px] text-stone-500 dark:text-gray-400 font-bold uppercase tracking-wider leading-none truncate">Sua Sacola</span>
+                <span className="text-sm sm:text-base font-black text-amber-500 dark:text-amber-400 mt-0.5 leading-none font-mono truncate">
                   {formatPrice(cartTotalValue)}
                 </span>
               </div>
@@ -579,7 +579,7 @@ function MainApp() {
             <button
               id="btn-open-checkout-drawer-mobile"
               onClick={() => setIsCartOpen(true)}
-              className="flex items-center gap-1.5 rounded-full dark-glass-button-gold py-2.5 px-5 text-xs font-black shadow-md cursor-pointer active:scale-95 transition-transform shrink-0"
+              className="flex items-center gap-1.5 rounded-full dark-glass-button-gold py-2 sm:py-2.5 px-4 sm:px-5 text-xs font-black shadow-md cursor-pointer active:scale-95 transition-transform shrink-0"
             >
               <span>Ver Pedido</span>
               <ArrowRight className="w-3.5 h-3.5 stroke-[2.5]" />
