@@ -11,8 +11,8 @@ export const RESTAURANT_INFO = {
   logo: logoImage,
   phone: '+55 66 9652-3006',
   whatsappNumber: '556696523006', // used for send wa links
-  address: 'R. Santo Aléssio, Primavera do Leste - MT, 78850-000',
-  googleMapsLink: 'https://www.google.com/maps/place/Massas+da+vov%C3%B3/@-15.5627576,-54.3013863,20z/data=!4m11!1m2!2m1!1sSabor+da+Massa++Primavera+do+Leste+MT!3m7!1s0x9377257c24aa766f:0x2481d4dc9c5d4f1a!8m2!3d-15.5627765!4d-54.3014545',
+  address: 'Rua Manaus, 203, Primavera do Leste - MT',
+  googleMapsLink: 'https://www.google.com/maps/search/?api=1&query=Rua+Manaus+203+Primavera+do+Leste+Mato+Grosso',
   hours: 'Terça a Domingo: 18:00 às 23:00',
   description: 'Massas artesanais frescas feitas com todo carinho de vó. Massas recheadas, lasanhas, molhos rústicos e muito sabor em Primavera do Leste.',
 };
