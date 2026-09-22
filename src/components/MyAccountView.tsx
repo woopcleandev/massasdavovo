@@ -11,8 +11,8 @@ export const MyAccountView: React.FC = () => {
     currentUser, 
     userProfile, 
     savedAddresses, 
-    registerWithEmail, 
-    loginWithEmail, 
+    registerWithWhatsapp, 
+    loginWithWhatsapp, 
     logout, 
     updateUserProfile, 
     addSavedAddress, 
@@ -23,11 +23,10 @@ export const MyAccountView: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   
   // Auth Form Fields
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [name, setName] = useState('');
 
   // Address Form Fields
   const [isAddingAddress, setIsAddingAddress] = useState(false);
@@ -47,11 +46,10 @@ export const MyAccountView: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const clearForm = () => {
-    setEmail('');
-    setPassword('');
-    setConfirmPassword('');
-    setName('');
     setWhatsapp('');
+    setPin('');
+    setConfirmPin('');
+    setName('');
     setMessage(null);
   };
 
@@ -60,26 +58,36 @@ export const MyAccountView: React.FC = () => {
     setLoading(true);
     setMessage(null);
 
+    const cleanWhatsapp = whatsapp.replace(/\D/g, '');
+
     try {
+      if (!cleanWhatsapp || cleanWhatsapp.length < 8) {
+        throw new Error("Insira um número de WhatsApp válido.");
+      }
+      if (!pin.trim() || pin.length !== 4 || /\D/.test(pin)) {
+        throw new Error("O PIN deve conter exatamente 4 números.");
+      }
+
       if (authMode === 'register') {
         if (!name.trim()) throw new Error("O nome é obrigatório.");
         if (name.length < 2) throw new Error("O nome deve ter pelo menos 2 caracteres.");
-        if (!whatsapp.trim()) throw new Error("O WhatsApp de contato é obrigatório.");
-        if (password !== confirmPassword) throw new Error("As senhas não coincidem.");
-        if (password.length < 6) throw new Error("A senha deve ter pelo menos 6 caracteres.");
+        if (pin !== confirmPin) throw new Error("Os PINs de confirmação não coincidem.");
 
-        await registerWithEmail(email, password, name, whatsapp);
+        await registerWithWhatsapp(whatsapp, pin, name);
         setMessage({ type: 'success', text: 'Conta criada com sucesso! Boas-vindas!' });
       } else {
-        await loginWithEmail(email, password);
+        await loginWithWhatsapp(whatsapp, pin);
         setMessage({ type: 'success', text: 'Login efetuado com sucesso!' });
       }
     } catch (err: any) {
       let friendlyError = err.message || "Erro ao processar solicitação.";
-      if (err.code === 'auth/email-already-in-use') friendlyError = "Este e-mail já está cadastrado.";
-      if (err.code === 'auth/wrong-password') friendlyError = "Senha incorreta.";
-      if (err.code === 'auth/user-not-found') friendlyError = "Nenhuma conta encontrada com este e-mail.";
-      if (err.code === 'auth/invalid-email') friendlyError = "E-mail inválido.";
+      if (err.code === 'auth/email-already-in-use') friendlyError = "Este número de WhatsApp já está cadastrado.";
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') friendlyError = "PIN incorreto.";
+      if (err.code === 'auth/user-not-found') friendlyError = "Nenhum cadastro encontrado com este WhatsApp.";
+      if (err.code === 'auth/invalid-email') friendlyError = "Número de WhatsApp inválido.";
+      if (err.code === 'auth/operation-not-allowed') {
+        friendlyError = "O provedor 'E-mail e Senha' precisa estar ativado no console do Firebase para permitir o login por WhatsApp & PIN. Ative-o em: Console do Firebase > Authentication > Sign-in method > E-mail/senha.";
+      }
       
       setMessage({ type: 'error', text: friendlyError });
     } finally {
@@ -189,86 +197,74 @@ export const MyAccountView: React.FC = () => {
 
         <form onSubmit={handleAuthSubmit} className="space-y-4 text-left">
           {authMode === 'register' && (
-            <>
-              {/* Full Name */}
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">Seu Nome Completo</label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Maria Souza"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden"
-                  />
-                </div>
+            /* Full Name */
+            <div>
+              <label className="text-xs font-bold text-gray-700 block mb-1">Seu Nome Completo</label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Maria Souza"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden"
+                />
               </div>
-
-              {/* WhatsApp */}
-              <div>
-                <label className="text-xs font-bold text-gray-700 block mb-1">WhatsApp para Contato</label>
-                <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
-                  <input
-                    type="tel"
-                    required
-                    placeholder="Ex: (66) 99652-3006"
-                    value={whatsapp}
-                    onChange={(e) => setWhatsapp(e.target.value)}
-                    className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden"
-                  />
-                </div>
-              </div>
-            </>
+            </div>
           )}
 
-          {/* Email */}
+          {/* WhatsApp Field */}
           <div>
-            <label className="text-xs font-bold text-gray-700 block mb-1">Seu E-mail (Login)</label>
+            <label className="text-xs font-bold text-gray-700 block mb-1">Seu WhatsApp</label>
             <div className="relative">
-              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
               <input
-                type="email"
+                type="tel"
                 required
-                placeholder="Ex: seu-email@gmail.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Ex: (66) 99652-3006"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden"
               />
             </div>
           </div>
 
-          {/* Password */}
+          {/* PIN de 4 dígitos */}
           <div>
-            <label className="text-xs font-bold text-gray-700 block mb-1">Senha</label>
+            <label className="text-xs font-bold text-gray-700 block mb-1">PIN de 4 dígitos</label>
             <div className="relative">
               <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
               <input
                 type="password"
                 required
-                placeholder={authMode === 'register' ? 'Mínimo de 6 caracteres' : 'Sua senha secreta'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={4}
+                placeholder="Ex: 1234"
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden font-mono text-base tracking-widest"
               />
             </div>
           </div>
 
           {authMode === 'register' && (
-            /* Confirm Password */
+            /* Confirm PIN */
             <div>
-              <label className="text-xs font-bold text-gray-700 block mb-1">Confirmar Senha</label>
+              <label className="text-xs font-bold text-gray-700 block mb-1">Confirmar PIN de 4 dígitos</label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
                 <input
                   type="password"
                   required
-                  placeholder="Repita sua senha"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  placeholder="Ex: 1234"
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
+                  className="w-full rounded-xl border border-gray-200 py-3 pl-10 pr-4 text-sm focus:ring-[#0b1c3f] focus:border-[#d4af37] outline-hidden font-mono text-base tracking-widest"
                 />
               </div>
             </div>

@@ -44,7 +44,7 @@ export const PRODUCTS: Product[] = [
     name: 'Sorrentino Caprese (500g)',
     description: 'Massa fresca artesanal recheada com mussarela cremosa, tomate seco selecionado e manjericão fresco picado.',
     price: 58.90,
-    image: sorrentinoCapreseImage,
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTa9c9K4-3PIw8EZNOemGdxfg7XE2Q9mensyTO8h1x3Ld2yaGkw8MZBrCk7&s=10',
     isPopular: true,
   },
   {
@@ -53,7 +53,7 @@ export const PRODUCTS: Product[] = [
     name: 'Sorrentino de Abóbora com Carne Seca (500g)',
     description: 'Massa fresca recheada com um delicioso creme de abóbora cabotiá e carne seca desfiada bem temperada.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80&w=600',
+    image: 'https://www.receitasagora.com.br/wp-content/uploads/2020/04/receita-escondidinho-de-carne-seca-scaled.jpg',
   },
   {
     id: 'sorrentino-limao-siciliano',
@@ -61,7 +61,7 @@ export const PRODUCTS: Product[] = [
     name: 'Sorrentino de Limão Siciliano (500g)',
     description: 'Massa fresca recheada com presunto cozido, queijo mussarela cremoso e raspas de limão siciliano fresco.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1621996346565-e3bb64e0be5e?auto=format&fit=crop&q=80&w=600',
+    image: 'https://i.ytimg.com/vi/7ncBrD2xFgo/maxresdefault.jpg',
   },
   {
     id: 'sorrentino-ricota-gorgonzola-nozes',
@@ -69,7 +69,7 @@ export const PRODUCTS: Product[] = [
     name: 'Sorrentino de Ricota com Gorgonzola e Nozes (500g)',
     description: 'Recheio requintado de ricota fresca, queijo gorgonzola suave e pedaços crocantes de nozes selecionadas.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-IFJCfr0Fb-lhgRQ_3aWdtpBRcs-_8udri1unt2Yt6pDqmdctMtjgEcoy&s=10',
   },
   {
     id: 'sorrentino-frango-cremoso',
@@ -77,7 +77,7 @@ export const PRODUCTS: Product[] = [
     name: 'Sorrentino de Frango Cremoso (500g)',
     description: 'Massa fresca artesanal recheada com peito de frango desfiado temperado e requeijão cremoso.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&q=80&w=600',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSecWHZTJLEs6XBxki3un_mbvMiE0bKd0dr3a--_y6CAcf_LVrEHZVbQeY&s=10',
   },
   {
     id: 'sorrentino-pitaya',
@@ -85,7 +85,7 @@ export const PRODUCTS: Product[] = [
     name: 'Sorrentino de Pitaya (500g)',
     description: 'Massa artesanal levemente rosada de pitaya recheada com bacon defumado, alho-poró e creme especial da casa.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSC1WluMDfMekhCDBGC7RXpRcrT6OxHkvxWRqDP6xlHG1Y_enbUOl9Y8Fyp&s=10',
   },
 
   // 2. NHOQUE (RECHEADO)
@@ -95,7 +95,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhoque de Limão (500g)',
     description: 'Massa de batata levíssima recheada com queijo mussarela, raspas de limão siciliano e pedacinhos de nozes.',
     price: 58.90,
-    image: gnocchiImage,
+    image: 'https://i.panelinha.com.br/i1/bk-9371-blog-cmc00175.webp',
     isPopular: true,
   },
   {
@@ -104,7 +104,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhoque de Queijo (500g)',
     description: 'Delicioso nhoque artesanal de batata super recheado com queijo muçarela derretido e cremoso.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+    image: 'https://guiadacozinha.com.br/wp-content/uploads/2018/10/nhoquerecheadocomqueijo.jpg',
   },
   {
     id: 'nhoque-caprese',
@@ -112,7 +112,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhoque Caprese (500g)',
     description: 'Nhoque de batata recheado com queijo cremoso, tomate seco e toque aromático de manjericão fresco.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=600',
+    image: 'https://www.estadao.com.br/resizer/XdWb_D7EUx-x5nutGk-W73fWkkE=/arc-anglerfish-arc2-prod-estadao/public/JPSCJGN37VBXFJN6QXVH2NAAOU.JPG',
   },
   {
     id: 'nhoque-gorgonzola',
@@ -120,7 +120,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhoque de Gorgonzola (500g)',
     description: 'Nhoque rústico de batata com recheio marcante de queijo gorgonzola cremoso.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1595295333158-4742f28fbe93?auto=format&fit=crop&q=80&w=600',
+    image: 'https://static.itdg.com.br/images/580-auto/2aadcdb195ba64b2b49b4c53f5550833/shutterstock-2880064.jpg',
   },
   {
     id: 'nhoque-calabresa-queijo',
@@ -128,7 +128,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhoque de Calabresa e Queijo (500g)',
     description: 'Massa de batata recheada com calabresa moída bem temperada e queijo muçarela cremoso.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1621510456681-23a23cfb5f57?auto=format&fit=crop&q=80&w=600',
+    image: 'https://guiadacozinha.com.br/wp-content/uploads/2019/11/nhoque-mandioca-calabresa.jpg',
   },
   {
     id: 'nhoque-carne-seca-banana',
@@ -136,7 +136,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhoque de Carne Seca com Banana da Terra (500g)',
     description: 'Saboroso nhoque recheado de carne seca desfiada e pedaços de banana-da-terra adocicada.',
     price: 58.90,
-    image: 'https://images.unsplash.com/photo-1587314168485-3236d6710814?auto=format&fit=crop&q=80&w=600',
+    image: 'https://lucanacozinha.com.br/wp-content/uploads/2017/11/gnocchi-de-banana-da-terra.jpg',
   },
 
   // 3. LASANHA (PRONTA)
@@ -146,7 +146,7 @@ export const PRODUCTS: Product[] = [
     name: 'Lasanha de Carne G (1Kg)',
     description: 'Lasanha pronta de carne bovina selecionada, molho marinara artesanal, massa fresca e queijo muçarela.',
     price: 87.50,
-    image: lasagnaImage,
+    image: 'https://supermercadosrondon.com.br/guiadecarnes/images/postagens/receita_simples_de_lasanha_de_carne_moda_2019-10-28.jpg',
     isPopular: true,
   },
   {
@@ -155,7 +155,7 @@ export const PRODUCTS: Product[] = [
     name: 'Lasanha de Frango G (1Kg)',
     description: 'Lasanha pronta de frango desfiado temperado, molho bechamel cremoso, massa artesanal e muito queijo.',
     price: 87.50,
-    image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&q=80&w=600',
+    image: 'https://www.perdigao.com.br/assets/_images/1e85f68e3de876f51af64009234f479b1dc6cb08.png',
   },
 
   // 4. RONDELE
@@ -165,7 +165,7 @@ export const PRODUCTS: Product[] = [
     name: 'Rondele Pronto de Presunto e Queijo (1Kg)',
     description: 'Rondelli fresquinho assado e pronto para consumo, generosamente recheado com presunto e mussarela derretida.',
     price: 72.90,
-    image: rondeleArtesanalImage,
+    image: 'https://jabuticabagastronomia.com.br/wp-content/uploads/2025/12/lasanha-de-presunto-e-queijo-a-bolonhesa-congelado-500g-1.jpg',
     isPopular: true,
   },
   {
@@ -174,7 +174,7 @@ export const PRODUCTS: Product[] = [
     name: 'Rondele Pronto de Frango Cremoso (1Kg)',
     description: 'Rondelli assado recheado com peito de frango desfiado temperado com ervas e requeijão cremoso.',
     price: 72.90,
-    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+    image: 'https://receitatodahora.com.br/wp-content/uploads/2024/08/lasanha-de-frango-cremosa-4.jpg',
   },
   {
     id: 'rondele-rucula-tomate-seco-pronto',
@@ -182,7 +182,7 @@ export const PRODUCTS: Product[] = [
     name: 'Rondele Pronto de Rúcula com Tomate Seco (1Kg)',
     description: 'Sabor marcante de rúcula fresca e tomate seco picado com mussarela, assado e quentinho.',
     price: 72.90,
-    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+    image: 'https://receitadaboa.com.br/wp-content/uploads/2026/05/11251-1200x660.jpg',
   },
   {
     id: 'rondele-presunto-queijo-congelado',
@@ -190,7 +190,7 @@ export const PRODUCTS: Product[] = [
     name: 'Rondele Congelado de Presunto e Queijo (500g)',
     description: 'Rondelli artesanal congelado recheado com presunto e queijo, ideal para assar em casa.',
     price: 48.90,
-    image: rondeleArtesanalImage,
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsN9grN_ZIY_xqMPIRqxUKIU7lguWvWsVBTaBtOJNnBltjIuJGWje8YBO5&s=10',
   },
   {
     id: 'rondele-frango-cremoso-congelado',
@@ -198,7 +198,7 @@ export const PRODUCTS: Product[] = [
     name: 'Rondele Congelado de Frango Cremoso (500g)',
     description: 'Rondelli congelado de frango com requeijão, super prático de preparar quando quiser.',
     price: 48.90,
-    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRdTwGfNjqYRNPk8QN2BfK0fDI_isntk9x3cxNSTEm6h2BYLO7wr5qAZrvJ&s=10',
   },
   {
     id: 'rondele-rucula-tomate-seco-congelado',
@@ -206,7 +206,7 @@ export const PRODUCTS: Product[] = [
     name: 'Rondele Congelado de Rúcula com Tomate Seco (500g)',
     description: 'Rondelli congelado de rúcula com tomate seco, uma massa vegetariana saborosa e leve.',
     price: 48.90,
-    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRqG6iCOcfV2GbuKQLNZqRXOWDs_TekvnEvYhpD5NWU3trNLzpgEb3Jzwc&s=10',
   },
 
   // 5. CAPELETE E TORTÉI
@@ -216,7 +216,7 @@ export const PRODUCTS: Product[] = [
     name: 'Capelete de Carne (500g)',
     description: 'Pequenos chapéus de massa fresca recheados com carne bovina moída e temperada da vovó.',
     price: 48.00,
-    image: 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&q=80&w=600',
+    image: 'https://www.receiteria.com.br/wp-content/uploads/capeletti-de-carne.jpeg',
   },
   {
     id: 'capelete-frango',
@@ -224,7 +224,7 @@ export const PRODUCTS: Product[] = [
     name: 'Capelete de Frango (500g)',
     description: 'Massa artesanal recheada com peito de frango desfiado fino e levemente temperado.',
     price: 48.00,
-    image: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&q=80&w=600',
+    image: 'https://static.itdg.com.br/images/640-400/b4e495690e4fe96e504cff35b6784f65/353652-original-1-.jpg',
   },
   {
     id: 'tortei-pronto',
@@ -232,7 +232,7 @@ export const PRODUCTS: Product[] = [
     name: 'Tortéi Pronto (1Kg)',
     description: 'Tradicionalíssimo tortéi artesanal recheado com abóbora doce temperada, servido pronto.',
     price: 60.00,
-    image: torteiAboboraImage,
+    image: 'https://www.receiteria.com.br/wp-content/uploads/tortei-de-abobora-11-730x548.jpg',
     isPopular: true,
   },
   {
@@ -241,7 +241,7 @@ export const PRODUCTS: Product[] = [
     name: 'Tortéi Pastelzinho (500g)',
     description: 'Tortéi moldado em formato de mini pasteizinhos, super crocantes e macios.',
     price: 45.00,
-    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+    image: 'https://prosapoemapastel.com/wp-content/uploads/2020/01/pasteis.jpg',
   },
   {
     id: 'tortei-rondele',
@@ -249,7 +249,7 @@ export const PRODUCTS: Product[] = [
     name: 'Tortéi Rondele (500g)',
     description: 'Massa fresca moldada em rondeles recheados com nosso clássico e saboroso creme de abóbora.',
     price: 48.00,
-    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=600',
+    image: 'https://espaconatelie.com.br/wp-content/uploads/2024/04/Rondele.jpg',
   },
 
   // 6. MOLHOS
@@ -259,7 +259,7 @@ export const PRODUCTS: Product[] = [
     name: 'Molho ao Sugo (500g)',
     description: 'Molho clássico de tomates italianos pelados cozido lentamente com azeite e manjericão fresco.',
     price: 28.00,
-    image: 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?auto=format&fit=crop&q=80&w=600',
+    image: 'https://www.sabornamesa.com.br/media/k2/items/cache/0ac3c30b52cc673c47c8f06e4a24e671_XL.jpg',
   },
   {
     id: 'molho-bechamel',
@@ -267,7 +267,7 @@ export const PRODUCTS: Product[] = [
     name: 'Molho Bechamel (500g)',
     description: 'Molho branco cremoso e aveludado feito com manteiga, farinha, leite e um toque sutil de noz-moscada.',
     price: 28.00,
-    image: 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=600',
+    image: 'https://www.receiteria.com.br/wp-content/uploads/molho-bechamel-facil-e-rapido.jpg',
   },
   {
     id: 'molho-quatro-queijos',
@@ -275,7 +275,7 @@ export const PRODUCTS: Product[] = [
     name: 'Molho 4 Queijo (500g)',
     description: 'O sabor inconfundível do molho branco combinado com muçarela, parmesão, provolone e gorgonzola.',
     price: 28.00,
-    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=600',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjTla7p068cBFzOEgtT1pFKNtMPJ-yjz9iAqO4cP4kYsa0j6CYau48Dfo&s=10',
   },
 
   // 7. NHOQUE TRADICIONAL
@@ -285,7 +285,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhôque de Batata (500g)',
     description: 'Nhoque tradicional de batata selecionada, leve e extremamente saboroso, sem recheio.',
     price: 27.90,
-    image: gnocchiImage,
+    image: 'https://i0.statig.com.br/bancodeimagens/b1/pf/qw/b1pfqwt11rg03rdc8v7seo8h7.jpg',
   },
   {
     id: 'nhoque-tradicional-batata-doce',
@@ -293,7 +293,7 @@ export const PRODUCTS: Product[] = [
     name: 'Nhôque de Batata Doce (500g)',
     description: 'Leveza e suavidade com o toque adocicado da batata doce nesta receita artesanal.',
     price: 27.90,
-    image: 'https://images.unsplash.com/photo-1621510456681-23a23cfb5f57?auto=format&fit=crop&q=80&w=600',
+    image: 'https://s2-vogue.glbimg.com/aVoYn88F84LBwNWLF2khlpRuobg=/0x0:620x620/984x0/smart/filters:strip_icc()/i.s3.glbimg.com/v1/AUTH_5dfbcf92c1a84b20a5da5024d398ff2f/internal_photos/bs/2022/B/t/0WJrQUTkyEl1rRduy6SA/2016-03-31-thinkstockphotos-510610438.jpg',
   },
 
   // 8. CARNES
@@ -303,7 +303,7 @@ export const PRODUCTS: Product[] = [
     name: 'Frango Kaskata',
     description: 'Frango inteiro ou desossado cozido lentamente em tempero rústico especial, dourado e incrivelmente suculento.',
     price: 95.90,
-    image: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&q=80&w=600',
+    image: 'https://i0.wp.com/jdreceitas.com.br/wp-content/uploads/2017/04/frango-1.jpg?fit=1200%2C800&ssl=1',
   },
   {
     id: 'frango-cacadora',
@@ -311,7 +311,7 @@ export const PRODUCTS: Product[] = [
     name: 'Frango a Caçadora',
     description: 'Guisado tradicional italiano de peito e coxas de frango com molho de tomate rústico, pimentões, ervas finas e cogumelos.',
     price: 85.90,
-    image: 'https://images.unsplash.com/photo-1598515214211-89d3e73ae83b?auto=format&fit=crop&q=80&w=600',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKzzcfRmk-p5ECWTIXXJy93sFupTYG04K-OKz0GU8mgp70vPR24EEgeQ4&s=10',
   },
   {
     id: 'file-molho-madeira',
@@ -319,7 +319,7 @@ export const PRODUCTS: Product[] = [
     name: 'Filé ao Molho Madeira',
     description: 'Suculentos medalhões de filé mignon grelhados, cobertos com nosso exclusivo molho ao vinho Madeira e cogumelos champignon.',
     price: 150.00,
-    image: carneMolhoMadeiraImage,
+    image: 'https://i.ytimg.com/vi/xo1R-jervSk/maxresdefault.jpg',
     isPopular: true,
   },
 

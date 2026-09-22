@@ -27,8 +27,8 @@ interface AuthContextType {
   userProfile: UserProfile | null;
   savedAddresses: SavedAddress[];
   loading: boolean;
-  registerWithEmail: (email: string, password: string, name: string, whatsapp: string) => Promise<void>;
-  loginWithEmail: (email: string, password: string) => Promise<void>;
+  registerWithWhatsapp: (whatsapp: string, pin: string, name: string) => Promise<void>;
+  loginWithWhatsapp: (whatsapp: string, pin: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (name: string, whatsapp: string) => Promise<void>;
   addSavedAddress: (address: Omit<SavedAddress, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => Promise<void>;
@@ -118,15 +118,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  // Register with Email/Password + Save Profile to Firestore
-  const registerWithEmail = async (email: string, password: string, name: string, whatsapp: string) => {
+  // Helper to format WhatsApp to dummy email for Firebase Auth
+  const formatWhatsappToEmail = (whatsapp: string): string => {
+    const cleanNumber = whatsapp.replace(/\D/g, '');
+    return `${cleanNumber}@massasdavovo.com`;
+  };
+
+  // Helper to format 4-digit PIN to unique password
+  const formatPinToPassword = (pin: string, whatsapp: string): string => {
+    const cleanNumber = whatsapp.replace(/\D/g, '');
+    return `vovo-pin-${pin}-${cleanNumber}`;
+  };
+
+  // Register with WhatsApp/PIN + Save Profile to Firestore
+  const registerWithWhatsapp = async (whatsapp: string, pin: string, name: string) => {
     setLoading(true);
     const usersPath = 'users';
     try {
+      const email = formatWhatsappToEmail(whatsapp);
+      const password = formatPinToPassword(pin, whatsapp);
+      
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCredential.user.uid;
 
-      // We use system date-time matching request.time for safety, formatted nicely
       const nowString = new Date().toISOString();
       const profileData: UserProfile = {
         id: uid,
@@ -153,10 +167,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Login with Email/Password
-  const loginWithEmail = async (email: string, password: string) => {
+  // Login with WhatsApp/PIN
+  const loginWithWhatsapp = async (whatsapp: string, pin: string) => {
     setLoading(true);
     try {
+      const email = formatWhatsappToEmail(whatsapp);
+      const password = formatPinToPassword(pin, whatsapp);
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       throw error;
@@ -240,8 +256,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userProfile,
       savedAddresses,
       loading,
-      registerWithEmail,
-      loginWithEmail,
+      registerWithWhatsapp,
+      loginWithWhatsapp,
       logout,
       updateUserProfile,
       addSavedAddress,

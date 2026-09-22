@@ -181,14 +181,14 @@ function MainApp() {
       </div>
 
       {/* 3. Navigation Tabs (Cardápio vs Quem Somos vs Minha Conta) */}
-      <div className="max-w-4xl mx-auto px-4 mt-6">
-        <div className="flex border-b border-gray-200">
+      <div className="max-w-4xl mx-auto px-4 mt-6 overflow-hidden">
+        <div className="flex border-b border-gray-200 overflow-x-auto no-scrollbar whitespace-nowrap scroll-smooth">
           <button
             onClick={() => {
               setActiveTab('menu');
               setSearchQuery('');
             }}
-            className={`py-3.5 px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-4 sm:px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'menu'
                 ? 'border-[#0b1c3f] text-[#0b1c3f]'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -199,7 +199,7 @@ function MainApp() {
           </button>
           <button
             onClick={() => setActiveTab('about')}
-            className={`py-3.5 px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-4 sm:px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'about'
                 ? 'border-[#0b1c3f] text-[#0b1c3f]'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -210,7 +210,7 @@ function MainApp() {
           </button>
           <button
             onClick={() => setActiveTab('account')}
-            className={`py-3.5 px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 ${
+            className={`py-3.5 px-4 sm:px-6 font-bold text-sm tracking-wide border-b-2 transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'account'
                 ? 'border-[#0b1c3f] text-[#0b1c3f]'
                 : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -235,33 +235,11 @@ function MainApp() {
         {activeTab === 'menu' && (
           <div className="space-y-6">
 
-            
             {/* Search and Category filters */}
-            <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center justify-between">
+            <div className="flex flex-col gap-4">
               
-              {/* Category selector pills (Horizontal scrolling) */}
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 shrink-0 -mx-4 px-4 sm:mx-0 sm:px-0">
-                {CATEGORIES.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => {
-                      setSelectedCategory(category.id);
-                      setSearchQuery(''); // clear search when pivoting categories
-                    }}
-                    className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-extrabold whitespace-nowrap transition-all border ${
-                      selectedCategory === category.id && searchQuery === ''
-                        ? 'bg-[#0b1c3f] text-[#d4af37] border-[#d4af37]/30 shadow-md scale-102'
-                        : 'bg-white text-gray-600 hover:text-gray-800 border-gray-200/80 hover:border-gray-300'
-                    }`}
-                  >
-                    <span className="text-sm leading-none">{category.icon}</span>
-                    <span>{category.name}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Search bar input */}
-              <div className="relative flex-1 max-w-sm">
+              {/* Search bar input - Max width constrained */}
+              <div className="relative w-full max-w-md">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
@@ -279,6 +257,30 @@ function MainApp() {
                   </button>
                 )}
               </div>
+
+              {/* Category selector pills (Horizontal scrolling with absolute layout containment) */}
+              <div className="w-full max-w-full overflow-hidden">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
+                  {CATEGORIES.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => {
+                        setSelectedCategory(category.id);
+                        setSearchQuery(''); // clear search when pivoting categories
+                      }}
+                      className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-extrabold whitespace-nowrap transition-all border shrink-0 ${
+                        selectedCategory === category.id && searchQuery === ''
+                          ? 'bg-[#0b1c3f] text-[#d4af37] border-[#d4af37]/30 shadow-md scale-102'
+                          : 'bg-white text-gray-600 hover:text-gray-800 border-gray-200/80 hover:border-gray-300'
+                      }`}
+                    >
+                      <span className="text-sm leading-none">{category.icon}</span>
+                      <span>{category.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
             </div>
 
             {/* Active filters summary */}
