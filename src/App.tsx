@@ -554,20 +554,6 @@ function MainApp() {
           >
             Ver localização no mapa
           </a>
-          <span>•</span>
-          <button
-            onClick={() => {
-              try {
-                window.history.pushState(null, '', '/master');
-              } catch {
-                window.location.hash = '/master';
-              }
-              window.dispatchEvent(new Event('popstate'));
-            }}
-            className="text-stone-400 hover:text-amber-600 dark:hover:text-amber-400 transition cursor-pointer font-medium"
-          >
-            Painel Master
-          </button>
         </p>
       </footer>
 
