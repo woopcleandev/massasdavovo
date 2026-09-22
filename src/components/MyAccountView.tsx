@@ -9,7 +9,7 @@ import {
   User, Lock, Phone, MapPin, Plus, Trash2, LogOut, 
   Home, Briefcase, Tag, Sparkles, CheckCircle, AlertCircle, Loader2,
   Sun, Moon, Monitor, Palette, Clock, ChefHat, Bike, Check, XCircle,
-  Receipt, MessageCircle, ChevronRight, Package, ArrowUpRight
+  Receipt, MessageCircle, ChevronRight, Package, ArrowUpRight, Calendar
 } from 'lucide-react';
 
 export const MyAccountView: React.FC = () => {
@@ -238,8 +238,8 @@ export const MyAccountView: React.FC = () => {
         return {
           label: 'Recebido na Cozinha',
           step: 1,
-          color: 'text-amber-400 bg-amber-400/10 border-amber-400/30',
-          badgeBg: 'bg-amber-500/20 text-amber-300 border-amber-400/40',
+          color: 'text-amber-700 bg-amber-100 border-amber-300 dark:text-amber-400 dark:bg-amber-400/10 dark:border-amber-400/30',
+          badgeBg: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-400/40',
           icon: Clock,
           desc: 'Aguardando confirmação do pagamento / preparo.'
         };
@@ -247,8 +247,8 @@ export const MyAccountView: React.FC = () => {
         return {
           label: 'Em Preparo Artesanal',
           step: 2,
-          color: 'text-orange-400 bg-orange-400/10 border-orange-400/30',
-          badgeBg: 'bg-orange-500/20 text-orange-300 border-orange-400/40',
+          color: 'text-orange-700 bg-orange-100 border-orange-300 dark:text-orange-400 dark:bg-orange-400/10 dark:border-orange-400/30',
+          badgeBg: 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-500/20 dark:text-orange-300 dark:border-orange-400/40',
           icon: ChefHat,
           desc: 'Nossa equipe está montando sua massa fresquinha!'
         };
@@ -256,8 +256,8 @@ export const MyAccountView: React.FC = () => {
         return {
           label: 'Saiu para Entrega',
           step: 3,
-          color: 'text-sky-400 bg-sky-400/10 border-sky-400/30',
-          badgeBg: 'bg-sky-500/20 text-sky-300 border-sky-400/40',
+          color: 'text-sky-700 bg-sky-100 border-sky-300 dark:text-sky-400 dark:bg-sky-400/10 dark:border-sky-400/30',
+          badgeBg: 'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-500/20 dark:text-sky-300 dark:border-sky-400/40',
           icon: Bike,
           desc: 'O entregador já está a caminho com seu pedido.'
         };
@@ -265,8 +265,8 @@ export const MyAccountView: React.FC = () => {
         return {
           label: 'Entregue / Concluído',
           step: 4,
-          color: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/30',
-          badgeBg: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40',
+          color: 'text-emerald-700 bg-emerald-100 border-emerald-300 dark:text-emerald-400 dark:bg-emerald-400/10 dark:border-emerald-400/30',
+          badgeBg: 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-400/40',
           icon: Check,
           desc: 'Pedido entregue com carinho. Bom apetite!'
         };
@@ -274,8 +274,8 @@ export const MyAccountView: React.FC = () => {
         return {
           label: 'Cancelado',
           step: 0,
-          color: 'text-red-400 bg-red-400/10 border-red-400/30',
-          badgeBg: 'bg-red-500/20 text-red-300 border-red-400/40',
+          color: 'text-rose-700 bg-rose-100 border-rose-300 dark:text-red-400 dark:bg-red-400/10 dark:border-red-400/30',
+          badgeBg: 'bg-rose-100 text-rose-900 border-rose-300 dark:bg-red-500/20 dark:text-red-300 dark:border-red-400/40',
           icon: XCircle,
           desc: 'Este pedido foi cancelado.'
         };
@@ -283,8 +283,8 @@ export const MyAccountView: React.FC = () => {
         return {
           label: status,
           step: 1,
-          color: 'text-gray-400 bg-gray-400/10 border-gray-400/30',
-          badgeBg: 'bg-gray-500/20 text-gray-300 border-gray-400/40',
+          color: 'text-stone-700 bg-stone-100 border-stone-300 dark:text-gray-400 dark:bg-gray-400/10 dark:border-gray-400/30',
+          badgeBg: 'bg-stone-100 text-stone-900 border-stone-300 dark:bg-gray-500/20 dark:text-gray-300 dark:border-gray-400/40',
           icon: Clock,
           desc: ''
         };
@@ -294,20 +294,20 @@ export const MyAccountView: React.FC = () => {
   // Reusable Orders History & Real-Time Tracking Panel
   const renderOrdersHistory = () => {
     return (
-      <div className="dark-glass-panel rounded-3xl p-5 sm:p-7 border border-white/10 shadow-xl text-left space-y-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+      <div className="dark-glass-panel rounded-3xl p-5 sm:p-7 border border-stone-200 dark:border-white/10 shadow-xl text-left space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-stone-200 dark:border-white/10 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-2xl bg-amber-400/10 text-amber-400 border border-amber-400/20 shrink-0">
+            <div className="p-2.5 rounded-2xl bg-amber-500/10 dark:bg-amber-400/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shrink-0">
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-black tracking-tight flex items-center gap-2">
+              <h3 className="text-base font-black tracking-tight text-stone-900 dark:text-white flex items-center gap-2">
                 <span>Meus Pedidos & Status em Tempo Real</span>
-                <span className="text-[10px] font-bold bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30 px-2 py-0.5 rounded-full">
                   {userOrders.length}
                 </span>
               </h3>
-              <p className="text-xs opacity-70 mt-0.5">
+              <p className="text-xs text-stone-600 dark:text-gray-400 mt-0.5 font-medium">
                 Acompanhe o andamento da sua comanda diretamente pela cozinha
               </p>
             </div>
@@ -321,17 +321,17 @@ export const MyAccountView: React.FC = () => {
                 placeholder="Buscar por telefone..."
                 value={lookupPhone}
                 onChange={(e) => setLookupPhone(e.target.value)}
-                className="w-full sm:w-48 rounded-xl bg-white/5 border border-white/10 px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-amber-400 outline-none"
+                className="w-full sm:w-48 rounded-xl bg-white dark:bg-white/5 border border-stone-300 dark:border-white/10 px-3 py-1.5 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none"
               />
             </div>
           )}
         </div>
 
         {userOrders.length === 0 ? (
-          <div className="text-center py-10 dark-glass-card border border-dashed border-white/10 rounded-2xl p-6">
+          <div className="text-center py-10 dark-glass-card border border-dashed border-stone-200 dark:border-white/10 rounded-2xl p-6">
             <span className="text-4xl block mb-2">🍝</span>
-            <h4 className="text-sm font-black">Nenhum pedido encontrado</h4>
-            <p className="text-xs opacity-70 mt-1 max-w-xs mx-auto">
+            <h4 className="text-sm font-black text-stone-900 dark:text-white">Nenhum pedido encontrado</h4>
+            <p className="text-xs text-stone-600 dark:text-gray-400 mt-1 max-w-xs mx-auto font-medium">
               {currentUser 
                 ? 'Você ainda não realizou pedidos com esta conta. Escolha suas massas no cardápio e monte sua refeição!'
                 : 'Quando você fizer um pedido pela sacola, o histórico e o status ao vivo aparecerão aqui.'}
@@ -342,21 +342,26 @@ export const MyAccountView: React.FC = () => {
             {userOrders.map((ord) => {
               const statusCfg = getStatusConfig(ord.status);
               const StatusIcon = statusCfg.icon;
-              const isFinished = ord.status === 'concluido' || ord.status === 'cancelado';
 
               return (
                 <div
                   key={ord.id}
-                  className="dark-glass-card border border-white/10 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3.5 transition-all hover:border-amber-400/30"
+                  className="dark-glass-card border border-stone-200 dark:border-white/10 rounded-2xl p-4 sm:p-5 shadow-lg space-y-3.5 transition-all hover:border-amber-500/40"
                 >
                   {/* Order Top Bar */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 pb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-black text-amber-400">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-200 dark:border-white/10 pb-3">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-mono text-sm font-black text-amber-800 dark:text-amber-400">
                         {ord.orderNumber}
                       </span>
-                      <span className="text-xs opacity-60">•</span>
-                      <span className="text-xs opacity-70">{formatDate(ord.createdAt)}</span>
+                      <span className="text-xs text-stone-400 dark:text-white/40">•</span>
+                      <span className="text-xs text-stone-600 dark:text-gray-300 font-semibold">{formatDate(ord.createdAt)}</span>
+                      {ord.schedule?.isScheduled && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-400/40">
+                          <Calendar className="w-3 h-3 text-amber-700 dark:text-amber-400" />
+                          <span>Agendado: {ord.schedule.displayLabel}</span>
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -370,54 +375,54 @@ export const MyAccountView: React.FC = () => {
                   {/* Stepper Progress Bar (for active orders) */}
                   {ord.status !== 'cancelado' && (
                     <div className="pt-1">
-                      <div className="grid grid-cols-4 gap-1 sm:gap-2 text-center text-[10px] sm:text-[11px] font-bold">
-                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 1 ? 'bg-amber-400/20 text-amber-300 border-amber-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                      <div className="grid grid-cols-4 gap-1.5 sm:gap-2 text-center text-[10px] sm:text-[11px] font-bold">
+                        <div className={`p-2 rounded-xl border transition-all ${statusCfg.step >= 1 ? 'bg-amber-100 text-amber-950 border-amber-400 font-black dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/40' : 'bg-stone-100 dark:bg-white/5 text-stone-400 dark:text-gray-500 border-stone-200 dark:border-white/5'}`}>
                           1. Recebido
                         </div>
-                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 2 ? 'bg-orange-400/20 text-orange-300 border-orange-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                        <div className={`p-2 rounded-xl border transition-all ${statusCfg.step >= 2 ? 'bg-orange-100 text-orange-950 border-orange-400 font-black dark:bg-orange-400/20 dark:text-orange-300 dark:border-orange-400/40' : 'bg-stone-100 dark:bg-white/5 text-stone-400 dark:text-gray-500 border-stone-200 dark:border-white/5'}`}>
                           2. Preparo
                         </div>
-                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 3 ? 'bg-sky-400/20 text-sky-300 border-sky-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                        <div className={`p-2 rounded-xl border transition-all ${statusCfg.step >= 3 ? 'bg-sky-100 text-sky-950 border-sky-400 font-black dark:bg-sky-400/20 dark:text-sky-300 dark:border-sky-400/40' : 'bg-stone-100 dark:bg-white/5 text-stone-400 dark:text-gray-500 border-stone-200 dark:border-white/5'}`}>
                           3. Em Rota
                         </div>
-                        <div className={`p-1.5 rounded-lg border transition-all ${statusCfg.step >= 4 ? 'bg-emerald-400/20 text-emerald-300 border-emerald-400/40 font-extrabold' : 'bg-white/5 opacity-40 border-white/5'}`}>
+                        <div className={`p-2 rounded-xl border transition-all ${statusCfg.step >= 4 ? 'bg-emerald-100 text-emerald-950 border-emerald-400 font-black dark:bg-emerald-400/20 dark:text-emerald-300 dark:border-emerald-400/40' : 'bg-stone-100 dark:bg-white/5 text-stone-400 dark:text-gray-500 border-stone-200 dark:border-white/5'}`}>
                           4. Entregue
                         </div>
                       </div>
-                      <p className="text-[11px] opacity-80 mt-2 text-center italic">
+                      <p className="text-[11px] text-stone-700 dark:text-gray-300 font-medium mt-2 text-center">
                         {statusCfg.desc}
                       </p>
                     </div>
                   )}
 
                   {/* Items list preview */}
-                  <div className="bg-black/30 rounded-xl p-3 border border-white/5 space-y-1.5 text-xs">
-                    <div className="text-[11px] font-bold opacity-60 uppercase tracking-wider">
+                  <div className="bg-stone-100 dark:bg-black/40 rounded-2xl p-4 border border-stone-200 dark:border-white/10 space-y-2 text-xs">
+                    <div className="text-[10px] font-black text-stone-500 dark:text-gray-400 uppercase tracking-wider">
                       Itens do Pedido:
                     </div>
                     {ord.items.map((it, idx) => (
                       <div key={idx} className="flex items-center justify-between gap-2">
-                        <span className="truncate">
-                          <strong className="text-amber-400">{it.quantity}x</strong> {it.productName}
+                        <span className="truncate text-stone-900 dark:text-stone-100 font-medium">
+                          <strong className="text-amber-800 dark:text-amber-400 font-black">{it.quantity}x</strong> {it.productName}
                           {it.size ? ` (${it.size})` : ''}
                         </span>
-                        <span className="font-mono text-amber-300 shrink-0">
+                        <span className="font-mono text-stone-900 dark:text-amber-300 font-bold shrink-0">
                           {formatPrice(it.totalPrice)}
                         </span>
                       </div>
                     ))}
 
-                    <div className="pt-2 border-t border-white/10 flex items-center justify-between font-black text-sm">
+                    <div className="pt-2 border-t border-stone-300 dark:border-white/10 flex items-center justify-between font-black text-sm text-stone-900 dark:text-white">
                       <span>Total ({ord.deliveryType === 'delivery' ? 'Entrega' : 'Retirada'})</span>
-                      <span className="text-amber-400 font-mono text-base">{formatPrice(ord.grandTotal)}</span>
+                      <span className="text-amber-800 dark:text-amber-400 font-mono text-base font-black">{formatPrice(ord.grandTotal)}</span>
                     </div>
                   </div>
 
                   {/* Bottom Actions */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                    <div className="text-[11px] opacity-70">
+                    <div className="text-xs text-stone-700 dark:text-stone-300 font-medium">
                       {ord.deliveryType === 'delivery' ? (
-                        <span>📍 Entrega em: <strong>{ord.neighborhood}</strong></span>
+                        <span>📍 Entrega em: <strong className="text-stone-900 dark:text-white">{ord.neighborhood}</strong></span>
                       ) : (
                         <span>🏪 Retirada no balcão da Vovó</span>
                       )}
@@ -426,9 +431,9 @@ export const MyAccountView: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setSelectedReceiptOrder(ord)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/15 hover:bg-white/10 text-xs font-bold transition cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-300 dark:border-white/15 hover:bg-stone-100 dark:hover:bg-white/10 text-xs font-black text-stone-900 dark:text-white transition cursor-pointer"
                       >
-                        <Receipt className="w-3.5 h-3.5 text-amber-400" />
+                        <Receipt className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400" />
                         <span>Ver Comanda</span>
                       </button>
 
@@ -436,7 +441,7 @@ export const MyAccountView: React.FC = () => {
                         href={`https://api.whatsapp.com/send?phone=${(settings.whatsappNumber || RESTAURANT_INFO.whatsappNumber).replace(/\D/g, '')}&text=${encodeURIComponent(`Olá! Gostaria de acompanhar o status da minha comanda *${ord.orderNumber}*.`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black transition shadow-xs"
                       >
                         <MessageCircle className="w-3.5 h-3.5" />
                         <span>WhatsApp</span>
@@ -476,16 +481,16 @@ export const MyAccountView: React.FC = () => {
     ];
 
     return (
-      <div className="dark-glass-panel rounded-3xl p-5 sm:p-7 border border-white/10 shadow-xl text-left">
+      <div className="dark-glass-panel rounded-3xl p-5 sm:p-7 border border-stone-200 dark:border-white/10 shadow-xl text-left">
         <div className="flex items-center gap-2.5 mb-2">
-          <div className="p-2.5 rounded-2xl bg-amber-400/10 text-amber-400 border border-amber-400/20 shrink-0">
+          <div className="p-2.5 rounded-2xl bg-amber-500/10 dark:bg-amber-400/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 shrink-0">
             <Palette className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="text-base font-black tracking-tight">
+            <h3 className="text-base font-black tracking-tight text-stone-900 dark:text-white">
               Aparência do Aplicativo
             </h3>
-            <p className="text-xs opacity-70 mt-0.5">
+            <p className="text-xs text-stone-600 dark:text-gray-400 mt-0.5 font-medium">
               Escolha a sua versão de visualização favorita (Clara, Escura ou Automática)
             </p>
           </div>
@@ -503,24 +508,24 @@ export const MyAccountView: React.FC = () => {
                 onClick={() => setThemeMode(opt.mode)}
                 className={`flex flex-col items-start p-4 rounded-2xl border transition-all cursor-pointer text-left select-none ${
                   isSelected
-                    ? 'border-amber-400 bg-amber-400/15 shadow-md ring-2 ring-amber-400/40'
-                    : 'border-white/10 bg-white/5 hover:border-amber-400/40 hover:bg-white/10'
+                    ? 'border-amber-500 bg-amber-50/90 dark:bg-amber-400/15 shadow-md ring-2 ring-amber-400/50 text-stone-950 dark:text-white'
+                    : 'border-stone-200 dark:border-white/10 bg-stone-50/80 dark:bg-white/5 hover:border-amber-400/50 text-stone-700 dark:text-stone-300'
                 }`}
               >
                 <div className="flex items-center justify-between w-full mb-2">
-                  <div className={`p-2 rounded-xl ${isSelected ? 'bg-amber-400 text-black' : 'bg-white/10 text-white'}`}>
+                  <div className={`p-2 rounded-xl ${isSelected ? 'bg-amber-400 text-black shadow-xs' : 'bg-stone-200 dark:bg-white/10 text-stone-800 dark:text-white'}`}>
                     <Icon className="w-4 h-4" />
                   </div>
                   {isSelected && (
-                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-950 dark:text-amber-300 bg-amber-200 dark:bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-400/50">
                       Ativo
                     </span>
                   )}
                 </div>
-                <span className="text-sm font-black leading-tight">
+                <span className="text-sm font-black text-stone-900 dark:text-white leading-tight">
                   {opt.label}
                 </span>
-                <span className="text-[11px] opacity-70 mt-1 leading-snug font-medium">
+                <span className="text-[11px] text-stone-600 dark:text-gray-400 mt-1 leading-snug font-medium">
                   {opt.desc}
                 </span>
               </button>
@@ -536,15 +541,15 @@ export const MyAccountView: React.FC = () => {
     return (
       <div className="max-w-2xl mx-auto space-y-6 mt-2">
         {/* Auth Box */}
-        <div className="dark-glass-panel border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl">
+        <div className="dark-glass-panel border border-stone-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl">
           <div className="text-center mb-6">
-            <div className="w-16 h-16 bg-amber-400/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-400/20">
+            <div className="w-16 h-16 bg-amber-500/10 dark:bg-amber-400/10 text-amber-700 dark:text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
               <User className="w-8 h-8" />
             </div>
-            <h2 className="text-2xl font-black tracking-tight">
+            <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">
               {authMode === 'login' ? 'Entre na sua Conta' : 'Crie sua Conta'}
             </h2>
-            <p className="text-xs opacity-70 mt-1 max-w-xs mx-auto leading-relaxed">
+            <p className="text-xs text-stone-600 dark:text-gray-300 mt-1 max-w-xs mx-auto leading-relaxed font-medium">
               {authMode === 'login' 
                 ? 'Acesse para salvar seus endereços e acompanhar seus pedidos em tempo real!' 
                 : 'Cadastre-se rapidinho e guarde seus endereços de Casa ou do Trabalho.'}
@@ -554,27 +559,27 @@ export const MyAccountView: React.FC = () => {
           {message && (
             <div className={`mb-5 p-4 rounded-2xl border flex gap-2.5 text-xs text-left leading-relaxed ${
               message.type === 'success' 
-                ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
-                : 'bg-red-500/10 text-red-300 border-red-500/20'
+                ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/20' 
+                : 'bg-rose-100 dark:bg-red-500/10 text-rose-900 dark:text-red-300 border-rose-300 dark:border-red-500/20'
             }`}>
-              {message.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
-              <span>{message.text}</span>
+              {message.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-700 dark:text-emerald-400" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-700 dark:text-red-400" />}
+              <span className="font-semibold">{message.text}</span>
             </div>
           )}
 
           <form onSubmit={handleAuthSubmit} className="space-y-4 text-left">
             {authMode === 'register' && (
               <div>
-                <label className="text-xs font-bold block mb-1 opacity-90">Seu Nome Completo</label>
+                <label className="text-xs font-bold block mb-1 text-stone-800 dark:text-stone-200">Seu Nome Completo</label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400 dark:text-stone-500" />
                   <input
                     type="text"
                     required
                     placeholder="Ex: Maria Souza"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none"
+                    className="w-full rounded-2xl bg-white dark:bg-white/5 border border-stone-300 dark:border-white/10 py-3 pl-10 pr-4 text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none"
                   />
                 </div>
               </div>
@@ -582,25 +587,25 @@ export const MyAccountView: React.FC = () => {
 
             {/* WhatsApp Field */}
             <div>
-              <label className="text-xs font-bold block mb-1 opacity-90">Seu WhatsApp</label>
+              <label className="text-xs font-bold block mb-1 text-stone-800 dark:text-stone-200">Seu WhatsApp</label>
               <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400 dark:text-stone-500" />
                 <input
                   type="tel"
                   required
                   placeholder="Ex: (66) 99652-3006"
                   value={whatsapp}
                   onChange={(e) => setWhatsapp(e.target.value)}
-                  className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none"
+                  className="w-full rounded-2xl bg-white dark:bg-white/5 border border-stone-300 dark:border-white/10 py-3 pl-10 pr-4 text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none"
                 />
               </div>
             </div>
 
             {/* PIN de 4 dígitos */}
             <div>
-              <label className="text-xs font-bold block mb-1 opacity-90">PIN de 4 dígitos</label>
+              <label className="text-xs font-bold block mb-1 text-stone-800 dark:text-stone-200">PIN de 4 dígitos</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400 dark:text-stone-500" />
                 <input
                   type="password"
                   required
@@ -610,16 +615,16 @@ export const MyAccountView: React.FC = () => {
                   placeholder="Ex: 1234"
                   value={pin}
                   onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-                  className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none font-mono text-base tracking-widest"
+                  className="w-full rounded-2xl bg-white dark:bg-white/5 border border-stone-300 dark:border-white/10 py-3 pl-10 pr-4 text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none font-mono text-base tracking-widest"
                 />
               </div>
             </div>
 
             {authMode === 'register' && (
               <div>
-                <label className="text-xs font-bold block mb-1 opacity-90">Confirmar PIN de 4 dígitos</label>
+                <label className="text-xs font-bold block mb-1 text-stone-800 dark:text-stone-200">Confirmar PIN de 4 dígitos</label>
                 <div className="relative">
-                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 opacity-50" />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-stone-400 dark:text-stone-500" />
                   <input
                     type="password"
                     required
@@ -629,7 +634,7 @@ export const MyAccountView: React.FC = () => {
                     placeholder="Ex: 1234"
                     value={confirmPin}
                     onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ''))}
-                    className="w-full rounded-2xl bg-white/5 border border-white/10 py-3 pl-10 pr-4 text-sm placeholder-gray-500 focus:border-amber-400 outline-none font-mono text-base tracking-widest"
+                    className="w-full rounded-2xl bg-white dark:bg-white/5 border border-stone-300 dark:border-white/10 py-3 pl-10 pr-4 text-sm text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none font-mono text-base tracking-widest"
                   />
                 </div>
               </div>
@@ -648,15 +653,15 @@ export const MyAccountView: React.FC = () => {
             </button>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-white/10 text-center">
-            <p className="text-xs opacity-70">
+          <div className="mt-6 pt-4 border-t border-stone-200 dark:border-white/10 text-center">
+            <p className="text-xs text-stone-600 dark:text-gray-400 font-medium">
               {authMode === 'login' ? 'Não possui uma conta?' : 'Já possui uma conta?'}
               <button
                 onClick={() => {
                   setAuthMode(authMode === 'login' ? 'register' : 'login');
                   setMessage(null);
                 }}
-                className="text-amber-400 hover:underline font-bold ml-1 cursor-pointer"
+                className="text-amber-800 dark:text-amber-400 hover:underline font-black ml-1.5 cursor-pointer"
               >
                 {authMode === 'login' ? 'Cadastre-se aqui' : 'Entre por aqui'}
               </button>
@@ -688,31 +693,31 @@ export const MyAccountView: React.FC = () => {
       {message && (
         <div className={`p-4 rounded-2xl border flex gap-2.5 text-xs text-left leading-relaxed ${
           message.type === 'success' 
-            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
-            : 'bg-red-500/10 text-red-300 border-red-500/20'
+            ? 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-900 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/20' 
+            : 'bg-rose-100 dark:bg-red-500/10 text-rose-900 dark:text-red-300 border-rose-300 dark:border-red-500/20'
         }`}>
-          {message.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />}
-          <span>{message.text}</span>
+          {message.type === 'success' ? <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-700 dark:text-emerald-400" /> : <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-700 dark:text-red-400" />}
+          <span className="font-semibold">{message.text}</span>
         </div>
       )}
 
       {/* Customer profile details panel */}
-      <div className="dark-glass-panel rounded-3xl p-6 sm:p-8 border border-white/10 shadow-xl">
+      <div className="dark-glass-panel rounded-3xl p-6 sm:p-8 border border-stone-200 dark:border-white/10 shadow-xl">
         <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
-            <div className="w-16 h-16 rounded-full bg-amber-400/10 text-amber-400 border border-amber-400/20 flex items-center justify-center font-black text-xl shrink-0">
+            <div className="w-16 h-16 rounded-full bg-amber-500/10 dark:bg-amber-400/10 text-amber-700 dark:text-amber-400 border border-amber-500/20 flex items-center justify-center font-black text-xl shrink-0">
               {userProfile?.name?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() || 'V'}
             </div>
             <div>
               <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <h2 className="text-xl font-extrabold">{userProfile?.name || 'Cliente da Vovó'}</h2>
-                <span className="inline-flex items-center gap-1 text-[10px] font-black bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-full px-2.5 py-0.5">
-                  <Sparkles className="w-2.5 h-2.5 fill-amber-400" />
+                <h2 className="text-xl font-extrabold text-stone-900 dark:text-white">{userProfile?.name || 'Cliente da Vovó'}</h2>
+                <span className="inline-flex items-center gap-1 text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30 rounded-full px-2.5 py-0.5">
+                  <Sparkles className="w-2.5 h-2.5 fill-amber-700 dark:fill-amber-400" />
                   <span>VIP</span>
                 </span>
               </div>
-              <p className="text-xs opacity-70 mt-0.5">{currentUser?.email}</p>
-              <p className="text-xs opacity-90 mt-1 font-semibold">📲 WhatsApp: {userProfile?.whatsapp || 'Não informado'}</p>
+              <p className="text-xs text-stone-600 dark:text-gray-400 mt-0.5 font-medium">{currentUser?.email}</p>
+              <p className="text-xs text-stone-800 dark:text-stone-200 mt-1 font-bold">📲 WhatsApp: {userProfile?.whatsapp || 'Não informado'}</p>
             </div>
           </div>
 
@@ -720,21 +725,21 @@ export const MyAccountView: React.FC = () => {
             {!isEditingProfile ? (
               <button
                 onClick={startEditProfile}
-                className="rounded-full border border-white/15 hover:bg-white/10 font-bold text-xs py-2 px-4 transition cursor-pointer"
+                className="rounded-full border border-stone-300 dark:border-white/15 hover:bg-stone-100 dark:hover:bg-white/10 font-black text-xs py-2 px-4 transition text-stone-900 dark:text-white cursor-pointer"
               >
                 Editar Perfil
               </button>
             ) : (
               <button
                 onClick={() => setIsEditingProfile(false)}
-                className="rounded-full border border-white/15 hover:bg-white/10 font-bold text-xs py-2 px-4 transition cursor-pointer"
+                className="rounded-full border border-stone-300 dark:border-white/15 hover:bg-stone-100 dark:hover:bg-white/10 font-black text-xs py-2 px-4 transition text-stone-900 dark:text-white cursor-pointer"
               >
                 Cancelar
               </button>
             )}
             <button
               onClick={logout}
-              className="rounded-full bg-red-500/10 hover:bg-red-500/20 text-red-300 font-bold text-xs py-2 px-4 transition flex items-center gap-1.5 border border-red-500/20 cursor-pointer"
+              className="rounded-full bg-rose-100 dark:bg-red-500/10 hover:bg-rose-200 dark:hover:bg-red-500/20 text-rose-800 dark:text-red-300 font-black text-xs py-2 px-4 transition flex items-center gap-1.5 border border-rose-300 dark:border-red-500/20 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sair</span>
@@ -744,27 +749,27 @@ export const MyAccountView: React.FC = () => {
 
         {/* Editing Profile Form */}
         {isEditingProfile && (
-          <form onSubmit={handleProfileUpdate} className="mt-6 pt-6 border-t border-white/10 space-y-4 text-left">
-            <h3 className="text-xs font-bold opacity-60 uppercase tracking-wider">Atualizar Meus Dados</h3>
+          <form onSubmit={handleProfileUpdate} className="mt-6 pt-6 border-t border-stone-200 dark:border-white/10 space-y-4 text-left">
+            <h3 className="text-xs font-black text-stone-500 dark:text-gray-400 uppercase tracking-wider">Atualizar Meus Dados</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[11px] font-bold block mb-1 opacity-90">Seu Nome</label>
+                <label className="text-[11px] font-bold block mb-1 text-stone-800 dark:text-stone-200">Seu Nome</label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full rounded-2xl bg-white/5 border border-white/10 p-3 text-xs focus:border-amber-400 outline-none"
+                  className="w-full rounded-2xl bg-white dark:bg-white/5 border border-stone-300 dark:border-white/10 p-3 text-xs text-stone-900 dark:text-white focus:border-amber-500 outline-none"
                 />
               </div>
               <div>
-                <label className="text-[11px] font-bold block mb-1 opacity-90">WhatsApp para Contato</label>
+                <label className="text-[11px] font-bold block mb-1 text-stone-800 dark:text-stone-200">WhatsApp para Contato</label>
                 <input
                   type="tel"
                   required
                   value={editWhatsapp}
                   onChange={(e) => setEditWhatsapp(e.target.value)}
-                  className="w-full rounded-2xl bg-white/5 border border-white/10 p-3 text-xs focus:border-amber-400 outline-none"
+                  className="w-full rounded-2xl bg-white dark:bg-white/5 border border-stone-300 dark:border-white/10 p-3 text-xs text-stone-900 dark:text-white focus:border-amber-500 outline-none"
                 />
               </div>
             </div>
@@ -786,14 +791,14 @@ export const MyAccountView: React.FC = () => {
       {renderThemeSelector()}
 
       {/* Saved addresses manager panel */}
-      <div className="dark-glass-panel rounded-3xl p-6 border border-white/10 shadow-md text-left">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
+      <div className="dark-glass-panel rounded-3xl p-6 border border-stone-200 dark:border-white/10 shadow-md text-left">
+        <div className="flex items-center justify-between border-b border-stone-200 dark:border-white/10 pb-4 mb-4">
           <div>
-            <h3 className="text-base font-extrabold flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-amber-400" />
+            <h3 className="text-base font-extrabold text-stone-900 dark:text-white flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-amber-700 dark:text-amber-400" />
               <span>Meus Endereços Salvos</span>
             </h3>
-            <p className="text-xs opacity-70 mt-0.5">Gerencie os locais de entrega para agilizar seu pedido</p>
+            <p className="text-xs text-stone-600 dark:text-gray-400 mt-0.5 font-medium">Gerencie os locais de entrega para agilizar seu pedido</p>
           </div>
           {!isAddingAddress && (
             <button
@@ -808,20 +813,20 @@ export const MyAccountView: React.FC = () => {
 
         {/* Add Address Form Panel */}
         {isAddingAddress && (
-          <form onSubmit={handleAddAddressSubmit} className="dark-glass-card border border-white/10 rounded-3xl p-5 mb-5 space-y-4 animate-fade-in text-left">
-            <h4 className="text-xs font-black uppercase tracking-wider opacity-80">Novo Local de Entrega</h4>
+          <form onSubmit={handleAddAddressSubmit} className="dark-glass-card border border-stone-300 dark:border-white/10 rounded-3xl p-5 mb-5 space-y-4 animate-fade-in text-left">
+            <h4 className="text-xs font-black uppercase tracking-wider text-stone-700 dark:text-gray-300">Novo Local de Entrega</h4>
             
             <div className="space-y-3">
               {/* Neighborhood selection */}
               <div>
-                <label className="text-[11px] font-bold block mb-1 opacity-90">Bairro (Primavera do Leste)</label>
+                <label className="text-[11px] font-bold block mb-1 text-stone-800 dark:text-stone-200">Bairro (Primavera do Leste)</label>
                 <select
                   value={neighborhood}
                   onChange={(e) => setNeighborhood(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-black/60 text-white p-3 text-xs focus:border-amber-400 outline-none"
+                  className="w-full rounded-2xl border border-stone-300 dark:border-white/10 bg-white dark:bg-black/60 text-stone-900 dark:text-white p-3 text-xs focus:border-amber-500 outline-none font-medium"
                 >
                   {NEIGHBORHOODS.map((n) => (
-                    <option key={n.name} value={n.name} className="bg-gray-900 text-white">{n.name}</option>
+                    <option key={n.name} value={n.name} className="bg-stone-50 dark:bg-gray-900 text-stone-900 dark:text-white">{n.name}</option>
                   ))}
                 </select>
               </div>
@@ -829,52 +834,52 @@ export const MyAccountView: React.FC = () => {
               {/* Street & Number */}
               <div className="grid grid-cols-3 gap-2">
                 <div className="col-span-2">
-                  <label className="text-[11px] font-bold block mb-1 opacity-90">Rua / Avenida</label>
+                  <label className="text-[11px] font-bold block mb-1 text-stone-800 dark:text-stone-200">Rua / Avenida</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: Av. Porto Alegre"
                     value={street}
                     onChange={(e) => setStreet(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs focus:border-amber-400 outline-none"
+                    className="w-full rounded-2xl border border-stone-300 dark:border-white/10 bg-white dark:bg-white/5 p-3 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] font-bold block mb-1 opacity-90">Número</label>
+                  <label className="text-[11px] font-bold block mb-1 text-stone-800 dark:text-stone-200">Número</label>
                   <input
                     type="text"
                     required
                     placeholder="Ex: 203"
                     value={number}
                     onChange={(e) => setNumber(e.target.value)}
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs focus:border-amber-400 outline-none"
+                    className="w-full rounded-2xl border border-stone-300 dark:border-white/10 bg-white dark:bg-white/5 p-3 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none"
                   />
                 </div>
               </div>
 
               {/* Complement */}
               <div>
-                <label className="text-[11px] font-bold block mb-1 opacity-90">Complemento (Opcional)</label>
+                <label className="text-[11px] font-bold block mb-1 text-stone-800 dark:text-stone-200">Complemento (Opcional)</label>
                 <input
                   type="text"
                   placeholder="Ex: Apto 302, Bloco B"
                   value={complement}
                   onChange={(e) => setComplement(e.target.value)}
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-xs focus:border-amber-400 outline-none"
+                  className="w-full rounded-2xl border border-stone-300 dark:border-white/10 bg-white dark:bg-white/5 p-3 text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-gray-500 focus:border-amber-500 outline-none"
                 />
               </div>
 
               {/* Label selector (Casa, Trabalho, Outro) */}
               <div>
-                <label className="text-[11px] font-bold block mb-1 opacity-90">Identificação / Tipo</label>
+                <label className="text-[11px] font-bold block mb-1 text-stone-800 dark:text-stone-200">Identificação / Tipo</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setLabel('casa')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-bold transition cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-black transition cursor-pointer ${
                       label === 'casa'
                         ? 'dark-glass-button-gold text-black shadow-sm'
-                        : 'bg-white/5 opacity-70 hover:opacity-100 border-white/10'
+                        : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-white/10 hover:border-amber-500/40'
                     }`}
                   >
                     <Home className="w-3.5 h-3.5" />
@@ -883,10 +888,10 @@ export const MyAccountView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setLabel('trabalho')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-bold transition cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-black transition cursor-pointer ${
                       label === 'trabalho'
                         ? 'dark-glass-button-gold text-black shadow-sm'
-                        : 'bg-white/5 opacity-70 hover:opacity-100 border-white/10'
+                        : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-white/10 hover:border-amber-500/40'
                     }`}
                   >
                     <Briefcase className="w-3.5 h-3.5" />
@@ -895,10 +900,10 @@ export const MyAccountView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setLabel('outro')}
-                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-bold transition cursor-pointer ${
+                    className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 border rounded-full text-xs font-black transition cursor-pointer ${
                       label === 'outro'
                         ? 'dark-glass-button-gold text-black shadow-sm'
-                        : 'bg-white/5 opacity-70 hover:opacity-100 border-white/10'
+                        : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 border-stone-300 dark:border-white/10 hover:border-amber-500/40'
                     }`}
                   >
                     <Tag className="w-3.5 h-3.5" />
@@ -912,7 +917,7 @@ export const MyAccountView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsAddingAddress(false)}
-                className="rounded-full border border-white/15 bg-white/5 hover:bg-white/10 font-bold text-xs py-2 px-5 transition cursor-pointer"
+                className="rounded-full border border-stone-300 dark:border-white/15 bg-white dark:bg-white/5 hover:bg-stone-100 dark:hover:bg-white/10 font-black text-xs py-2 px-5 text-stone-800 dark:text-white transition cursor-pointer"
               >
                 Cancelar
               </button>
@@ -930,42 +935,42 @@ export const MyAccountView: React.FC = () => {
 
         {/* Addresses list */}
         {savedAddresses.length === 0 ? (
-          <div className="text-center py-8 dark-glass-card border border-dashed border-white/10 rounded-3xl p-6">
+          <div className="text-center py-8 dark-glass-card border border-dashed border-stone-300 dark:border-white/10 rounded-3xl p-6">
             <span className="text-3xl block mb-2">🏠</span>
-            <p className="text-xs font-bold opacity-80">Nenhum endereço cadastrado ainda.</p>
-            <p className="text-[11px] opacity-60 mt-0.5">Adicione os locais que você mais pede para agilizar sua entrega.</p>
+            <p className="text-xs font-black text-stone-800 dark:text-stone-200">Nenhum endereço cadastrado ainda.</p>
+            <p className="text-[11px] text-stone-500 dark:text-gray-400 mt-0.5 font-medium">Adicione os locais que você mais pede para agilizar sua entrega.</p>
           </div>
         ) : (
           <div className="space-y-3">
             {savedAddresses.map((addr) => (
               <div 
                 key={addr.id}
-                className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-white/10 dark-glass-card shadow-xs hover:border-amber-400/40 transition"
+                className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-stone-200 dark:border-white/10 dark-glass-card shadow-xs hover:border-amber-500/40 transition"
               >
                 <div className="flex items-start gap-3 min-w-0">
-                  <div className="p-2.5 rounded-full bg-amber-400/10 text-amber-400 shrink-0 border border-amber-400/20">
+                  <div className="p-2.5 rounded-full bg-amber-500/10 dark:bg-amber-400/10 text-amber-700 dark:text-amber-400 shrink-0 border border-amber-500/20">
                     {addr.label === 'casa' && <Home className="w-4 h-4" />}
                     {addr.label === 'trabalho' && <Briefcase className="w-4 h-4" />}
                     {addr.label === 'outro' && <Tag className="w-4 h-4" />}
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-black capitalize text-amber-400">{addr.label}</span>
-                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-amber-400" />
-                      <span className="text-[10px] opacity-70 font-bold">{addr.neighborhood}</span>
+                      <span className="text-xs font-black capitalize text-amber-800 dark:text-amber-400">{addr.label}</span>
+                      <span className="inline-flex h-1.5 w-1.5 rounded-full bg-amber-500 dark:bg-amber-400" />
+                      <span className="text-[10px] text-stone-500 dark:text-gray-400 font-bold">{addr.neighborhood}</span>
                     </div>
-                    <p className="text-xs font-semibold mt-0.5 truncate">
+                    <p className="text-xs font-bold text-stone-900 dark:text-stone-100 mt-0.5 truncate">
                       {addr.street}, Nº {addr.number}
                     </p>
                     {addr.complement && (
-                      <p className="text-[10px] opacity-60 mt-0.5 font-medium">Compl: {addr.complement}</p>
+                      <p className="text-[10px] text-stone-600 dark:text-gray-400 mt-0.5 font-medium">Compl: {addr.complement}</p>
                     )}
                   </div>
                 </div>
                 
                 <button
                   onClick={() => handleDeleteAddress(addr.id)}
-                  className="p-2 rounded-full opacity-60 hover:opacity-100 hover:text-red-400 hover:bg-red-500/10 transition shrink-0 cursor-pointer"
+                  className="p-2 rounded-full text-stone-400 hover:text-rose-600 dark:hover:text-red-400 hover:bg-rose-100 dark:hover:bg-red-500/10 transition shrink-0 cursor-pointer"
                   title="Remover endereço"
                 >
                   <Trash2 className="w-4 h-4" />

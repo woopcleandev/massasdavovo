@@ -1,14 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { CartItem, CustomerInfo, NEIGHBORHOODS, PaymentMethod, Order, OrderItem } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { CartItem, CustomerInfo, NEIGHBORHOODS, PaymentMethod, Order, OrderItem, OrderSchedule } from '../types';
 import { RESTAURANT_INFO } from '../data';
 import { 
   X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, 
   CreditCard, Clock, CheckCircle, Home, Briefcase, Tag, 
-  AlertCircle, Copy, Check, ChevronRight, ShieldCheck, Sparkles 
+  AlertCircle, Copy, Check, ChevronRight, ShieldCheck, Sparkles,
+  Calendar, Zap, BellRing
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import { OrderSuccessModal } from './OrderSuccessModal';
+import { getBusinessStatus, getAvailableScheduleSlots, DayScheduleOption } from '../utils/businessHours';
 
 interface CartDrawerProps {
   cartItems: CartItem[];
@@ -30,6 +32,38 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
   const [selectedAddressId, setSelectedAddressId] = useState<string>('custom');
   const [saveThisAddress, setSaveThisAddress] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Business Status & Scheduling Options
+  const businessStatus = useMemo(() => getBusinessStatus(settings.operatingHours), [settings.operatingHours]);
+  const scheduleOptions = useMemo(() => getAvailableScheduleSlots(settings.operatingHours), [settings.operatingHours]);
+
+  // If closed, forced to schedule mode
+  const [isSchedulingMode, setIsSchedulingMode] = useState<boolean>(!businessStatus.isOpen);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(() => {
+    return scheduleOptions[0]?.dateStr || businessStatus.nextOpening.dateStr;
+  });
+  const [selectedTimeStr, setSelectedTimeStr] = useState<string>(() => {
+    return scheduleOptions[0]?.times[0] || businessStatus.nextOpening.timeStr;
+  });
+
+  // Sync state if business hours change
+  useEffect(() => {
+    if (!businessStatus.isOpen) {
+      setIsSchedulingMode(true);
+    }
+    if (scheduleOptions.length > 0) {
+      const dayExists = scheduleOptions.find(d => d.dateStr === selectedDateStr);
+      if (!dayExists) {
+        setSelectedDateStr(scheduleOptions[0].dateStr);
+        setSelectedTimeStr(scheduleOptions[0].times[0] || '18:00');
+      } else if (!dayExists.times.includes(selectedTimeStr)) {
+        setSelectedTimeStr(dayExists.times[0] || '18:00');
+      }
+    }
+  }, [businessStatus.isOpen, scheduleOptions]);
+
+  // Selected day object
+  const activeScheduleDay = scheduleOptions.find(d => d.dateStr === selectedDateStr) || scheduleOptions[0];
 
   // Success state for completed order
   const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
@@ -136,6 +170,11 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       if (!customer.neighborhood) errs.neighborhood = 'Bairro é obrigatório';
     }
 
+    if (isSchedulingMode) {
+      if (!selectedDateStr) errs.scheduleDate = 'Selecione o dia do agendamento';
+      if (!selectedTimeStr) errs.scheduleTime = 'Selecione o horário do agendamento';
+    }
+
     return errs;
   };
 
@@ -182,6 +221,14 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     // Normalize paymentMethod
     const pMethod = (customer.paymentMethod === 'pix' ? 'pix_now' : customer.paymentMethod) as PaymentMethod;
 
+    // Build schedule object if scheduling mode is active
+    const scheduleData: OrderSchedule | undefined = isSchedulingMode ? {
+      isScheduled: true,
+      date: selectedDateStr,
+      time: selectedTimeStr,
+      displayLabel: activeScheduleDay ? `${activeScheduleDay.label} às ${selectedTimeStr}` : `${selectedDateStr} às ${selectedTimeStr}`
+    } : undefined;
+
     // Create Order in Firestore and LocalStorage
     let savedOrder: Order;
     try {
@@ -199,6 +246,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         itemsSubtotal,
         deliveryFee,
         grandTotal,
+        schedule: scheduleData,
       });
     } catch (e) {
       console.error("Order creation fallback:", e);
@@ -219,6 +267,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         deliveryFee,
         grandTotal,
         status: 'novo',
+        schedule: scheduleData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -230,6 +279,18 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     // Compile complete WhatsApp message
     let message = `*🍝 NOVO PEDIDO - MASSAS DA VOVÓ*\n`;
     message += `*Comanda:* ${savedOrder.orderNumber}\n`;
+    message += `----------------------------------------\n`;
+    
+    if (isSchedulingMode && scheduleData) {
+      message += `*⏰ TIPO: 📅 PEDIDO AGENDADO COM ANTECEDÊNCIA*\n`;
+      message += `*Data e Horário Marcados:* ${scheduleData.displayLabel}\n`;
+      if (!businessStatus.isOpen) {
+        message += `_(Pedido realizado fora do expediente para preparo na abertura da casa)_\n`;
+      }
+    } else {
+      message += `*⚡ TIPO:* Preparo Imediato (30-50 min)\n`;
+    }
+    
     message += `----------------------------------------\n`;
     message += `*Cliente:* ${customer.name}\n`;
     message += `*Contato:* ${customer.phone}\n`;
@@ -468,6 +529,158 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* 1. Timing & Scheduling Card */}
+              <div className={`space-y-3.5 dark-glass-card rounded-2xl p-4 border shadow-md text-left transition-all ${
+                !businessStatus.isOpen ? 'border-amber-400/40 bg-amber-950/20' : 'border-white/10'
+              }`}>
+                <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
+                  <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5 opacity-90">
+                    <Clock className="w-4 h-4 text-amber-400" />
+                    <span>Horário do Pedido</span>
+                  </h3>
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                    businessStatus.isOpen
+                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                      : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                  }`}>
+                    {businessStatus.isOpen ? '🟢 Cozinha Aberta' : '⏰ Fora do Horário'}
+                  </span>
+                </div>
+
+                {/* If Store is Closed Notice */}
+                {!businessStatus.isOpen ? (
+                  <div className="bg-amber-500/15 border border-amber-400/30 rounded-xl p-3 text-xs space-y-1.5 text-amber-200">
+                    <div className="flex items-center gap-1.5 font-black text-amber-300">
+                      <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span>Restaurante Fechado no Momento</span>
+                    </div>
+                    <p className="text-[11px] opacity-90 leading-relaxed font-normal">
+                      Nosso horário é de <strong>Terça a Domingo das {settings.operatingHours?.openTime || '18:00'} às {settings.operatingHours?.closeTime || '23:00'}</strong>.
+                      Você pode realizar o <strong>Agendamento do Pedido</strong> para a próxima abertura da casa!
+                    </p>
+                  </div>
+                ) : (
+                  /* If Store is Open: Options to choose Immediate or Scheduled */
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 rounded-2xl border border-white/5">
+                    <button
+                      type="button"
+                      onClick={() => setIsSchedulingMode(false)}
+                      className={`py-2 px-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        !isSchedulingMode
+                          ? 'dark-glass-button-gold text-black shadow-sm font-black'
+                          : 'opacity-70 hover:opacity-100 hover:bg-white/5'
+                      }`}
+                    >
+                      <Zap className="w-3.5 h-3.5 fill-current" />
+                      <span>Preparo Imediato</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsSchedulingMode(true)}
+                      className={`py-2 px-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        isSchedulingMode
+                          ? 'dark-glass-button-gold text-black shadow-sm font-black'
+                          : 'opacity-70 hover:opacity-100 hover:bg-white/5'
+                      }`}
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Agendar Pedido</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* When Scheduling is Active: Date & Time Selectors */}
+                {isSchedulingMode && (
+                  <div className="space-y-3 pt-1 animate-fade-in">
+                    {/* 1. Date Selector (Days available) */}
+                    <div id="field-scheduleDate">
+                      <label className="text-xs font-bold block mb-1.5 opacity-90 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Dia Desejado</span>
+                        </span>
+                        <span className="text-[10px] text-amber-400 font-normal">Próximos dias abertos</span>
+                      </label>
+
+                      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+                        {scheduleOptions.map((day) => {
+                          const isSelected = selectedDateStr === day.dateStr;
+                          return (
+                            <button
+                              key={day.dateStr}
+                              type="button"
+                              onClick={() => {
+                                setSelectedDateStr(day.dateStr);
+                                if (!day.times.includes(selectedTimeStr)) {
+                                  setSelectedTimeStr(day.times[0] || '18:00');
+                                }
+                                if (errors.scheduleDate) setErrors({ ...errors, scheduleDate: '' });
+                              }}
+                              className={`py-2 px-3 rounded-xl border text-xs font-bold shrink-0 transition-all cursor-pointer text-left ${
+                                isSelected
+                                  ? 'border-amber-400 bg-amber-400/25 text-amber-300 ring-1 ring-amber-400 shadow-xs'
+                                  : 'border-white/10 bg-white/5 hover:border-white/20 opacity-75'
+                              }`}
+                            >
+                              <div className="text-[10px] font-black uppercase tracking-wider">{day.shortLabel}</div>
+                              <div className="text-xs font-extrabold mt-0.5">{day.dayName.split('-')[0]}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {errors.scheduleDate && (
+                        <span className="text-[11px] text-red-400 mt-1 block font-medium">{errors.scheduleDate}</span>
+                      )}
+                    </div>
+
+                    {/* 2. Time Slot Selector */}
+                    <div id="field-scheduleTime">
+                      <label className="text-xs font-bold block mb-1.5 opacity-90 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Horário de {customer.deliveryType === 'delivery' ? 'Entrega' : 'Retirada'}</span>
+                        </span>
+                        <span className="text-[10px] text-amber-400 font-bold font-mono">{selectedTimeStr}</span>
+                      </label>
+
+                      <div className="grid grid-cols-4 sm:grid-cols-5 gap-1.5 max-h-36 overflow-y-auto pr-1">
+                        {activeScheduleDay?.times?.map((time) => {
+                          const isSelected = selectedTimeStr === time;
+                          return (
+                            <button
+                              key={time}
+                              type="button"
+                              onClick={() => {
+                                setSelectedTimeStr(time);
+                                if (errors.scheduleTime) setErrors({ ...errors, scheduleTime: '' });
+                              }}
+                              className={`py-2 px-1.5 rounded-xl border text-xs font-mono font-bold transition-all cursor-pointer text-center ${
+                                isSelected
+                                  ? 'border-amber-400 bg-amber-400 text-black shadow-sm font-black'
+                                  : 'border-white/10 bg-white/5 hover:border-white/20 opacity-80'
+                              }`}
+                            >
+                              {time}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {errors.scheduleTime && (
+                        <span className="text-[11px] text-red-400 mt-1 block font-medium">{errors.scheduleTime}</span>
+                      )}
+
+                      <div className="text-[11px] opacity-80 mt-2 bg-black/30 p-2.5 rounded-xl border border-white/5 flex items-center gap-2">
+                        <Calendar className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                        <span>
+                          Pedido marcado para: <strong className="text-amber-300 font-bold">{activeScheduleDay?.label} às {selectedTimeStr}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Delivery Settings Card */}
@@ -925,10 +1138,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
               id="btn-send-whatsapp-order"
               disabled={isSubmitting}
               onClick={handleSendOrder}
-              className="w-full flex items-center justify-center gap-2.5 rounded-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 py-4 px-6 text-sm font-black text-white transition shadow-lg active:scale-98 transform hover:scale-[1.01] cursor-pointer"
+              className={`w-full flex items-center justify-center gap-2.5 rounded-full disabled:opacity-50 py-4 px-6 text-sm font-black text-white transition shadow-lg active:scale-98 transform hover:scale-[1.01] cursor-pointer ${
+                isSchedulingMode
+                  ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'
+                  : 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-500/20'
+              }`}
             >
-              <Send className="w-4 h-4 fill-white" />
-              <span>{isSubmitting ? 'Gerando Comanda...' : 'Finalizar e Enviar Pedido pelo WhatsApp'}</span>
+              {isSchedulingMode ? (
+                <Calendar className="w-4 h-4 text-black" />
+              ) : (
+                <Send className="w-4 h-4 fill-white" />
+              )}
+              <span>
+                {isSubmitting
+                  ? 'Gerando Comanda...'
+                  : isSchedulingMode
+                  ? `Agendar Pedido para ${selectedTimeStr} via WhatsApp`
+                  : 'Finalizar e Enviar Pedido pelo WhatsApp'}
+              </span>
             </button>
           </div>
         )}

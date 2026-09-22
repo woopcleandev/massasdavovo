@@ -54,6 +54,13 @@ export interface CartItem {
 
 export type PaymentMethod = 'pix' | 'pix_now' | 'pix_delivery' | 'credit' | 'debit' | 'cash';
 
+export interface OrderSchedule {
+  isScheduled: boolean;
+  date: string; // YYYY-MM-DD
+  time: string; // HH:mm
+  displayLabel: string; // e.g. "Hoje (Terça) às 19:30" or "Amanhã (Quarta, 23/09) às 19:00"
+}
+
 export interface CustomerInfo {
   name: string;
   phone: string;
@@ -64,6 +71,7 @@ export interface CustomerInfo {
   reference?: string;
   paymentMethod: PaymentMethod;
   changeFor?: string;
+  schedule?: OrderSchedule;
 }
 
 export type OrderStatus = 'novo' | 'preparo' | 'entrega' | 'concluido' | 'cancelado';
@@ -98,8 +106,16 @@ export interface Order {
   deliveryFee: number;
   grandTotal: number;
   status: OrderStatus;
+  schedule?: OrderSchedule;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface OperatingHoursSettings {
+  openDays: number[]; // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat. Default: [2, 3, 4, 5, 6, 0] (Ter a Dom)
+  openTime: string; // e.g. "18:00"
+  closeTime: string; // e.g. "23:00"
+  forceStatus: 'auto' | 'force_open' | 'force_closed';
 }
 
 export interface CompanySettings {
@@ -110,6 +126,7 @@ export interface CompanySettings {
   pixBeneficiary: string;
   adminUser: string;
   adminPass: string;
+  operatingHours?: OperatingHoursSettings;
   updatedAt?: string;
 }
 
@@ -150,4 +167,3 @@ export interface SavedAddress {
   createdAt: string;
   updatedAt: string;
 }
-

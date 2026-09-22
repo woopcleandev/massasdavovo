@@ -55,7 +55,10 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
     txt += `          Primavera do Leste - MT        \n`;
     txt += `========================================\n`;
     txt += `COMANDA PEDIDO: ${order.orderNumber}\n`;
-    txt += `DATA: ${formatDate(order.createdAt)}\n`;
+    txt += `DATA CRIAÇÃO: ${formatDate(order.createdAt)}\n`;
+    if (order.schedule?.isScheduled) {
+      txt += `AGENDAMENTO: ${order.schedule.displayLabel}\n`;
+    }
     txt += `----------------------------------------\n`;
     txt += `CLIENTE: ${order.customerName}\n`;
     txt += `TELEFONE: ${order.customerPhone}\n`;
@@ -138,10 +141,23 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                 <span className="text-sm font-black text-gray-900">{order.orderNumber}</span>
               </div>
               <div className="text-right">
-                <span className="text-[10px] text-gray-400 font-bold block uppercase">Data & Hora</span>
+                <span className="text-[10px] text-gray-400 font-bold block uppercase">Emissão</span>
                 <span className="text-[11px] font-bold text-gray-700">{formatDate(order.createdAt)}</span>
               </div>
             </div>
+
+            {/* Scheduled Order Highlight on Ticket */}
+            {order.schedule?.isScheduled && (
+              <div className="bg-amber-100 border border-amber-300 p-2.5 rounded-xl font-sans text-amber-950 space-y-0.5">
+                <div className="flex items-center gap-1.5 font-black text-xs text-amber-900 uppercase">
+                  <Calendar className="w-3.5 h-3.5 text-amber-800" />
+                  <span>PEDIDO AGENDADO</span>
+                </div>
+                <p className="text-xs font-bold text-amber-950">
+                  {order.schedule.displayLabel}
+                </p>
+              </div>
+            )}
 
             {/* Customer Details */}
             <div className="pt-2 border-t border-dashed border-gray-300 space-y-1">

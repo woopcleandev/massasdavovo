@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
-import { CheckCircle2, Copy, Check, Send, Receipt, ArrowRight, Clock, Star, ExternalLink } from 'lucide-react';
+import { CheckCircle2, Copy, Check, Send, Receipt, ArrowRight, Clock, Star, ExternalLink, Calendar } from 'lucide-react';
 import { OrderReceiptModal } from './OrderReceiptModal';
 
 interface OrderSuccessModalProps {
@@ -49,7 +49,20 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-4">
+          {/* Scheduled Order Highlight Card */}
+          {order.schedule?.isScheduled && (
+            <div className="bg-amber-500/15 border border-amber-400/40 rounded-2xl p-4 text-xs space-y-1 text-amber-200">
+              <div className="flex items-center gap-2 font-black text-amber-300">
+                <Calendar className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Pedido Agendado: {order.schedule.displayLabel}</span>
+              </div>
+              <p className="text-[11px] text-amber-200/90 leading-relaxed font-normal">
+                Sua encomenda foi agendada! Nossa equipe fará a produção artesanal fresquinha na data e horário marcados.
+              </p>
+            </div>
+          )}
+
           {/* WhatsApp Direct Action Button */}
           <div className="bg-emerald-950/30 border border-emerald-500/30 rounded-2xl p-4 text-emerald-200 text-xs space-y-3">
             <div className="flex items-center gap-2 font-bold text-emerald-300">

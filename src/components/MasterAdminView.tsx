@@ -26,7 +26,8 @@ import {
   ArrowLeft,
   Clock,
   DollarSign,
-  Loader2
+  Loader2,
+  Calendar
 } from 'lucide-react';
 
 const PRESET_PASTA_IMAGES = [
@@ -95,6 +96,10 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     pixKey: settings.pixKey,
     pixKeyType: settings.pixKeyType,
     pixBeneficiary: settings.pixBeneficiary,
+    openDays: settings.operatingHours?.openDays || [2, 3, 4, 5, 6, 0],
+    openTime: settings.operatingHours?.openTime || '18:00',
+    closeTime: settings.operatingHours?.closeTime || '23:00',
+    forceStatus: settings.operatingHours?.forceStatus || 'auto',
   });
   const [settingsSuccess, setSettingsSuccess] = useState('');
 
@@ -265,8 +270,14 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
       pixKey: companyForm.pixKey,
       pixKeyType: companyForm.pixKeyType,
       pixBeneficiary: companyForm.pixBeneficiary,
+      operatingHours: {
+        openDays: companyForm.openDays,
+        openTime: companyForm.openTime,
+        closeTime: companyForm.closeTime,
+        forceStatus: companyForm.forceStatus as any,
+      },
     });
-    setSettingsSuccess('Configurações atualizadas com sucesso!');
+    setSettingsSuccess('Configurações e Horários atualizados com sucesso!');
     setTimeout(() => setSettingsSuccess(''), 3500);
   };
 
@@ -560,6 +571,12 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                           }`}>
                             {ord.deliveryType === 'delivery' ? '🚀 Entrega' : '🏪 Retirada'}
                           </span>
+                          {ord.schedule?.isScheduled && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md">
+                              <Calendar className="w-3 h-3 text-amber-700" />
+                              <span>AGENDADO: {ord.schedule.displayLabel}</span>
+                            </span>
+                          )}
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
                           Cliente: <strong className="text-gray-900">{ord.customerName}</strong> • {ord.customerPhone} • {formatDate(ord.createdAt)}
@@ -794,6 +811,93 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                     className="w-full p-3 rounded-xl border border-gray-200 text-sm focus:ring-[#0b1c3f] focus:border-[#0b1c3f] outline-hidden"
                     required
                   />
+                </div>
+
+                {/* Operating Hours Configuration Card */}
+                <div className="pt-3 border-t border-gray-100">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-gray-900 mb-2 flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-amber-600" />
+                    <span>Horário de Funcionamento & Agendamento</span>
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Defina os dias e horários em que a cozinha está aberta. Fora desse período, os clientes só poderão agendar pedidos para a próxima abertura.
+                  </p>
+
+                  {/* Open Days Selector */}
+                  <div className="space-y-1.5 mb-3">
+                    <label className="text-xs font-bold text-gray-700 block">Dias de Abertura:</label>
+                    <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5">
+                      {[
+                        { day: 0, label: 'Dom' },
+                        { day: 1, label: 'Seg' },
+                        { day: 2, label: 'Ter' },
+                        { day: 3, label: 'Qua' },
+                        { day: 4, label: 'Qui' },
+                        { day: 5, label: 'Sex' },
+                        { day: 6, label: 'Sáb' },
+                      ].map((item) => {
+                        const isChecked = companyForm.openDays.includes(item.day);
+                        return (
+                          <button
+                            key={item.day}
+                            type="button"
+                            onClick={() => {
+                              const newDays = isChecked
+                                ? companyForm.openDays.filter((d: number) => d !== item.day)
+                                : [...companyForm.openDays, item.day];
+                              setCompanyForm({ ...companyForm, openDays: newDays });
+                            }}
+                            className={`py-2 px-1 text-center rounded-xl text-xs font-bold transition border cursor-pointer ${
+                              isChecked
+                                ? 'bg-[#0b1c3f] text-[#d4af37] border-[#0b1c3f] shadow-xs'
+                                : 'bg-gray-100 text-gray-500 border-gray-200 hover:bg-gray-200'
+                            }`}
+                          >
+                            {item.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Times Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div>
+                      <label className="text-xs font-bold text-gray-700 block mb-1">Horário de Abertura</label>
+                      <input
+                        type="time"
+                        value={companyForm.openTime}
+                        onChange={(e) => setCompanyForm({ ...companyForm, openTime: e.target.value })}
+                        className="w-full p-2.5 rounded-xl border border-gray-200 text-sm font-bold outline-hidden"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-gray-700 block mb-1">Horário de Fechamento</label>
+                      <input
+                        type="time"
+                        value={companyForm.closeTime}
+                        onChange={(e) => setCompanyForm({ ...companyForm, closeTime: e.target.value })}
+                        className="w-full p-2.5 rounded-xl border border-gray-200 text-sm font-bold outline-hidden"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Force Status Mode */}
+                  <div>
+                    <label className="text-xs font-bold text-gray-700 block mb-1">Modo de Operação:</label>
+                    <select
+                      value={companyForm.forceStatus}
+                      onChange={(e) => setCompanyForm({ ...companyForm, forceStatus: e.target.value as any })}
+                      className="w-full p-2.5 rounded-xl border border-gray-200 text-xs font-bold bg-white outline-hidden"
+                    >
+                      <option value="auto">⏱️ Automático (Verificar dia e relógio)</option>
+                      <option value="force_open">🟢 Forçar Aberto Agora (Permitir pedidos imediatos)</option>
+                      <option value="force_closed">🔴 Forçar Fechado Agora (Permitir apenas agendamentos)</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div className="pt-3 border-t border-gray-100">

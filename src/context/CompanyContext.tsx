@@ -34,6 +34,12 @@ const DEFAULT_SETTINGS: CompanySettings = {
   pixBeneficiary: 'Massas da Vovó',
   adminUser: 'Admin',
   adminPass: '1234',
+  operatingHours: {
+    openDays: [2, 3, 4, 5, 6, 0], // Terça a Domingo
+    openTime: '18:00',
+    closeTime: '23:00',
+    forceStatus: 'auto',
+  },
 };
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
