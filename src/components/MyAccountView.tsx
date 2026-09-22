@@ -1,15 +1,19 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import { useTheme, ThemeMode } from '../context/ThemeContext';
 import { NEIGHBORHOODS, Order, OrderStatus } from '../types';
 import { RESTAURANT_INFO } from '../data';
 import { OrderReceiptModal } from './OrderReceiptModal';
+import { db } from '../lib/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
+import { normalizePhoneNumber, arePhonesEqual, formatWhatsappDisplay } from '../utils/phone';
 import { 
   User, Lock, Phone, MapPin, Plus, Trash2, LogOut, 
   Home, Briefcase, Tag, Sparkles, CheckCircle, AlertCircle, Loader2,
   Sun, Moon, Monitor, Palette, Clock, ChefHat, Bike, Check, XCircle,
-  Receipt, MessageCircle, ChevronRight, Package, ArrowUpRight, Calendar
+  Receipt, MessageCircle, ChevronRight, Package, ArrowUpRight, Calendar,
+  ShieldCheck, RefreshCw
 } from 'lucide-react';
 
 export const MyAccountView: React.FC = () => {
@@ -78,8 +82,6 @@ export const MyAccountView: React.FC = () => {
     }
   };
 
-  const normalizePhone = (p: string) => (p || '').replace(/\D/g, '');
-
   // Filter orders relevant to this user
   const userOrders = useMemo(() => {
     let localSavedIds: string[] = [];
@@ -89,35 +91,36 @@ export const MyAccountView: React.FC = () => {
       console.error(e);
     }
 
-    const currentWa = normalizePhone(userProfile?.whatsapp || '');
+    const currentWa = userProfile?.whatsapp || '';
     const currentName = (userProfile?.name || '').trim().toLowerCase();
-    const queryWa = normalizePhone(lookupPhone);
+    const queryWa = normalizePhoneNumber(lookupPhone);
     const queryTrimmed = lookupPhone.trim().toLowerCase();
 
     return orders.filter(o => {
-      // If user is logged in and order matches customerId
+      // 1. If user is logged in and order has their customerId
       if (currentUser?.uid && o.customerId === currentUser.uid) {
         return true;
       }
 
-      // If order ID or orderNumber was generated on this device
-      if (localSavedIds.includes(o.id) || localSavedIds.includes(o.orderNumber)) return true;
-
-      // If matches phone number from profile
-      const orderWa = normalizePhone(o.customerPhone);
-      if (currentWa && (orderWa === currentWa || orderWa.endsWith(currentWa) || currentWa.endsWith(orderWa))) {
+      // 2. If user is logged in and order matches their registered WhatsApp
+      if (currentWa && arePhonesEqual(o.customerPhone, currentWa)) {
         return true;
       }
 
-      // If user is searching by phone or comanda number
-      if (queryWa && (orderWa === queryWa || orderWa.includes(queryWa))) {
+      // 3. If order ID or orderNumber was generated on this device
+      if (localSavedIds.includes(o.id) || localSavedIds.includes(o.orderNumber)) {
+        return true;
+      }
+
+      // 4. If user is searching by phone or comanda number
+      if (queryWa && (normalizePhoneNumber(o.customerPhone) === queryWa || normalizePhoneNumber(o.customerPhone).includes(queryWa))) {
         return true;
       }
       if (queryTrimmed && (o.orderNumber.toLowerCase().includes(queryTrimmed) || o.id.toLowerCase().includes(queryTrimmed))) {
         return true;
       }
 
-      // If user is logged in and name matches
+      // 5. If user is logged in and name matches
       if (currentName && o.customerName.trim().toLowerCase() === currentName) {
         return true;
       }
@@ -125,6 +128,26 @@ export const MyAccountView: React.FC = () => {
       return false;
     });
   }, [orders, currentUser, userProfile, lookupPhone]);
+
+  // Auto-link any past orders made with this phone number to the user's account in Firestore
+  useEffect(() => {
+    if (!currentUser?.uid || !userProfile?.whatsapp) return;
+    const userPhone = userProfile.whatsapp;
+
+    orders.forEach(async (ord) => {
+      if (!ord.customerId && arePhonesEqual(ord.customerPhone, userPhone)) {
+        try {
+          const ordRef = doc(db, 'orders', ord.id);
+          await updateDoc(ordRef, { 
+            customerId: currentUser.uid,
+            customerPhoneClean: normalizePhoneNumber(userPhone)
+          });
+        } catch (e) {
+          // silently continue
+        }
+      }
+    });
+  }, [currentUser, userProfile, orders]);
 
   const clearForm = () => {
     setWhatsapp('');
@@ -569,12 +592,12 @@ export const MyAccountView: React.FC = () => {
               <User className="w-8 h-8" />
             </div>
             <h2 className="text-2xl font-black tracking-tight text-stone-900 dark:text-white">
-              {authMode === 'login' ? 'Entre na sua Conta' : 'Crie sua Conta'}
+              {authMode === 'login' ? 'Entre na sua Conta' : 'Crie sua Conta Única'}
             </h2>
             <p className="text-xs text-stone-600 dark:text-gray-300 mt-1 max-w-xs mx-auto leading-relaxed font-medium">
               {authMode === 'login' 
-                ? 'Acesse para salvar seus endereços e acompanhar seus pedidos em tempo real!' 
-                : 'Cadastre-se rapidinho e guarde seus endereços de Casa ou do Trabalho.'}
+                ? 'Sua conta única unifica seus pedidos e endereços ao seu WhatsApp em qualquer celular, computador ou app.' 
+                : 'Cadastre-se com seu WhatsApp e crie um PIN de 4 dígitos para acessar seu histórico em qualquer aparelho.'}
             </p>
           </div>
 
@@ -731,15 +754,17 @@ export const MyAccountView: React.FC = () => {
               {userProfile?.name?.charAt(0).toUpperCase() || currentUser?.email?.charAt(0).toUpperCase() || 'V'}
             </div>
             <div>
-              <div className="flex items-center gap-2 justify-center sm:justify-start">
+              <div className="flex items-center gap-2 justify-center sm:justify-start flex-wrap">
                 <h2 className="text-xl font-extrabold text-stone-900 dark:text-white">{userProfile?.name || 'Cliente da Vovó'}</h2>
-                <span className="inline-flex items-center gap-1 text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-400/20 dark:text-amber-300 dark:border-amber-400/30 rounded-full px-2.5 py-0.5">
-                  <Sparkles className="w-2.5 h-2.5 fill-amber-700 dark:fill-amber-400" />
-                  <span>VIP</span>
+                <span className="inline-flex items-center gap-1 text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-500/20 dark:text-emerald-300 dark:border-emerald-400/30 rounded-full px-2.5 py-0.5">
+                  <ShieldCheck className="w-3 h-3 text-emerald-700 dark:text-emerald-400" />
+                  <span>Conta Nuvem Conectada</span>
                 </span>
               </div>
-              <p className="text-xs text-stone-600 dark:text-gray-400 mt-0.5 font-medium">{currentUser?.email}</p>
-              <p className="text-xs text-stone-800 dark:text-stone-200 mt-1 font-bold">📲 WhatsApp: {userProfile?.whatsapp || 'Não informado'}</p>
+              <p className="text-xs text-stone-800 dark:text-stone-200 mt-1 font-bold flex items-center gap-1.5 justify-center sm:justify-start">
+                <Phone className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>WhatsApp: <strong>{formatWhatsappDisplay(userProfile?.whatsapp || '') || 'Não informado'}</strong></span>
+              </p>
             </div>
           </div>
 

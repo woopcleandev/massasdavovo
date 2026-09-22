@@ -3,6 +3,7 @@ import { CompanySettings, Order, OrderStatus, Product, CartItem } from '../types
 import { RESTAURANT_INFO, PRODUCTS } from '../data';
 import { db, auth, sanitizeFirestoreData } from '../lib/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, updateDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { normalizePhoneNumber } from '../utils/phone';
 
 interface CompanyContextType {
   settings: CompanySettings;
@@ -242,11 +243,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         const list: Order[] = [];
         snapshot.forEach(docSnap => {
           const d = docSnap.data();
+          const phone = d.customerPhone || '';
           list.push({
             id: docSnap.id,
             orderNumber: d.orderNumber || docSnap.id,
             customerName: d.customerName || '',
-            customerPhone: d.customerPhone || '',
+            customerPhone: phone,
+            customerPhoneClean: d.customerPhoneClean || normalizePhoneNumber(phone),
+            customerId: d.customerId || undefined,
             deliveryType: d.deliveryType || 'delivery',
             street: d.street,
             number: d.number,
@@ -259,6 +263,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
             deliveryFee: Number(d.deliveryFee) || 0,
             grandTotal: Number(d.grandTotal) || 0,
             status: d.status || 'novo',
+            schedule: d.schedule,
+            notes: d.notes,
             createdAt: d.createdAt?.toDate ? d.createdAt.toDate().toISOString() : (d.createdAt || new Date().toISOString()),
             updatedAt: d.updatedAt?.toDate ? d.updatedAt.toDate().toISOString() : (d.updatedAt || new Date().toISOString()),
           });
@@ -428,12 +434,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const id = `order-${Date.now()}`;
     const nowIso = new Date().toISOString();
     const currentUid = auth.currentUser?.uid || null;
+    const cleanPhone = normalizePhoneNumber(orderInput.customerPhone);
 
     const newOrder: Order = {
       ...orderInput,
       id,
       orderNumber,
       status: 'novo',
+      customerPhoneClean: cleanPhone,
       customerId: orderInput.customerId || (currentUid ? currentUid : undefined),
       createdAt: nowIso,
       updatedAt: nowIso,
@@ -457,6 +465,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const orderRef = doc(db, 'orders', id);
       const cleanedData = sanitizeFirestoreData({
         ...newOrder,
+        customerPhoneClean: cleanPhone,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

@@ -22,13 +22,14 @@ import {
 } from 'firebase/firestore';
 import { auth, db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { UserProfile, SavedAddress } from '../types';
+import { normalizePhoneNumber } from '../utils/phone';
 
 interface AuthContextType {
   currentUser: User | null;
   userProfile: UserProfile | null;
   savedAddresses: SavedAddress[];
   loading: boolean;
-  registerWithWhatsapp: (whatsapp: string, pin: string, name: string) => Promise<void>;
+  registerWithWhatsapp: (name: string, whatsapp: string, pin: string) => Promise<void>;
   loginWithWhatsapp: (whatsapp: string, pin: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (name: string, whatsapp: string) => Promise<void>;
@@ -142,21 +143,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Helper to format WhatsApp to dummy email for Firebase Auth
   const formatWhatsappToEmail = (whatsapp: string): string => {
-    const cleanNumber = whatsapp.replace(/\D/g, '');
+    const cleanNumber = normalizePhoneNumber(whatsapp);
     return `${cleanNumber}@massasdavovo.com`;
   };
 
   // Helper to format 4-digit PIN to unique password
   const formatPinToPassword = (pin: string, whatsapp: string): string => {
-    const cleanNumber = whatsapp.replace(/\D/g, '');
+    const cleanNumber = normalizePhoneNumber(whatsapp);
     return `vovo-pin-${pin}-${cleanNumber}`;
   };
 
   // Register with WhatsApp/PIN + Save Profile to Firestore
-  const registerWithWhatsapp = async (whatsapp: string, pin: string, name: string) => {
+  const registerWithWhatsapp = async (name: string, whatsapp: string, pin: string) => {
     setLoading(true);
     const usersPath = 'users';
     try {
+      const cleanNumber = normalizePhoneNumber(whatsapp);
+      if (cleanNumber.length < 10) {
+        throw new Error('Por favor, informe o WhatsApp com DDD (mínimo 10 dígitos).');
+      }
       const email = formatWhatsappToEmail(whatsapp);
       const password = formatPinToPassword(pin, whatsapp);
       
@@ -166,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const nowString = new Date().toISOString();
       const profileData: UserProfile = {
         id: uid,
-        name,
+        name: name.trim(),
         whatsapp,
         email,
         createdAt: nowString,
@@ -177,12 +182,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userDocRef = doc(db, usersPath, uid);
       await setDoc(userDocRef, {
         ...profileData,
+        whatsappClean: cleanNumber,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
 
       setUserProfile(profileData);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'auth/email-already-in-use') {
+        throw new Error('Este número de WhatsApp já possui uma conta cadastrada! Entre na aba de Login com seu PIN de 4 dígitos.');
+      }
+      if (error?.code === 'auth/weak-password') {
+        throw new Error('PIN inválido. Digite um PIN de 4 dígitos.');
+      }
       handleFirestoreError(error, OperationType.CREATE, usersPath);
     } finally {
       setLoading(false);
@@ -193,10 +205,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loginWithWhatsapp = async (whatsapp: string, pin: string) => {
     setLoading(true);
     try {
+      const cleanNumber = normalizePhoneNumber(whatsapp);
+      if (cleanNumber.length < 10) {
+        throw new Error('Informe seu WhatsApp com DDD completo.');
+      }
       const email = formatWhatsappToEmail(whatsapp);
       const password = formatPinToPassword(pin, whatsapp);
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
+    } catch (error: any) {
+      if (error?.code === 'auth/user-not-found' || error?.code === 'auth/wrong-password' || error?.code === 'auth/invalid-credential') {
+        throw new Error('WhatsApp ou PIN incorreto. Verifique os dados ou crie sua conta na aba Cadastrar.');
+      }
       throw error;
     } finally {
       setLoading(false);
@@ -227,6 +246,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const nowString = new Date().toISOString();
       const email = currentUser.email || `${whatsapp.replace(/\D/g, '')}@massasdavovo.com`;
 
+      const cleanNumber = normalizePhoneNumber(whatsapp);
       if (!userDocSnap.exists()) {
         const newProfile: UserProfile = {
           id: currentUser.uid,
@@ -238,6 +258,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         await setDoc(userDocRef, {
           ...newProfile,
+          whatsappClean: cleanNumber,
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
@@ -246,6 +267,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await updateDoc(userDocRef, {
           name,
           whatsapp,
+          whatsappClean: cleanNumber,
           updatedAt: serverTimestamp()
         });
         setUserProfile({

@@ -32,9 +32,10 @@ service cloud.firestore {
     // --- User Profile Validation ---
     function isValidUser(data) {
       return data.keys().hasAll(['name', 'whatsapp', 'email', 'createdAt', 'updatedAt'])
-        && data.keys().hasOnly(['name', 'whatsapp', 'email', 'createdAt', 'updatedAt', 'id'])
+        && data.keys().hasOnly(['name', 'whatsapp', 'whatsappClean', 'email', 'createdAt', 'updatedAt', 'id'])
         && data.name is string && data.name.size() >= 2 && data.name.size() <= 100
         && data.whatsapp is string && data.whatsapp.size() >= 8 && data.whatsapp.size() <= 20
+        && (!data.keys().contains('whatsappClean') || (data.whatsappClean is string && data.whatsappClean.size() <= 20))
         && data.email is string && data.email.size() <= 150
         && data.updatedAt == request.time;
     }
@@ -61,7 +62,7 @@ service cloud.firestore {
         && incoming().createdAt == request.time;
       allow update: if isOwner(userId) && isValidId(userId)
         && (
-          (incoming().diff(existing()).affectedKeys().hasOnly(['name', 'whatsapp', 'updatedAt'])
+          (incoming().diff(existing()).affectedKeys().hasOnly(['name', 'whatsapp', 'whatsappClean', 'updatedAt'])
             && incoming().name is string && incoming().name.size() >= 2 && incoming().name.size() <= 100
             && incoming().whatsapp is string && incoming().whatsapp.size() >= 8 && incoming().whatsapp.size() <= 20
             && incoming().updatedAt == request.time)

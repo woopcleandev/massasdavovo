@@ -94,6 +94,7 @@ export interface Order {
   orderNumber: string;
   customerName: string;
   customerPhone: string;
+  customerPhoneClean?: string;
   customerId?: string;
   deliveryType: 'delivery' | 'takeaway';
   street?: string;
@@ -108,6 +109,7 @@ export interface Order {
   grandTotal: number;
   status: OrderStatus;
   schedule?: OrderSchedule;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -152,6 +154,7 @@ export interface UserProfile {
   id: string;
   name: string;
   whatsapp: string;
+  whatsappClean?: string;
   email: string;
   createdAt: string;
   updatedAt: string;

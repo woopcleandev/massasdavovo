@@ -8,6 +8,7 @@
         "id": { "type": "string" },
         "name": { "type": "string", "minLength": 2, "maxLength": 100 },
         "whatsapp": { "type": "string", "minLength": 8, "maxLength": 20 },
+        "whatsappClean": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" }
@@ -73,6 +74,7 @@
         "orderNumber": { "type": "string" },
         "customerName": { "type": "string" },
         "customerPhone": { "type": "string" },
+        "customerPhoneClean": { "type": "string" },
         "customerId": { "type": "string" },
         "deliveryType": { "type": "string" },
         "paymentMethod": { "type": "string" },
@@ -80,6 +82,8 @@
         "deliveryFee": { "type": "number" },
         "grandTotal": { "type": "number" },
         "status": { "type": "string" },
+        "schedule": { "type": "object" },
+        "notes": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["orderNumber", "customerName", "customerPhone", "deliveryType", "paymentMethod", "grandTotal"]
