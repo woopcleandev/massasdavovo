@@ -3,24 +3,110 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Massas da Vovó — Cardápio Digital & Delivery</title>
-    <meta name="description" content="Cardápio digital PWA do restaurante Massas da Vovó em Primavera do Leste - MT. Peça massas artesanais, lasanhas recheadas e monte seu prato com envio rápido para WhatsApp." />
-    <meta property="og:title" content="Massas da Vovó — Cardápio Digital & Delivery" />
-    <meta property="og:description" content="Cardápio digital PWA do restaurante Massas da Vovó em Primavera do Leste - MT. Peça massas artesanais, lasanhas recheadas e monte seu prato com envio rápido para WhatsApp." />
-    <meta property="og:type" content="website" />
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>Massas da Vovó | Massas e Macarrão em Primavera do Leste - MT</title>
+    <meta name="title" content="Massas da Vovó | Massas e Macarrão em Primavera do Leste - MT" />
+    <meta name="description" content="O melhor de massas e macarrão em Primavera do Leste - MT na Massas da Vovó. Lasanhas recheadas, nhoques artesanais, rondelli, sorrentinos frescos e molhos caseiros. Peça pelo delivery ou retire no balcão!" />
+    <meta name="keywords" content="massas da vovo, massas da vovó, massas em primavera do leste mt, macarrao primavera do leste, macarrão em primavera do leste mt, delivery massas primavera do leste, lasanha primavera do leste, nhoque artesanal primavera do leste, capelete, tortei, rondelli" />
+    <meta name="author" content="Massas da Vovó" />
+    <meta name="robots" content="index, follow" />
+    <meta name="geo.region" content="BR-MT" />
+    <meta name="geo.placename" content="Primavera do Leste" />
+    <meta name="geo.position" content="-15.5564;-54.2982" />
+    <meta name="ICBM" content="-15.5564, -54.2982" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="restaurant" />
+    <meta property="og:site_name" content="Massas da Vovó" />
+    <meta property="og:title" content="Massas da Vovó | Massas e Macarrão em Primavera do Leste - MT" />
+    <meta property="og:description" content="Cardápio digital de massas artesanais, lasanhas, nhoques e rondelli em Primavera do Leste - MT. Peça online ou retire com praticidade!" />
+    <meta property="og:image" content="/logo.png" />
+    <meta property="og:locale" content="pt_BR" />
+
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#0d0f14" />
+    <meta name="twitter:title" content="Massas da Vovó | Massas e Macarrão em Primavera do Leste - MT" />
+    <meta name="twitter:description" content="Deliciosas massas e macarrão artesanal fresco em Primavera do Leste - MT. Lasanhas, nhoques e molhos especiais da Vovó." />
+    <meta name="twitter:image" content="/logo.png" />
+
+    <!-- PWA & Mobile Icons -->
+    <meta name="theme-color" content="#d97706" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Massas da Vovó" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="shortcut icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="shortcut icon" type="image/png" href="/logo.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Schema.org Structured Data (JSON-LD) for Local Restaurant & Italian Food -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Restaurant",
+      "name": "Massas da Vovó",
+      "alternateName": "Massas da Vovo Primavera do Leste",
+      "image": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800",
+      "description": "Restaurante e fábrica artesanal de massas e macarrão em Primavera do Leste - MT. Sorrentinos, nhoques, lasanhas caseiras, rondelli e molhos tradicionais.",
+      "servesCuisine": ["Italian", "Massas Artesanais", "Massas e Macarrão"],
+      "priceRange": "$$",
+      "telephone": "+55-66-9652-3006",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "Rua Manaus, 203",
+        "addressLocality": "Primavera do Leste",
+        "addressRegion": "MT",
+        "postalCode": "78850-000",
+        "addressCountry": "BR"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -15.5564,
+        "longitude": -54.2982
+      },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+          "opens": "09:00",
+          "closes": "17:30"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Friday",
+          "opens": "09:00",
+          "closes": "19:30"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Saturday",
+          "opens": "09:00",
+          "closes": "13:00"
+        }
+      ],
+      "hasMenu": {
+        "@type": "Menu",
+        "name": "Cardápio Massas da Vovó",
+        "hasMenuSection": [
+          {
+            "@type": "MenuSection",
+            "name": "Massas Frescas e Sorrentinos",
+            "description": "Sorrentino artesanal, Capeletes e Tortéis"
+          },
+          {
+            "@type": "MenuSection",
+            "name": "Lasanhas e Nhoques",
+            "description": "Lasanha à Bolonhesa, Quatro Queijos, Nhoque Tradicional e Batata Doce"
+          }
+        ]
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
-

@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCompany } from '../context/CompanyContext';
 import { Product, CategoryId, OrderItem, PaymentMethod, Order } from '../types';
-import { CATEGORIES } from '../data';
+import { playCashRegisterChime } from '../utils/audioAlerts';
 import { 
   ShoppingBag, 
   Search, 
@@ -35,44 +35,19 @@ interface PosDirectSaleViewProps {
 
 // Sound effect for POS sale completion (Cash Register bell chime via Web Audio)
 const playPosSuccessSound = () => {
-  try {
-    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-    if (!AudioContextClass) return;
-    const ctx = new AudioContextClass();
-
-    // Two pleasant high bell tones (C6 -> G6)
-    [1046.50, 1567.98].forEach((freq, idx) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.08);
-
-      gain.gain.setValueAtTime(0, ctx.currentTime + idx * 0.08);
-      gain.gain.linearRampToValueAtTime(0.4, ctx.currentTime + idx * 0.08 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.08 + 0.35);
-
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-
-      osc.start(ctx.currentTime + idx * 0.08);
-      osc.stop(ctx.currentTime + idx * 0.08 + 0.35);
-    });
-  } catch (e) {
-    console.warn('Audio not available:', e);
-  }
+  playCashRegisterChime();
 };
 
 export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleCompleted }) => {
-  const { allProducts, createDirectSale, settings } = useCompany();
+  const { allProducts, createDirectSale, categories, settings } = useCompany();
 
   // Search & Filter
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // POS Order Form State
-  const [saleType, setSaleType] = useState<'takeaway' | 'dine_in'>('takeaway');
-  const [tableNumber, setTableNumber] = useState('');
-  const [customerName, setCustomerName] = useState('');
+  // POS Fast Identifier State: Mesa, Comanda, Assento ou Nome
+  const [identifierType, setIdentifierType] = useState<'mesa' | 'comanda' | 'assento' | 'cliente'>('mesa');
+  const [identifierValue, setIdentifierValue] = useState<string>('01');
   const [customerPhone, setCustomerPhone] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
 
@@ -91,6 +66,8 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
   const [discountAmount, setDiscountAmount] = useState<string>('0');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saleSuccessMessage, setSaleSuccessMessage] = useState('');
+
+  const QUICK_NUMBERS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '15', '20'];
 
   // Filter products for display
   const filteredProducts = useMemo(() => {
@@ -168,9 +145,8 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
   // Clear ticket
   const handleClearTicket = () => {
     setTicketItems([]);
-    setCustomerName('');
+    setIdentifierValue(identifierType === 'cliente' ? '' : '01');
     setCustomerPhone('');
-    setTableNumber('');
     setOrderNotes('');
     setCashReceived('');
     setDiscountAmount('0');
@@ -181,7 +157,7 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
     setCashReceived(amount.toString());
   };
 
-  // Finalize Sale
+  // Finalize Sale (Passo 1: Enviar para Cozinha, ou Passo 2: Concluir / Pago)
   const handleCompleteSale = async (status: 'concluido' | 'preparo') => {
     if (ticketItems.length === 0) return;
     setIsSubmitting(true);
@@ -205,11 +181,19 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
         }
       }
 
+      const identifierLabel = identifierValue.trim() || (identifierType === 'cliente' ? 'Cliente Balcão' : '01');
+      const orderCustomerName = identifierType === 'mesa' ? `Mesa ${identifierLabel}` :
+                                identifierType === 'comanda' ? `Comanda ${identifierLabel}` :
+                                identifierType === 'assento' ? `Assento / Balcão ${identifierLabel}` :
+                                identifierLabel;
+
       const createdOrder = await createDirectSale({
-        customerName: customerName.trim() || (saleType === 'dine_in' ? `Mesa ${tableNumber || 'Balcão'}` : 'Cliente Balcão'),
+        customerName: orderCustomerName,
         customerPhone: customerPhone.trim(),
-        deliveryType: saleType,
-        tableNumber: saleType === 'dine_in' ? tableNumber : undefined,
+        deliveryType: identifierType === 'mesa' ? 'dine_in' : 'takeaway',
+        tableNumber: identifierType === 'mesa' ? identifierLabel : undefined,
+        posIdentifierType: identifierType,
+        posIdentifierValue: identifierLabel,
         paymentMethod,
         changeFor: changeNote || undefined,
         items: orderItems,
@@ -220,8 +204,11 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
       });
 
       playPosSuccessSound();
-      setSaleSuccessMessage(`Venda ${createdOrder.orderNumber} finalizada com sucesso!`);
-      setTimeout(() => setSaleSuccessMessage(''), 4000);
+      const successFeedback = status === 'preparo'
+        ? `👨‍🍳 Pedido ${createdOrder.orderNumber} enviado para a Cozinha com sucesso!`
+        : `✅ Venda ${createdOrder.orderNumber} concluída com sucesso!`;
+      setSaleSuccessMessage(successFeedback);
+      setTimeout(() => setSaleSuccessMessage(''), 5000);
 
       // Clean up form
       handleClearTicket();
@@ -317,18 +304,19 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
               >
                 Todos ({allProducts.length})
               </button>
-              {CATEGORIES.map(cat => (
+              {categories.map(cat => (
                 <button
                   key={cat.id}
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer flex items-center gap-1.5 ${
                     selectedCategory === cat.id
                       ? 'bg-amber-400 text-stone-950 font-black shadow-sm'
                       : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10'
                   }`}
                 >
-                  {cat.name}
+                  <span>{cat.icon}</span>
+                  <span>{cat.name}</span>
                 </button>
               ))}
             </div>
@@ -446,77 +434,92 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
                 )}
               </div>
 
-              {/* Service Type Buttons */}
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSaleType('takeaway')}
-                  className={`py-2 px-3 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 transition cursor-pointer border ${
-                    saleType === 'takeaway'
-                      ? 'bg-amber-400 text-stone-950 border-amber-500 shadow-md'
-                      : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-white/10'
-                  }`}
-                >
-                  <Store className="w-3.5 h-3.5" />
-                  <span>Balcão / Retirada</span>
-                </button>
+              {/* Identificador de Atendimento Rápido: Mesa, Comanda, Assento ou Nome */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase text-stone-500 dark:text-stone-400 tracking-wider">
+                    Identificador do Atendimento:
+                  </span>
+                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-400/10 px-2 py-0.5 rounded-full">
+                    {identifierType === 'mesa' ? `Mesa #${identifierValue}` :
+                     identifierType === 'comanda' ? `Comanda #${identifierValue}` :
+                     identifierType === 'assento' ? `Assento #${identifierValue}` :
+                     (identifierValue ? `Cliente: ${identifierValue}` : 'Sem identificação')}
+                  </span>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => setSaleType('dine_in')}
-                  className={`py-2 px-3 rounded-2xl text-xs font-black flex items-center justify-center gap-1.5 transition cursor-pointer border ${
-                    saleType === 'dine_in'
-                      ? 'bg-amber-400 text-stone-950 border-amber-500 shadow-md'
-                      : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 border-stone-200 dark:border-white/10'
-                  }`}
-                >
-                  <Utensils className="w-3.5 h-3.5" />
-                  <span>Mesa / Consumo Local</span>
-                </button>
-              </div>
+                {/* 4 Mode Pills */}
+                <div className="grid grid-cols-4 gap-1.5">
+                  {[
+                    { id: 'mesa', label: 'Mesa', icon: '🍽️' },
+                    { id: 'comanda', label: 'Comanda', icon: '📋' },
+                    { id: 'assento', label: 'Assento', icon: '🪑' },
+                    { id: 'cliente', label: 'Nome', icon: '👤' },
+                  ].map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => {
+                        setIdentifierType(t.id as any);
+                        if (t.id === 'cliente' && identifierValue === '01') setIdentifierValue('');
+                        if (t.id !== 'cliente' && !identifierValue) setIdentifierValue('01');
+                      }}
+                      className={`py-2 px-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer border ${
+                        identifierType === t.id
+                          ? 'bg-amber-400 text-stone-950 font-black border-amber-500 shadow-sm'
+                          : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 border-stone-200 dark:border-white/10'
+                      }`}
+                    >
+                      <span>{t.icon}</span>
+                      <span>{t.label}</span>
+                    </button>
+                  ))}
+                </div>
 
-              {/* Conditional Dine In Table Number */}
-              {saleType === 'dine_in' && (
-                <div className="flex items-center gap-2 animate-fade-in">
-                  <label className="text-xs font-bold text-stone-600 dark:text-stone-300 whitespace-nowrap">
-                    Nº da Mesa:
-                  </label>
+                {/* Identifier Input */}
+                <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    placeholder="Ex: 04"
-                    className="w-24 bg-stone-100 dark:bg-black/40 border border-stone-300 dark:border-white/15 rounded-xl py-1 px-3 text-xs font-black text-stone-900 dark:text-white text-center focus:outline-none focus:border-amber-400"
+                    value={identifierValue}
+                    onChange={(e) => setIdentifierValue(e.target.value)}
+                    placeholder={
+                      identifierType === 'mesa' ? 'Nº da Mesa (ex: 04, 12, Varanda 2...)' :
+                      identifierType === 'comanda' ? 'Nº da Comanda / Ficha (ex: 15, 23...)' :
+                      identifierType === 'assento' ? 'Nº do Assento / Banqueta (ex: 02, Balcão 1...)' :
+                      'Nome do Cliente (ex: Carlos Silva)'
+                    }
+                    className="flex-1 bg-stone-100 dark:bg-black/40 border-2 border-amber-400/50 rounded-2xl py-2 px-3 text-xs sm:text-sm font-black text-stone-900 dark:text-white focus:outline-none focus:border-amber-400 shadow-inner"
                   />
-                </div>
-              )}
 
-              {/* Optional Customer Identification */}
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div>
-                  <label className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase block mb-1">
-                    Cliente (Opcional):
-                  </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Nome do cliente"
-                    className="w-full bg-stone-100 dark:bg-black/30 border border-stone-200 dark:border-white/10 rounded-xl py-1.5 px-2.5 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-amber-400"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-stone-500 dark:text-stone-400 uppercase block mb-1">
-                    WhatsApp (Opcional):
-                  </label>
+                  {/* Optional quick phone for receipt */}
                   <input
                     type="text"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="(66) 99999-9999"
-                    className="w-full bg-stone-100 dark:bg-black/30 border border-stone-200 dark:border-white/10 rounded-xl py-1.5 px-2.5 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-amber-400"
+                    placeholder="WhatsApp (opcional)"
+                    className="w-36 bg-stone-100 dark:bg-black/30 border border-stone-200 dark:border-white/10 rounded-2xl py-2 px-2.5 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-amber-400 hidden sm:block"
                   />
                 </div>
+
+                {/* Fast Number Chips for Touchscreens */}
+                {identifierType !== 'cliente' && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                    {QUICK_NUMBERS.map(num => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setIdentifierValue(num)}
+                        className={`min-w-7 h-7 px-1.5 rounded-lg text-[11px] font-black shrink-0 transition cursor-pointer ${
+                          identifierValue === num
+                            ? 'bg-amber-400 text-stone-950 font-black shadow-xs ring-1 ring-amber-500'
+                            : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/15'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -681,28 +684,34 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* 2-Step Action Buttons: 1. Enviar para Cozinha, 2. Concluir / Pago */}
                 <div className="grid grid-cols-2 gap-2 pt-2">
                   <button
                     type="button"
                     disabled={isSubmitting}
                     onClick={() => handleCompleteSale('preparo')}
-                    className="py-3 px-3 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs transition shadow-md flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                    title="Envia para a cozinha em preparo e emite a comanda"
+                    className="py-3 px-2 rounded-2xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs transition shadow-md flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 disabled:opacity-50"
+                    title="Envia a comanda para a cozinha e gera o pedido em preparo"
                   >
-                    <ChefHat className="w-4 h-4" />
-                    <span>Lançar Cozinha</span>
+                    <div className="flex items-center gap-1.5">
+                      <ChefHat className="w-4 h-4" />
+                      <span>1. Enviar Cozinha</span>
+                    </div>
+                    <span className="text-[9px] font-normal opacity-90">Comanda em preparo</span>
                   </button>
 
                   <button
                     type="button"
                     disabled={isSubmitting}
                     onClick={() => handleCompleteSale('concluido')}
-                    className="py-3 px-3 rounded-2xl dark-glass-button-gold font-black text-xs transition shadow-lg flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
-                    title="Conclui a venda no caixa e imprime a comanda"
+                    className="py-3 px-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition shadow-lg flex flex-col items-center justify-center gap-0.5 cursor-pointer active:scale-95 disabled:opacity-50"
+                    title="Finaliza a venda no caixa e registra o pagamento"
                   >
-                    <Check className="w-4 h-4 text-stone-950 stroke-[3]" />
-                    <span>Concluir Venda</span>
+                    <div className="flex items-center gap-1.5">
+                      <Check className="w-4 h-4 stroke-[3]" />
+                      <span>2. Concluir / Pago</span>
+                    </div>
+                    <span className="text-[9px] font-normal opacity-90">Recebe no caixa</span>
                   </button>
                 </div>
               </div>

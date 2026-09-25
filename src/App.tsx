@@ -25,12 +25,12 @@ import { MasterAdminView } from './components/MasterAdminView';
 import { BuyWebsiteModal } from './components/BuyWebsiteModal';
 
 function MainApp() {
-  const { allProducts, settings } = useCompany();
+  const { allProducts, settings, categories } = useCompany();
   const { themeMode, setThemeMode, resolvedTheme } = useTheme();
 
   // Navigation & filtering state
   const [activeTab, setActiveTab] = useState<'menu' | 'about' | 'account'>('menu');
-  const [selectedCategory, setSelectedCategory] = useState<CategoryId | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopularOnly, setFilterPopularOnly] = useState(false);
 
@@ -399,7 +399,7 @@ function MainApp() {
             {/* B. Category Squircle Bar (Rounded smoothly) */}
             <div className="w-full overflow-hidden">
               <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
-                {CATEGORIES.map((category) => {
+                {categories.map((category) => {
                   const isSelected = selectedCategory === category.id;
                   const categoryCount = allProducts.filter(p => p.categoryId === category.id).length;
 

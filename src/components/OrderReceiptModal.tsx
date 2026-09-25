@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
+import { formatExactDateTime } from '../utils/date';
 import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink, Trash2 } from 'lucide-react';
 
 interface OrderReceiptModalProps {
@@ -18,18 +19,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
   };
 
   const formatDate = (iso: string) => {
-    try {
-      const d = new Date(iso);
-      return d.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return iso;
-    }
+    return formatExactDateTime(iso);
   };
 
   const getPaymentLabel = () => {

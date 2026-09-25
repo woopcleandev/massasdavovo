@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
-import { CheckCircle2, Copy, Check, Send, Receipt, ArrowRight, Clock, Star, ExternalLink, Calendar } from 'lucide-react';
+import { CheckCircle2, Copy, Check, Send, Receipt, ArrowRight, Clock, Star, ExternalLink, Calendar, X, Utensils, Home } from 'lucide-react';
 import { OrderReceiptModal } from './OrderReceiptModal';
+import { formatExactDateTime } from '../utils/date';
 
 interface OrderSuccessModalProps {
   order: Order;
@@ -33,23 +34,39 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const isPixDelivery = order.paymentMethod === 'pix_delivery';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-4 overflow-y-auto">
+      {/* Backdrop click to dismiss */}
       <div className="fixed inset-0 -z-10" onClick={onClose} />
 
-      <div className="dark-glass-panel rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in my-8 border border-white/10 flex flex-col text-left text-white">
+      <div className="dark-glass-panel rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-scale-in my-6 border border-white/15 flex flex-col text-left text-white relative">
+        
+        {/* Prominent Quick Close Button in Header */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition active:scale-95 cursor-pointer border border-white/10"
+          title="Fechar tela e voltar ao cardápio"
+          aria-label="Fechar tela"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
         {/* Top Success Banner */}
-        <div className="bg-black/60 backdrop-blur-md text-white p-6 text-center relative border-b border-white/10">
-          <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 ring-8 ring-emerald-500/10">
+        <div className="bg-gradient-to-b from-stone-900 via-stone-950 to-stone-900 p-6 text-center relative border-b border-white/10 pt-7">
+          <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 ring-8 ring-emerald-500/10 shadow-lg animate-bounce-subtle">
             <CheckCircle2 className="w-9 h-9 text-emerald-400" />
           </div>
-          <h2 className="text-xl font-black tracking-tight text-white">Pedido Enviado com Sucesso!</h2>
-          <p className="text-xs text-gray-300 mt-1">
-            Comanda <strong className="text-amber-400 font-mono text-sm">{order.orderNumber}</strong> gerada com carinho.
+          <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">Pedido Enviado com Sucesso!</h2>
+          <p className="text-xs sm:text-sm text-amber-300 font-bold mt-1">
+            Comanda <span className="font-mono bg-amber-400/20 text-amber-300 px-2.5 py-0.5 rounded-full border border-amber-400/30">{order.orderNumber}</span>
+          </p>
+          <p className="text-[11px] text-stone-400 mt-1.5 flex items-center justify-center gap-1.5 font-medium">
+            <Clock className="w-3.5 h-3.5 text-stone-500" />
+            <span>Registrado em: {formatExactDateTime(order.createdAt)}</span>
           </p>
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-4">
+        <div className="p-5 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
           {/* Scheduled Order Highlight Card */}
           {order.schedule?.isScheduled && (
             <div className="bg-amber-500/15 border border-amber-400/40 rounded-2xl p-4 text-xs space-y-1 text-amber-200">
@@ -64,19 +81,19 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
           )}
 
           {/* WhatsApp Direct Action Button */}
-          <div className="bg-emerald-950/30 border border-emerald-500/30 rounded-2xl p-4 text-emerald-200 text-xs space-y-3">
+          <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-4 text-emerald-200 text-xs space-y-3 shadow-inner">
             <div className="flex items-center gap-2 font-bold text-emerald-300">
               <span className="text-base">📱</span>
               <span>Finalização via WhatsApp</span>
             </div>
-            <p className="text-emerald-200/80 leading-relaxed text-[11px]">
+            <p className="text-emerald-200/90 leading-relaxed text-[11px]">
               Se o WhatsApp não abriu automaticamente no seu aparelho, clique no botão verde abaixo para enviar os detalhes do seu pedido para nossa equipe:
             </p>
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm py-3.5 px-4 rounded-xl shadow-md transition-all active:scale-98"
+              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm py-3.5 px-4 rounded-xl shadow-md transition-all active:scale-98 cursor-pointer"
             >
               <Send className="w-4 h-4 fill-white" />
               <span>Abrir WhatsApp da Vovó</span>
@@ -168,23 +185,35 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
             </a>
           </div>
 
-          {/* Order Summary & Actions */}
-          <div className="flex items-center gap-2 pt-1">
-            <button
-              onClick={() => setShowReceipt(true)}
-              className="flex-1 flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl border border-white/15 hover:bg-white/10 text-gray-200 font-bold text-xs transition cursor-pointer"
-            >
-              <Receipt className="w-4 h-4 text-gray-400" />
-              <span>Ver Comanda</span>
-            </button>
-
+          {/* Quick Exit Navigation Buttons */}
+          <div className="pt-2 space-y-2">
+            {/* Big Primary Exit Button */}
             <button
               onClick={onClose}
-              className="flex-1 flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl bg-white/15 hover:bg-white/20 text-white font-bold text-xs transition shadow-sm cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-2xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-sm shadow-xl transition active:scale-98 cursor-pointer"
             >
-              <span>Voltar ao Cardápio</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <Home className="w-4 h-4" />
+              <span>Voltar ao Cardápio Inicial</span>
+              <ArrowRight className="w-4 h-4 ml-1" />
             </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowReceipt(true)}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-white/20 hover:bg-white/10 text-gray-200 font-bold text-xs transition cursor-pointer"
+              >
+                <Receipt className="w-3.5 h-3.5 text-gray-400" />
+                <span>Ver Comanda Completa</span>
+              </button>
+
+              <button
+                onClick={onClose}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs transition cursor-pointer border border-white/10"
+              >
+                <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                <span>Pedir Mais Pratos</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

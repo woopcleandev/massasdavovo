@@ -19,8 +19,8 @@ export const RESTAURANT_INFO = {
   whatsappNumber: '556696523006', // used for send wa links
   address: 'Rua Manaus, 203, Primavera do Leste - MT',
   googleMapsLink: 'https://maps.app.goo.gl/hecpUqJLLVd8EghW9',
-  hours: 'Terça a Domingo: 18:00 às 23:00',
-  description: 'Massas artesanais frescas feitas com todo carinho de vó. Massas recheadas, lasanhas, molhos rústicos e muito sabor em Primavera do Leste.',
+  hours: 'Seg a Qui: 09:00–17:30 • Sex: 09:00–19:30 • Sáb: 09:00–13:00 (Dom: Fechado)',
+  description: 'Massas e macarrão artesanais frescos em Primavera do Leste - MT. Lasanhas, nhoques, rondelli, sorrentinos e molhos rústicos.',
 };
 
 export const CATEGORIES = [

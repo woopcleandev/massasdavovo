@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useCompany } from '../context/CompanyContext';
 import { Order, Product, CashMovement } from '../types';
+import { formatExactDateTime, formatShortDateTime } from '../utils/date';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -58,36 +59,46 @@ export const ErpDashboardView: React.FC = () => {
   };
 
   const formatDate = (iso: string) => {
-    try {
-      const d = new Date(iso);
-      return d.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return iso;
-    }
+    return formatExactDateTime(iso);
   };
 
-  // Filter orders by period
+  // Filter orders by period with start/end boundaries
   const filteredOrders = useMemo(() => {
     if (periodFilter === 'all') return orders;
 
     const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
     const sevenDaysAgo = startOfToday - (7 * 24 * 60 * 60 * 1000);
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0).getTime();
 
     return orders.filter(o => {
       const orderTime = new Date(o.createdAt).getTime();
+      if (isNaN(orderTime)) return true;
       if (periodFilter === 'today') return orderTime >= startOfToday;
       if (periodFilter === '7days') return orderTime >= sevenDaysAgo;
       if (periodFilter === 'month') return orderTime >= startOfMonth;
       return true;
     });
   }, [orders, periodFilter]);
+
+  // Filter cash movements by period as well
+  const filteredCashMovements = useMemo(() => {
+    if (periodFilter === 'all') return cashMovements;
+
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
+    const sevenDaysAgo = startOfToday - (7 * 24 * 60 * 60 * 1000);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0).getTime();
+
+    return cashMovements.filter(m => {
+      const movementTime = new Date(m.timestamp).getTime();
+      if (isNaN(movementTime)) return true;
+      if (periodFilter === 'today') return movementTime >= startOfToday;
+      if (periodFilter === '7days') return movementTime >= sevenDaysAgo;
+      if (periodFilter === 'month') return movementTime >= startOfMonth;
+      return true;
+    });
+  }, [cashMovements, periodFilter]);
 
   // Financial Metrics Calculation
   const metrics = useMemo(() => {
@@ -150,7 +161,7 @@ export const ErpDashboardView: React.FC = () => {
 
     // Cash Drawer Balance (Dinheiro em Caixa)
     let totalCashDrawer = cashRevenue;
-    cashMovements.forEach(m => {
+    filteredCashMovements.forEach(m => {
       if (m.type === 'suprimento') totalCashDrawer += m.amount;
       if (m.type === 'sangria') totalCashDrawer -= m.amount;
     });
@@ -169,7 +180,7 @@ export const ErpDashboardView: React.FC = () => {
       topProducts,
       totalCashDrawer,
     };
-  }, [filteredOrders, cashMovements]);
+  }, [filteredOrders, filteredCashMovements]);
 
   // Handle cash movement submission
   const handleAddCashMovement = async (e: React.FormEvent) => {

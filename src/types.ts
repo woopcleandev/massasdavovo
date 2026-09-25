@@ -11,6 +11,13 @@ export enum CategoryId {
   BEBIDAS = 'bebidas',
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  isCustom?: boolean;
+}
+
 export interface CustomizationOption {
   id: string;
   name: string;
@@ -19,7 +26,7 @@ export interface CustomizationOption {
 
 export interface Product {
   id: string;
-  categoryId: CategoryId;
+  categoryId: string; // Accepts CategoryId or custom category id
   name: string;
   description: string;
   price: number; // Base price for default option
@@ -101,6 +108,8 @@ export interface Order {
   customerId?: string;
   deliveryType: 'delivery' | 'takeaway' | 'dine_in';
   tableNumber?: string;
+  posIdentifierType?: 'mesa' | 'comanda' | 'assento' | 'cliente';
+  posIdentifierValue?: string;
   origin?: 'web' | 'pos';
   street?: string;
   number?: string;

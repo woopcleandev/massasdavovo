@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useCompany } from '../context/CompanyContext';
 import { useTheme, ThemeMode } from '../context/ThemeContext';
 import { CategoryId, Order, OrderStatus, Product } from '../types';
@@ -7,6 +7,8 @@ import { OrderReceiptModal } from './OrderReceiptModal';
 import { PosDirectSaleView } from './PosDirectSaleView';
 import { ErpDashboardView } from './ErpDashboardView';
 import { formatWhatsappDisplay } from '../utils/phone';
+import { playAdminNewOrderAlarm, unlockAudioContext } from '../utils/audioAlerts';
+import { formatExactDateTime } from '../utils/date';
 import { 
   ShieldCheck, 
   Lock, 
@@ -43,7 +45,10 @@ import {
   Monitor,
   Store,
   BarChart3,
-  X
+  X,
+  Volume2,
+  VolumeX,
+  BellRing
 } from 'lucide-react';
 
 const PRESET_PASTA_IMAGES = [
@@ -54,6 +59,17 @@ const PRESET_PASTA_IMAGES = [
   { label: 'Molhos & Carnes', url: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&q=80&w=600' },
 ];
 
+export const EMOJI_PALETTE = [
+  // Massas, Salgados & Comidas Quentes
+  '🍝', '🍕', '🥟', '🍲', '🍜', '🥘', '🥩', '🍗', '🍖', '🍔', '🥪', '🌮', '🌯', '🍳', '🧀', '🥗', '🌭',
+  // Doces, Bolos & Sobremesas
+  '🍰', '🎂', '🧁', '🍨', '🍧', '🍮', '🍪', '🍩', '🍫', '🥐', '🥞', '🥨', '🥖', '🥧',
+  // Bebidas & Sucos
+  '🥤', '🧃', '🍷', '🍺', '🍹', '☕', '🧋', '🍾', '🥛',
+  // Símbolos, Frutas & Destaques
+  '🍽️', '🥣', '📦', '🆕', '🥇', '⭐', '🔥', '🏷️', '🍓', '🍋', '🍇'
+];
+
 interface MasterAdminViewProps {
   onBackToMenu: () => void;
 }
@@ -62,6 +78,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   const {
     settings,
     updateSettings,
+    categories,
+    addCategory,
+    deleteCategory,
     allProducts,
     addProduct,
     updateProduct,
@@ -99,12 +118,18 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   // Menu Category Filter
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('todos');
 
+  // Custom Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('🍝');
+  const [isSavingCategory, setIsSavingCategory] = useState(false);
+
   // Menu item modal state
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [editingProductId, setEditingProductId] = useState<string | null>(null);
   const [productForm, setProductForm] = useState({
     name: '',
-    categoryId: CategoryId.LASANHAS,
+    categoryId: 'lasanhas',
     description: '',
     price: '',
     image: '',
@@ -114,6 +139,23 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatName.trim()) return;
+    setIsSavingCategory(true);
+    try {
+      const created = await addCategory(newCatName.trim(), newCatIcon.trim() || '🍽️');
+      setIsCategoryModalOpen(false);
+      setNewCatName('');
+      setProductSuccess(`Categoria "${created.name}" criada com sucesso com o emoji ${created.icon}!`);
+      setTimeout(() => setProductSuccess(''), 4000);
+    } catch (err) {
+      console.error('Erro ao criar categoria:', err);
+    } finally {
+      setIsSavingCategory(false);
+    }
+  };
 
   // Settings form state
   const [productSuccess, setProductSuccess] = useState('');
@@ -136,22 +178,50 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   const [confirmPass, setConfirmPass] = useState('');
   const [credMessage, setCredMessage] = useState({ text: '', type: '' });
 
+  // Admin Incoming Order Alarm State
+  const [alarmEnabled, setAlarmEnabled] = useState(true);
+  const [alarmPlayingTest, setAlarmPlayingTest] = useState(false);
+  const knownOrderIdsRef = useRef<Set<string>>(new Set());
+  const initialMountRef = useRef(false);
+
+  // Monitor incoming orders to play LOUD admin buzzer / bell
+  useEffect(() => {
+    if (orders.length === 0) return;
+
+    if (!initialMountRef.current) {
+      orders.forEach(o => knownOrderIdsRef.current.add(o.id));
+      initialMountRef.current = true;
+      return;
+    }
+
+    let hasNewArrival = false;
+    orders.forEach(o => {
+      if (!knownOrderIdsRef.current.has(o.id)) {
+        knownOrderIdsRef.current.add(o.id);
+        if (o.status === 'novo') {
+          hasNewArrival = true;
+        }
+      }
+    });
+
+    if (hasNewArrival && alarmEnabled) {
+      playAdminNewOrderAlarm();
+    }
+  }, [orders, alarmEnabled]);
+
+  const handleTestAlarm = () => {
+    unlockAudioContext();
+    playAdminNewOrderAlarm();
+    setAlarmPlayingTest(true);
+    setTimeout(() => setAlarmPlayingTest(false), 2000);
+  };
+
   const formatPrice = (val: number) => {
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  const formatDate = (iso: string) => {
-    try {
-      const d = new Date(iso);
-      return d.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch {
-      return iso;
-    }
+  const formatDate = (iso?: string | null) => {
+    return formatExactDateTime(iso);
   };
 
   // Handle Login
@@ -474,6 +544,34 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
             </div>
 
             <div className="flex items-center gap-2 flex-wrap">
+              {/* Loud Admin Order Alarm Toggle & Test */}
+              <div className="flex items-center gap-1.5 bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-full p-1">
+                <button
+                  type="button"
+                  onClick={() => setAlarmEnabled(!alarmEnabled)}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition cursor-pointer ${
+                    alarmEnabled
+                      ? 'bg-amber-400 text-stone-950 font-black shadow-xs'
+                      : 'bg-stone-200 dark:bg-white/10 text-stone-500'
+                  }`}
+                  title={alarmEnabled ? 'Alarme sonoro alto de novos pedidos ativado' : 'Alarme sonoro desativado'}
+                >
+                  {alarmEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+                  <span className="hidden sm:inline">{alarmEnabled ? 'Som Alto Ativo' : 'Mudo'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleTestAlarm}
+                  className={`p-1.5 rounded-full hover:bg-stone-200 dark:hover:bg-white/15 text-stone-700 dark:text-stone-300 transition cursor-pointer ${
+                    alarmPlayingTest ? 'animate-bounce text-amber-500' : ''
+                  }`}
+                  title="Testar toque de campainha potente de novos pedidos"
+                >
+                  <BellRing className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               {/* Theme Selector Compact Pills */}
               <div className="flex items-center bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 rounded-full p-1 gap-1">
                 <button
@@ -752,14 +850,24 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                               <span>{statusInfo.label}</span>
                             </span>
 
-                            {/* Delivery or Takeaway */}
-                            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${
-                              ord.deliveryType === 'delivery' 
-                                ? 'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-400/30' 
-                                : 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-400/30'
-                            }`}>
-                              {ord.deliveryType === 'delivery' ? '🚀 Entrega' : '🏪 Retirada'}
-                            </span>
+                            {/* Delivery, Takeaway or In-Store Identifier */}
+                            {ord.origin === 'pos' || ord.posIdentifierType || ord.tableNumber || ord.deliveryType === 'dine_in' ? (
+                              <span className="text-[11px] font-black px-2.5 py-1 rounded-full border bg-amber-400 text-stone-950 border-amber-500 shadow-sm flex items-center gap-1">
+                                {ord.posIdentifierType === 'mesa' ? `🍽️ Mesa ${ord.posIdentifierValue || ord.tableNumber || ''}` :
+                                 ord.posIdentifierType === 'comanda' ? `📋 Comanda ${ord.posIdentifierValue || ''}` :
+                                 ord.posIdentifierType === 'assento' ? `🪑 Assento ${ord.posIdentifierValue || ''}` :
+                                 ord.tableNumber ? `🍽️ Mesa ${ord.tableNumber}` :
+                                 '🛒 Venda Balcão'}
+                              </span>
+                            ) : (
+                              <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${
+                                ord.deliveryType === 'delivery' 
+                                  ? 'bg-sky-100 text-sky-900 border-sky-300 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-400/30' 
+                                  : 'bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-400/30'
+                              }`}>
+                                {ord.deliveryType === 'delivery' ? '🚀 Entrega' : '🏪 Retirada'}
+                              </span>
+                            )}
 
                             {/* Scheduled order highlight */}
                             {ord.schedule?.isScheduled && (
@@ -851,12 +959,23 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                                  ord.paymentMethod === 'credit' ? '💳 Cartão de Crédito' : '💳 Cartão de Débito'}
                               </span>
                             </p>
-                            {ord.deliveryType === 'delivery' && (
-                              <p className="text-stone-700 dark:text-stone-300 leading-snug">
-                                <strong className="text-stone-500 dark:text-stone-400">Endereço:</strong>{' '}
-                                {ord.street}, {ord.number} - {ord.neighborhood}
-                                {ord.reference && <span className="text-stone-500 dark:text-stone-400 block text-[11px] mt-0.5">Ref: {ord.reference}</span>}
+                            {ord.origin === 'pos' || ord.posIdentifierType || ord.deliveryType === 'dine_in' ? (
+                              <p className="text-amber-800 dark:text-amber-300 font-bold bg-amber-50 dark:bg-amber-400/10 p-2 rounded-xl border border-amber-200 dark:border-amber-400/20 text-[11px] mt-1">
+                                Atendimento Presencial • {
+                                  ord.posIdentifierType === 'mesa' ? `Mesa ${ord.posIdentifierValue || ord.tableNumber}` :
+                                  ord.posIdentifierType === 'comanda' ? `Comanda ${ord.posIdentifierValue}` :
+                                  ord.posIdentifierType === 'assento' ? `Assento ${ord.posIdentifierValue}` :
+                                  `Balcão (${ord.customerName})`
+                                }
                               </p>
+                            ) : (
+                              ord.deliveryType === 'delivery' && (
+                                <p className="text-stone-700 dark:text-stone-300 leading-snug">
+                                  <strong className="text-stone-500 dark:text-stone-400">Endereço:</strong>{' '}
+                                  {ord.street}, {ord.number} - {ord.neighborhood}
+                                  {ord.reference && <span className="text-stone-500 dark:text-stone-400 block text-[11px] mt-0.5">Ref: {ord.reference}</span>}
+                                </p>
+                              )
                             )}
                           </div>
                         </div>
@@ -870,13 +989,19 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                         </span>
 
                         <div className="flex flex-wrap items-center gap-1.5">
-                          {([
+                          {((ord.origin === 'pos' || ord.posIdentifierType ? [
+                            { st: 'novo', label: '1. Criado' },
+                            { st: 'preparo', label: '👨‍🍳 2. Na Cozinha' },
+                            { st: 'entrega', label: '🔔 3. Pronto' },
+                            { st: 'concluido', label: '✅ 4. Pago' },
+                            { st: 'cancelado', label: 'Cancelar' }
+                          ] : [
                             { st: 'novo', label: '1. Recebido' },
-                            { st: 'preparo', label: '2. Preparo' },
+                            { st: 'preparo', label: '2. Em Preparo' },
                             { st: 'entrega', label: '3. Em Rota' },
                             { st: 'concluido', label: '4. Concluído' },
                             { st: 'cancelado', label: 'Cancelar' }
-                          ] as { st: OrderStatus; label: string }[]).map(item => (
+                          ]) as { st: OrderStatus; label: string }[]).map(item => (
                             <button
                               key={item.st}
                               onClick={() => updateOrderStatus(ord.id, item.st)}
@@ -922,31 +1047,47 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               </div>
             )}
 
-            {/* Menu Header & Add Button */}
+            {/* Menu Header & Buttons */}
             <div className="dark-glass-panel p-5 sm:p-6 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-base font-black text-stone-900 dark:text-white">Cardápio do Restaurante</h2>
-                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">Adicione pratos com fotos da galeria, câmera ou links da internet</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">Crie novas categorias com emojis personalizados e cadastre seus pratos</p>
               </div>
 
-              <button
-                onClick={() => {
-                  setEditingProductId(null);
-                  setProductForm({
-                    name: '',
-                    categoryId: CategoryId.LASANHAS,
-                    description: '',
-                    price: '',
-                    image: '',
-                    isPopular: false,
-                  });
-                  setIsProductModalOpen(true);
-                }}
-                className="flex items-center gap-2 dark-glass-button-gold font-black text-xs py-3 px-5 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
-              >
-                <Plus className="w-4 h-4 text-stone-950" />
-                <span>Adicionar Novo Prato</span>
-              </button>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewCatName('');
+                    setNewCatIcon('🍝');
+                    setIsCategoryModalOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 bg-stone-100 dark:bg-white/10 hover:bg-stone-200 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs py-3 px-4 rounded-full border border-stone-300 dark:border-white/10 transition active:scale-98 cursor-pointer shadow-sm"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                  <span>+ Nova Categoria (com Emoji)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProductId(null);
+                    setProductForm({
+                      name: '',
+                      categoryId: categories[0]?.id || 'lasanhas',
+                      description: '',
+                      price: '',
+                      image: '',
+                      isPopular: false,
+                    });
+                    setIsProductModalOpen(true);
+                  }}
+                  className="flex items-center gap-2 dark-glass-button-gold font-black text-xs py-3 px-5 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 text-stone-950" />
+                  <span>Adicionar Novo Prato</span>
+                </button>
+              </div>
             </div>
 
             {/* Category Filter Pills */}
@@ -961,19 +1102,36 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               >
                 Todos ({allProducts.length})
               </button>
-              {CATEGORIES.map(cat => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategoryFilter(cat.id)}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                    selectedCategoryFilter === cat.id
-                      ? 'bg-amber-400 text-stone-950 font-black shadow-md'
-                      : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10'
-                  }`}
-                >
-                  <span>{cat.icon}</span>
-                  <span>{cat.name}</span>
-                </button>
+              {categories.map(cat => (
+                <div key={cat.id} className="relative group/cat shrink-0">
+                  <button
+                    onClick={() => setSelectedCategoryFilter(cat.id)}
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      selectedCategoryFilter === cat.id
+                        ? 'bg-amber-400 text-stone-950 font-black shadow-md'
+                        : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10'
+                    }`}
+                  >
+                    <span>{cat.icon}</span>
+                    <span>{cat.name}</span>
+                  </button>
+                  {cat.isCustom && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Deseja remover a categoria personalizada "${cat.name}"?`)) {
+                          deleteCategory(cat.id);
+                          if (selectedCategoryFilter === cat.id) setSelectedCategoryFilter('todos');
+                        }
+                      }}
+                      className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 hover:bg-rose-600 text-white rounded-full flex items-center justify-center text-[9px] shadow-md opacity-0 group-hover/cat:opacity-100 transition cursor-pointer"
+                      title="Excluir categoria personalizada"
+                    >
+                      <X className="w-2.5 h-2.5" />
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
 
@@ -1384,11 +1542,11 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                   <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">Categoria</label>
                   <select
                     value={productForm.categoryId}
-                    onChange={(e) => setProductForm({ ...productForm, categoryId: e.target.value as CategoryId })}
+                    onChange={(e) => setProductForm({ ...productForm, categoryId: e.target.value })}
                     className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-stone-900 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-bold focus:border-amber-500 outline-none"
                   >
-                    {CATEGORIES.map(c => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                    {categories.map(c => (
+                      <option key={c.id} value={c.id}>{c.icon} {c.name}</option>
                     ))}
                   </select>
                 </div>
@@ -1523,6 +1681,116 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                     <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
                   ) : (
                     <span>{editingProductId ? 'Salvar Alterações' : 'Inserir Prato no Cardápio'}</span>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: ADICIONAR NOVA CATEGORIA COM EMOJI */}
+      {/* ============================================================ */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
+          <div className="fixed inset-0 -z-10" onClick={() => setIsCategoryModalOpen(false)} />
+
+          <div className="dark-glass-panel rounded-3xl w-full max-w-md shadow-2xl border border-stone-200 dark:border-white/10 overflow-hidden animate-scale-in my-8 text-left text-stone-900 dark:text-white">
+            <div className="p-6 border-b border-stone-200 dark:border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-black text-stone-900 dark:text-white flex items-center gap-2">
+                  <span className="text-xl">{newCatIcon}</span>
+                  <span>Nova Categoria</span>
+                </h3>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">
+                  Crie uma categoria personalizada para organizar seus pratos
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsCategoryModalOpen(false)}
+                className="p-2 rounded-full hover:bg-stone-100 dark:hover:bg-white/10 text-stone-500 dark:text-stone-400 transition cursor-pointer"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategory} className="p-6 space-y-4">
+              {/* Category Name */}
+              <div>
+                <label className="text-xs font-bold text-stone-700 dark:text-stone-300 block mb-1">Nome da Categoria</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ex: Risotos Especiais, Saladas, Sopas..."
+                  value={newCatName}
+                  onChange={(e) => setNewCatName(e.target.value)}
+                  className="w-full p-3 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white text-xs font-bold focus:border-amber-500 outline-none"
+                  autoFocus
+                />
+              </div>
+
+              {/* Selected Emoji Preview & Custom Emoji Input */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-bold text-stone-700 dark:text-stone-300">Emoji da Categoria</label>
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">Emoji selecionado: <strong className="text-base ml-1">{newCatIcon}</strong></span>
+                </div>
+
+                {/* Quick Emoji Palette Grid */}
+                <div className="bg-stone-100 dark:bg-black/40 p-2.5 rounded-2xl border border-stone-200 dark:border-white/10 max-h-40 overflow-y-auto custom-scrollbar">
+                  <div className="grid grid-cols-8 gap-1">
+                    {EMOJI_PALETTE.map((emoji, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setNewCatIcon(emoji)}
+                        className={`w-9 h-9 rounded-xl text-lg flex items-center justify-center transition cursor-pointer ${
+                          newCatIcon === emoji
+                            ? 'bg-amber-400 text-stone-950 scale-110 shadow-md ring-2 ring-amber-500'
+                            : 'hover:bg-stone-200 dark:hover:bg-white/10'
+                        }`}
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400 whitespace-nowrap">Ou digite um emoji:</span>
+                  <input
+                    type="text"
+                    value={newCatIcon}
+                    onChange={(e) => setNewCatIcon(e.target.value)}
+                    maxLength={4}
+                    placeholder="🍲"
+                    className="w-16 p-1.5 text-center text-base rounded-xl bg-stone-50 dark:bg-white/5 border border-stone-300 dark:border-white/10 text-stone-900 dark:text-white font-bold outline-none focus:border-amber-500"
+                  />
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="w-1/3 py-3 px-4 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs transition cursor-pointer"
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isSavingCategory || !newCatName.trim()}
+                  className="flex-1 py-3 px-6 dark-glass-button-gold font-black rounded-full text-xs shadow-lg transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSavingCategory ? (
+                    <Loader2 className="w-4 h-4 animate-spin text-stone-950" />
+                  ) : (
+                    <span>Criar Categoria</span>
                   )}
                 </button>
               </div>

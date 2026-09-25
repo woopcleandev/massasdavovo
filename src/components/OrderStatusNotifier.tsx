@@ -3,6 +3,8 @@ import { Order, OrderStatus } from '../types';
 import { useCompany } from '../context/CompanyContext';
 import { useAuth } from '../context/AuthContext';
 import { normalizePhoneNumber } from '../utils/phone';
+import { playCustomerStatusSound } from '../utils/audioAlerts';
+import { formatTimeOnly } from '../utils/date';
 import { Bell, BellRing, ChefHat, Bike, CheckCircle, XCircle, Clock, X, Eye, Sparkles, Volume2 } from 'lucide-react';
 
 interface NotificationToast {
@@ -111,8 +113,8 @@ export const OrderStatusNotifier: React.FC<OrderStatusNotifierProps> = ({ onOpen
 
       const prevStatus = prevStatusesRef.current[o.id];
       if (prevStatus && prevStatus !== o.status) {
-        // Status changed! Play sound and show toast
-        playOrderStatusSound(o.status);
+        // Status changed! Play subtle customer notification sound
+        playCustomerStatusSound(o.status);
 
         // Try native Web Notification if allowed
         if ('Notification' in window && Notification.permission === 'granted') {

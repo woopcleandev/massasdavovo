@@ -12,10 +12,33 @@ export const DAY_NAMES = [
 
 export const SHORT_DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
+export interface DayOperatingHours {
+  isOpen: boolean;
+  openTime: string; // HH:mm
+  closeTime: string; // HH:mm
+}
+
+/**
+ * Horários Oficiais do Massas da Vovó em Primavera do Leste - MT:
+ * - Domingo: Fechado
+ * - Segunda a Quinta: 09:00 às 17:30
+ * - Sexta-feira: 09:00 às 19:30
+ * - Sábado: 09:00 às 13:00
+ */
+export const OFFICIAL_WEEKLY_HOURS: Record<number, DayOperatingHours> = {
+  0: { isOpen: false, openTime: '09:00', closeTime: '17:30' }, // Domingo: Fechado
+  1: { isOpen: true, openTime: '09:00', closeTime: '17:30' },  // Segunda: 09:00 às 17:30
+  2: { isOpen: true, openTime: '09:00', closeTime: '17:30' },  // Terça: 09:00 às 17:30
+  3: { isOpen: true, openTime: '09:00', closeTime: '17:30' },  // Quarta: 09:00 às 17:30
+  4: { isOpen: true, openTime: '09:00', closeTime: '17:30' },  // Quinta: 09:00 às 17:30
+  5: { isOpen: true, openTime: '09:00', closeTime: '19:30' },  // Sexta: 09:00 às 19:30
+  6: { isOpen: true, openTime: '09:00', closeTime: '13:00' },  // Sábado: 09:00 às 13:00
+};
+
 export const DEFAULT_OPERATING_HOURS: OperatingHoursSettings = {
-  openDays: [2, 3, 4, 5, 6, 0], // Terça (2), Quarta (3), Quinta (4), Sexta (5), Sábado (6), Domingo (0). Segunda (1) é fechado.
-  openTime: '18:00',
-  closeTime: '23:00',
+  openDays: [1, 2, 3, 4, 5, 6], // Segunda a Sábado aberto, Domingo fechado
+  openTime: '09:00',
+  closeTime: '17:30',
   forceStatus: 'auto',
 };
 
@@ -28,24 +51,25 @@ export interface BusinessStatusResult {
   currentDateStr: string;
   isTodayOpenDay: boolean;
   hoursText: string;
+  todayHoursText: string;
   nextOpening: {
     date: Date;
     dateStr: string; // YYYY-MM-DD
-    formattedDate: string; // "Terça-feira, 23/09"
+    formattedDate: string; // "Segunda-feira, 25/09"
     dayName: string;
     timeStr: string;
-    relativeLabel: string; // "Hoje às 18:00" ou "Amanhã (Quarta) às 18:00"
+    relativeLabel: string; // "Hoje às 09:00" ou "Amanhã às 09:00"
   };
 }
 
 export interface DayScheduleOption {
   dateStr: string; // YYYY-MM-DD
-  label: string; // "Hoje (Terça, 23/09)", "Amanhã (Quarta, 24/09)", "Quinta-feira (25/09)"
-  shortLabel: string; // "Hoje", "Amanhã", "Qui 25/09"
+  label: string; // "Hoje (Segunda, 25/09)", "Amanhã (Terça, 26/09)"
+  shortLabel: string; // "Hoje", "Amanhã", "Seg 25/09"
   dayName: string;
   isToday: boolean;
   isTomorrow: boolean;
-  times: string[]; // ["18:00", "18:30", "19:00", ...]
+  times: string[]; // ["09:00", "09:30", ...]
 }
 
 /**
@@ -74,7 +98,6 @@ export const generateTimeSlots = (openTime: string, closeTime: string): string[]
   const startMin = timeToMinutes(openTime);
   const endMin = timeToMinutes(closeTime);
 
-  // If close is before start (e.g. overnight), handle standard evening hours
   if (endMin <= startMin) {
     let curr = startMin;
     while (curr < 24 * 60) {
@@ -87,7 +110,7 @@ export const generateTimeSlots = (openTime: string, closeTime: string): string[]
   }
 
   let current = startMin;
-  while (current <= endMin - 15) { // Leave room before closing
+  while (current <= endMin - 15) { // At least 15 min margin before closing
     const h = String(Math.floor(current / 60)).padStart(2, '0');
     const m = String(current % 60).padStart(2, '0');
     slots.push(`${h}:${m}`);
@@ -104,14 +127,7 @@ export const getBusinessStatus = (
   config: OperatingHoursSettings = DEFAULT_OPERATING_HOURS,
   now = new Date()
 ): BusinessStatusResult => {
-  const effectiveConfig: OperatingHoursSettings = {
-    openDays: config?.openDays?.length ? config.openDays : DEFAULT_OPERATING_HOURS.openDays,
-    openTime: config?.openTime || DEFAULT_OPERATING_HOURS.openTime,
-    closeTime: config?.closeTime || DEFAULT_OPERATING_HOURS.closeTime,
-    forceStatus: config?.forceStatus || 'auto',
-  };
-
-  const currentDay = now.getDay(); // 0-6
+  const currentDay = now.getDay(); // 0 (Domingo) to 6 (Sábado)
   const currentHours = now.getHours();
   const currentMinutes = now.getMinutes();
   const currentTimeMinutes = currentHours * 60 + currentMinutes;
@@ -119,35 +135,45 @@ export const getBusinessStatus = (
   const currentDateStr = toDateKey(now);
   const currentDayName = DAY_NAMES[currentDay];
 
-  const openMinutes = timeToMinutes(effectiveConfig.openTime);
-  const closeMinutes = timeToMinutes(effectiveConfig.closeTime);
+  const todaySchedule = OFFICIAL_WEEKLY_HOURS[currentDay] || {
+    isOpen: config.openDays.includes(currentDay),
+    openTime: config.openTime || '09:00',
+    closeTime: config.closeTime || '17:30',
+  };
 
-  const isTodayOpenDay = effectiveConfig.openDays.includes(currentDay);
+  const isTodayOpenDay = todaySchedule.isOpen && (config.openDays ? config.openDays.includes(currentDay) : true);
+  const openMinutes = timeToMinutes(todaySchedule.openTime);
+  const closeMinutes = timeToMinutes(todaySchedule.closeTime);
   const isWithinHours = currentTimeMinutes >= openMinutes && currentTimeMinutes < closeMinutes;
 
   let isOpen = false;
-  if (effectiveConfig.forceStatus === 'force_open') {
+  if (config.forceStatus === 'force_open') {
     isOpen = true;
-  } else if (effectiveConfig.forceStatus === 'force_closed') {
+  } else if (config.forceStatus === 'force_closed') {
     isOpen = false;
   } else {
     isOpen = isTodayOpenDay && isWithinHours;
   }
 
   // Calculate Next Opening Slot
-  const nextOpening = calculateNextOpening(effectiveConfig, now);
+  const nextOpening = calculateNextOpening(config, now);
 
-  const hoursText = `Terça a Domingo das ${effectiveConfig.openTime} às ${effectiveConfig.closeTime}`;
+  const todayHoursText = isTodayOpenDay
+    ? `${todaySchedule.openTime} às ${todaySchedule.closeTime}`
+    : 'Fechado hoje';
+
+  const hoursText = 'Seg a Qui: 09h-17h30 • Sex: 09h-19h30 • Sáb: 09h-13h';
 
   return {
     isOpen,
-    statusText: isOpen ? 'Aberto Agora' : 'Fechado no Momento',
+    statusText: isOpen ? 'Aberto Agora' : 'Fechado no Momento (Agendamento Aberto)',
     badgeColor: isOpen ? 'emerald' : 'amber',
     currentDayName,
     currentTimeStr,
     currentDateStr,
     isTodayOpenDay,
     hoursText,
+    todayHoursText,
     nextOpening,
   };
 };
@@ -156,10 +182,9 @@ export const getBusinessStatus = (
  * Calculates the next upcoming open moment
  */
 export const calculateNextOpening = (
-  config: OperatingHoursSettings,
+  config: OperatingHoursSettings = DEFAULT_OPERATING_HOURS,
   now = new Date()
 ) => {
-  const openMinutes = timeToMinutes(config.openTime);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
   const currentDay = now.getDay();
 
@@ -169,15 +194,20 @@ export const calculateNextOpening = (
     candidateDate.setDate(now.getDate() + offset);
     const candidateDay = candidateDate.getDay();
 
-    if (!config.openDays.includes(candidateDay)) {
+    const daySchedule = OFFICIAL_WEEKLY_HOURS[candidateDay];
+    if (!daySchedule || !daySchedule.isOpen) {
       continue;
     }
+    if (config.openDays && !config.openDays.includes(candidateDay)) {
+      continue;
+    }
+
+    const openMinutes = timeToMinutes(daySchedule.openTime);
 
     // If candidate is today, check if opening time is in the future
     if (offset === 0) {
       if (currentMinutes < openMinutes) {
-        // Opens today at openTime
-        const [oh, om] = config.openTime.split(':').map(Number);
+        const [oh, om] = daySchedule.openTime.split(':').map(Number);
         candidateDate.setHours(oh, om, 0, 0);
 
         const dateStr = toDateKey(candidateDate);
@@ -189,31 +219,30 @@ export const calculateNextOpening = (
           dateStr,
           formattedDate,
           dayName,
-          timeStr: config.openTime,
-          relativeLabel: `Hoje às ${config.openTime}`,
+          timeStr: daySchedule.openTime,
+          relativeLabel: `Hoje às ${daySchedule.openTime}`,
         };
       }
-      // If today is already past opening hours, continue to next days
       continue;
     }
 
     // Future open day
-    const [oh, om] = config.openTime.split(':').map(Number);
+    const [oh, om] = daySchedule.openTime.split(':').map(Number);
     candidateDate.setHours(oh, om, 0, 0);
 
     const dateStr = toDateKey(candidateDate);
     const dayName = DAY_NAMES[candidateDay];
     const formattedDate = `${dayName}, ${String(candidateDate.getDate()).padStart(2, '0')}/${String(candidateDate.getMonth() + 1).padStart(2, '0')}`;
     const relativeLabel = offset === 1
-      ? `Amanhã (${dayName}) às ${config.openTime}`
-      : `${dayName} (${String(candidateDate.getDate()).padStart(2, '0')}/${String(candidateDate.getMonth() + 1).padStart(2, '0')}) às ${config.openTime}`;
+      ? `Amanhã (${dayName}) às ${daySchedule.openTime}`
+      : `${dayName} (${String(candidateDate.getDate()).padStart(2, '0')}/${String(candidateDate.getMonth() + 1).padStart(2, '0')}) às ${daySchedule.openTime}`;
 
     return {
       date: candidateDate,
       dateStr,
       formattedDate,
       dayName,
-      timeStr: config.openTime,
+      timeStr: daySchedule.openTime,
       relativeLabel,
     };
   }
@@ -224,27 +253,19 @@ export const calculateNextOpening = (
     dateStr: toDateKey(now),
     formattedDate: `${DAY_NAMES[currentDay]}, ${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`,
     dayName: DAY_NAMES[currentDay],
-    timeStr: config.openTime,
-    relativeLabel: `Em breve às ${config.openTime}`,
+    timeStr: '09:00',
+    relativeLabel: 'Em breve às 09:00',
   };
 };
 
 /**
- * Returns available schedule days & time slots for the next 7 days
+ * Returns available schedule days & time slots for the next 7 days based on day-specific schedules
  */
 export const getAvailableScheduleSlots = (
   config: OperatingHoursSettings = DEFAULT_OPERATING_HOURS,
   now = new Date(),
   maxDays = 7
 ): DayScheduleOption[] => {
-  const effectiveConfig: OperatingHoursSettings = {
-    openDays: config?.openDays?.length ? config.openDays : DEFAULT_OPERATING_HOURS.openDays,
-    openTime: config?.openTime || DEFAULT_OPERATING_HOURS.openTime,
-    closeTime: config?.closeTime || DEFAULT_OPERATING_HOURS.closeTime,
-    forceStatus: config?.forceStatus || 'auto',
-  };
-
-  const allPossibleSlots = generateTimeSlots(effectiveConfig.openTime, effectiveConfig.closeTime);
   const results: DayScheduleOption[] = [];
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
@@ -253,9 +274,16 @@ export const getAvailableScheduleSlots = (
     targetDate.setDate(now.getDate() + offset);
     const dayOfWeek = targetDate.getDay();
 
-    if (!effectiveConfig.openDays.includes(dayOfWeek)) {
-      continue; // Skip closed days (e.g. Segunda)
+    const daySchedule = OFFICIAL_WEEKLY_HOURS[dayOfWeek];
+    if (!daySchedule || !daySchedule.isOpen) {
+      continue; // Skip closed days (e.g. Domingo)
     }
+
+    if (config.openDays && !config.openDays.includes(dayOfWeek)) {
+      continue;
+    }
+
+    const allPossibleSlots = generateTimeSlots(daySchedule.openTime, daySchedule.closeTime);
 
     const isToday = offset === 0;
     const isTomorrow = offset === 1;
@@ -265,12 +293,12 @@ export const getAvailableScheduleSlots = (
     const dayNum = String(targetDate.getDate()).padStart(2, '0');
     const monthNum = String(targetDate.getMonth() + 1).padStart(2, '0');
 
-    // Filter available slots for today (must be at least 30 minutes in advance)
+    // Filter available slots for today (must be at least 20 minutes in advance)
     let times = [...allPossibleSlots];
     if (isToday) {
       times = times.filter(t => {
         const slotMin = timeToMinutes(t);
-        return slotMin > currentMinutes + 20; // At least 20 min preparation buffer
+        return slotMin > currentMinutes + 20; // 20 min preparation buffer
       });
     }
 

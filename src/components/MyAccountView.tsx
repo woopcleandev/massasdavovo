@@ -8,6 +8,7 @@ import { OrderReceiptModal } from './OrderReceiptModal';
 import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { normalizePhoneNumber, arePhonesEqual, formatWhatsappDisplay } from '../utils/phone';
+import { formatExactDateTime } from '../utils/date';
 import { 
   User, Lock, Phone, MapPin, Plus, Trash2, LogOut, 
   Home, Briefcase, Tag, Sparkles, CheckCircle, AlertCircle, Loader2,
@@ -69,17 +70,7 @@ export const MyAccountView: React.FC = () => {
   };
 
   const formatDate = (iso: string) => {
-    try {
-      const d = new Date(iso);
-      return d.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    } catch {
-      return iso;
-    }
+    return formatExactDateTime(iso);
   };
 
   // Filter orders relevant to this user

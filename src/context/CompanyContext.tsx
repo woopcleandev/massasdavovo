@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CompanySettings, Order, OrderStatus, Product, CartItem, OrderItem, PaymentMethod, CashMovement } from '../types';
-import { RESTAURANT_INFO, PRODUCTS } from '../data';
+import { CompanySettings, Order, OrderStatus, Product, CartItem, OrderItem, PaymentMethod, CashMovement, Category } from '../types';
+import { RESTAURANT_INFO, PRODUCTS, CATEGORIES } from '../data';
 import { db, auth, sanitizeFirestoreData } from '../lib/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, updateDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { normalizePhoneNumber } from '../utils/phone';
@@ -9,6 +9,11 @@ interface CompanyContextType {
   settings: CompanySettings;
   updateSettings: (newSettings: Partial<CompanySettings>) => Promise<void>;
   
+  // Categories (com emojis personalizados)
+  categories: Category[];
+  addCategory: (name: string, icon: string) => Promise<Category>;
+  deleteCategory: (id: string) => Promise<void>;
+
   // Menu Products
   allProducts: Product[];
   addProduct: (newProd: Omit<Product, 'id'>) => Promise<Product>;
@@ -23,12 +28,14 @@ interface CompanyContextType {
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
 
-  // POS / Direct Sales (Balcão)
+  // POS / Direct Sales (Balcão & Mesas)
   createDirectSale: (saleInput: {
     customerName?: string;
     customerPhone?: string;
     deliveryType: 'takeaway' | 'dine_in';
     tableNumber?: string;
+    posIdentifierType?: 'mesa' | 'comanda' | 'assento' | 'cliente';
+    posIdentifierValue?: string;
     paymentMethod: PaymentMethod;
     changeFor?: string;
     items: OrderItem[];
@@ -161,6 +168,66 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return false;
     }
   });
+
+  // 6. Dish Categories State (Default + Custom Categories)
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      const saved = localStorage.getItem('vovo_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return CATEGORIES;
+  });
+
+  // Fetch & Subscribe to Categories from Firestore in real-time
+  useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+    try {
+      const catRef = collection(db, 'categories');
+      unsubscribe = onSnapshot(catRef, (snapshot) => {
+        if (!snapshot.empty) {
+          const remoteCats: Category[] = [];
+          snapshot.forEach(docSnap => {
+            const d = docSnap.data();
+            if (d.name && d.icon) {
+              remoteCats.push({
+                id: docSnap.id,
+                name: d.name,
+                icon: d.icon,
+                isCustom: d.isCustom !== undefined ? d.isCustom : true,
+              });
+            }
+          });
+
+          // Merge default categories with custom categories from Firestore
+          setCategories(prev => {
+            const merged = [...CATEGORIES];
+            remoteCats.forEach(rc => {
+              const existingIdx = merged.findIndex(c => c.id === rc.id);
+              if (existingIdx >= 0) {
+                merged[existingIdx] = rc;
+              } else {
+                merged.push(rc);
+              }
+            });
+            localStorage.setItem('vovo_categories', JSON.stringify(merged));
+            return merged;
+          });
+        }
+      }, (err) => {
+        console.warn('Categories onSnapshot error:', err);
+      });
+    } catch (e) {
+      console.warn('Could not listen to categories collection:', e);
+    }
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   // Fetch Settings from Firestore
   useEffect(() => {
@@ -296,6 +363,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
             customerId: d.customerId || undefined,
             deliveryType: d.deliveryType || 'delivery',
             tableNumber: d.tableNumber || undefined,
+            posIdentifierType: d.posIdentifierType || undefined,
+            posIdentifierValue: d.posIdentifierValue || undefined,
             origin: d.origin || 'web',
             street: d.street,
             number: d.number,
@@ -586,6 +655,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     customerPhone?: string;
     deliveryType: 'takeaway' | 'dine_in';
     tableNumber?: string;
+    posIdentifierType?: 'mesa' | 'comanda' | 'assento' | 'cliente';
+    posIdentifierValue?: string;
     paymentMethod: PaymentMethod;
     changeFor?: string;
     items: OrderItem[];
@@ -595,19 +666,36 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     status?: OrderStatus;
   }): Promise<Order> => {
     const randomSuffix = Math.floor(100 + Math.random() * 900);
-    const orderNumber = `#BALCAO-${randomSuffix}`;
+    const idPrefix = saleInput.posIdentifierType === 'mesa' ? `MESA-${saleInput.posIdentifierValue || randomSuffix}` :
+                     saleInput.posIdentifierType === 'comanda' ? `CMD-${saleInput.posIdentifierValue || randomSuffix}` :
+                     saleInput.posIdentifierType === 'assento' ? `AST-${saleInput.posIdentifierValue || randomSuffix}` :
+                     `BALCAO-${randomSuffix}`;
+    const orderNumber = `#${idPrefix}`;
     const id = `pos-${Date.now()}`;
     const nowIso = new Date().toISOString();
     const cleanPhone = saleInput.customerPhone ? normalizePhoneNumber(saleInput.customerPhone) : '';
 
+    // Human-friendly default name based on identifier
+    let defaultCustomerName = 'Cliente Balcão';
+    if (saleInput.customerName?.trim()) {
+      defaultCustomerName = saleInput.customerName.trim();
+    } else if (saleInput.posIdentifierValue?.trim()) {
+      if (saleInput.posIdentifierType === 'mesa') defaultCustomerName = `Mesa ${saleInput.posIdentifierValue.trim()}`;
+      else if (saleInput.posIdentifierType === 'comanda') defaultCustomerName = `Comanda ${saleInput.posIdentifierValue.trim()}`;
+      else if (saleInput.posIdentifierType === 'assento') defaultCustomerName = `Assento / Balcão ${saleInput.posIdentifierValue.trim()}`;
+      else defaultCustomerName = saleInput.posIdentifierValue.trim();
+    }
+
     const newOrder: Order = {
       id,
       orderNumber,
-      customerName: saleInput.customerName?.trim() || 'Cliente Balcão',
+      customerName: defaultCustomerName,
       customerPhone: saleInput.customerPhone || '',
       customerPhoneClean: cleanPhone,
       deliveryType: saleInput.deliveryType,
-      tableNumber: saleInput.tableNumber,
+      tableNumber: saleInput.tableNumber || (saleInput.posIdentifierType === 'mesa' ? saleInput.posIdentifierValue : undefined),
+      posIdentifierType: saleInput.posIdentifierType,
+      posIdentifierValue: saleInput.posIdentifierValue,
       origin: 'pos',
       paymentMethod: saleInput.paymentMethod,
       changeFor: saleInput.changeFor,
@@ -640,6 +728,62 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
 
     return newOrder;
+  };
+
+  // Add Custom Category with chosen Emoji
+  const addCategory = async (name: string, icon: string): Promise<Category> => {
+    const slug = name.trim().toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const id = slug || `cat-${Date.now()}`;
+
+    const newCategory: Category = {
+      id,
+      name: name.trim(),
+      icon: icon.trim() || '🍽️',
+      isCustom: true,
+    };
+
+    setCategories(prev => {
+      const updated = prev.some(c => c.id === id)
+        ? prev.map(c => c.id === id ? newCategory : c)
+        : [...prev, newCategory];
+      localStorage.setItem('vovo_categories', JSON.stringify(updated));
+      return updated;
+    });
+
+    try {
+      const catRef = doc(db, 'categories', id);
+      await setDoc(catRef, {
+        id,
+        name: newCategory.name,
+        icon: newCategory.icon,
+        isCustom: true,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } catch (err) {
+      console.warn('Could not save category to Firestore, local state preserved:', err);
+    }
+
+    return newCategory;
+  };
+
+  // Delete Custom Category
+  const deleteCategory = async (id: string): Promise<void> => {
+    setCategories(prev => {
+      const updated = prev.filter(c => c.id !== id);
+      localStorage.setItem('vovo_categories', JSON.stringify(updated));
+      return updated;
+    });
+
+    try {
+      const catRef = doc(db, 'categories', id);
+      await deleteDoc(catRef);
+    } catch (err) {
+      console.warn('Could not delete category from Firestore:', err);
+    }
   };
 
   // Cash Movements (Caixa)
@@ -737,6 +881,9 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       value={{
         settings,
         updateSettings,
+        categories,
+        addCategory,
+        deleteCategory,
         allProducts,
         addProduct,
         updateProduct,

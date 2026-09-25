@@ -120,5 +120,11 @@ service cloud.firestore {
       allow read: if true;
       allow write: if true;
     }
+
+    // Custom dish categories created by the restaurant
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }
