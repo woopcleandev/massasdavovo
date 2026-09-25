@@ -8,6 +8,9 @@
 import { OrderStatus } from '../types';
 
 let audioCtx: AudioContext | null = null;
+let adminAlarmInterval: any = null;
+let adminAlarmTimeout: any = null;
+let isAlarmLooping = false;
 
 const getAudioContext = (): AudioContext | null => {
   try {
@@ -86,6 +89,44 @@ export const playAdminNewOrderAlarm = () => {
     console.warn('Erro ao reproduzir alarme de novo pedido:', e);
   }
 };
+
+/**
+ * 20-SECOND CONTINUOUS ALARM LOOP (Toca por 20 segundos ou até marcar OK / Interagir)
+ */
+export const startAdminNewOrderAlarmLoop = (onStop?: () => void) => {
+  stopAdminNewOrderAlarm();
+  isAlarmLooping = true;
+  
+  // Play first immediately
+  playAdminNewOrderAlarm();
+
+  // Re-ring every 2.4s
+  adminAlarmInterval = setInterval(() => {
+    if (isAlarmLooping) {
+      playAdminNewOrderAlarm();
+    }
+  }, 2400);
+
+  // Auto-stop after 20 seconds
+  adminAlarmTimeout = setTimeout(() => {
+    stopAdminNewOrderAlarm();
+    if (onStop) onStop();
+  }, 20000);
+};
+
+export const stopAdminNewOrderAlarm = () => {
+  isAlarmLooping = false;
+  if (adminAlarmInterval) {
+    clearInterval(adminAlarmInterval);
+    adminAlarmInterval = null;
+  }
+  if (adminAlarmTimeout) {
+    clearTimeout(adminAlarmTimeout);
+    adminAlarmTimeout = null;
+  }
+};
+
+export const isAlarmPlaying = () => isAlarmLooping;
 
 /**
  * SUBTLE CUSTOMER STATUS NOTIFICATION (Notificação sutil para o cliente)

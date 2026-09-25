@@ -9,9 +9,10 @@ interface CompanyContextType {
   settings: CompanySettings;
   updateSettings: (newSettings: Partial<CompanySettings>) => Promise<void>;
   
-  // Categories (com emojis personalizados)
+  // Categories (com emojis e personalização completa)
   categories: Category[];
   addCategory: (name: string, icon: string) => Promise<Category>;
+  updateCategory: (id: string, name: string, icon: string) => Promise<Category>;
   deleteCategory: (id: string) => Promise<void>;
 
   // Menu Products
@@ -169,14 +170,28 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   });
 
-  // 6. Dish Categories State (Default + Custom Categories)
+  // 6. Dish Categories State (Default + Custom Categories with persistent deletion)
+  const [deletedCategoryIds, setDeletedCategoryIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('vovo_deleted_categories');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const [categories, setCategories] = useState<Category[]>(() => {
     try {
+      const savedDeleted = localStorage.getItem('vovo_deleted_categories');
+      const deletedIds: string[] = savedDeleted ? JSON.parse(savedDeleted) : [];
       const saved = localStorage.getItem('vovo_categories');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.filter((c: Category) => !deletedIds.includes(c.id));
+        }
       }
+      return CATEGORIES.filter(c => !deletedIds.includes(c.id));
     } catch (e) {
       console.error(e);
     }
@@ -189,11 +204,14 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const catRef = collection(db, 'categories');
       unsubscribe = onSnapshot(catRef, (snapshot) => {
+        const savedDeleted = localStorage.getItem('vovo_deleted_categories');
+        const currentDeleted: string[] = savedDeleted ? JSON.parse(savedDeleted) : [];
+
         if (!snapshot.empty) {
           const remoteCats: Category[] = [];
           snapshot.forEach(docSnap => {
             const d = docSnap.data();
-            if (d.name && d.icon) {
+            if (d.name && d.icon && !currentDeleted.includes(docSnap.id) && d.isActive !== false) {
               remoteCats.push({
                 id: docSnap.id,
                 name: d.name,
@@ -205,7 +223,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
           // Merge default categories with custom categories from Firestore
           setCategories(prev => {
-            const merged = [...CATEGORIES];
+            const baseCats = CATEGORIES.filter(c => !currentDeleted.includes(c.id));
+            const merged = [...baseCats];
             remoteCats.forEach(rc => {
               const existingIdx = merged.findIndex(c => c.id === rc.id);
               if (existingIdx >= 0) {
@@ -730,7 +749,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return newOrder;
   };
 
-  // Add Custom Category with chosen Emoji
+  // Add Category with chosen Emoji
   const addCategory = async (name: string, icon: string): Promise<Category> => {
     const slug = name.trim().toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -744,6 +763,13 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       icon: icon.trim() || '🍽️',
       isCustom: true,
     };
+
+    // Remove from deleted list if previously deleted
+    setDeletedCategoryIds(prev => {
+      const updated = prev.filter(dId => dId !== id);
+      localStorage.setItem('vovo_deleted_categories', JSON.stringify(updated));
+      return updated;
+    });
 
     setCategories(prev => {
       const updated = prev.some(c => c.id === id)
@@ -760,6 +786,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         name: newCategory.name,
         icon: newCategory.icon,
         isCustom: true,
+        isActive: true,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -770,8 +797,45 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return newCategory;
   };
 
-  // Delete Custom Category
+  // Update Existing Category
+  const updateCategory = async (id: string, name: string, icon: string): Promise<Category> => {
+    const updatedCategory: Category = {
+      id,
+      name: name.trim(),
+      icon: icon.trim() || '🍽️',
+      isCustom: true,
+    };
+
+    setCategories(prev => {
+      const updated = prev.map(c => c.id === id ? updatedCategory : c);
+      localStorage.setItem('vovo_categories', JSON.stringify(updated));
+      return updated;
+    });
+
+    try {
+      const catRef = doc(db, 'categories', id);
+      await setDoc(catRef, {
+        id,
+        name: updatedCategory.name,
+        icon: updatedCategory.icon,
+        isActive: true,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    } catch (err) {
+      console.warn('Could not update category in Firestore, local state preserved:', err);
+    }
+
+    return updatedCategory;
+  };
+
+  // Delete Any Category (persisting deletion)
   const deleteCategory = async (id: string): Promise<void> => {
+    setDeletedCategoryIds(prev => {
+      const updated = [...new Set([...prev, id])];
+      localStorage.setItem('vovo_deleted_categories', JSON.stringify(updated));
+      return updated;
+    });
+
     setCategories(prev => {
       const updated = prev.filter(c => c.id !== id);
       localStorage.setItem('vovo_categories', JSON.stringify(updated));
@@ -780,7 +844,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       const catRef = doc(db, 'categories', id);
-      await deleteDoc(catRef);
+      await setDoc(catRef, { isActive: false, deletedAt: serverTimestamp() }, { merge: true });
     } catch (err) {
       console.warn('Could not delete category from Firestore:', err);
     }
@@ -883,6 +947,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateSettings,
         categories,
         addCategory,
+        updateCategory,
         deleteCategory,
         allProducts,
         addProduct,

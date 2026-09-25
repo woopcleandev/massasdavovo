@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
 import { formatExactDateTime } from '../utils/date';
-import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink, Trash2 } from 'lucide-react';
+import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink, Trash2, Utensils, AlertCircle } from 'lucide-react';
 
 interface OrderReceiptModalProps {
   order: Order;
@@ -40,45 +40,58 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
     }
   };
 
+  const totalItemsCount = order.items.reduce((acc, i) => acc + i.quantity, 0);
+
   const getPlainTextReceipt = () => {
     let txt = `========================================\n`;
-    txt += `          MASSAS DA VOVÓ ARTESANAL       \n`;
-    txt += `          Primavera do Leste - MT        \n`;
+    txt += `       MASSAS DA VOVÓ - ARTESANAL       \n`;
+    txt += `          COMANDA DE PRODUÇÃO           \n`;
     txt += `========================================\n`;
-    txt += `COMANDA PEDIDO: ${order.orderNumber}\n`;
-    txt += `DATA CRIAÇÃO: ${formatDate(order.createdAt)}\n`;
+    txt += `COMANDA Nº: ${order.orderNumber}\n`;
+    txt += `EMISSÃO: ${formatDate(order.createdAt)}\n`;
+    
     if (order.schedule?.isScheduled) {
-      txt += `AGENDAMENTO: ${order.schedule.displayLabel}\n`;
+      txt += `\n*** PEDIDO AGENDADO: ${order.schedule.displayLabel} ***\n`;
     }
+
     txt += `----------------------------------------\n`;
+    if (order.deliveryType === 'dine_in') {
+      txt += `🍽️ ATENDIMENTO: CONSUMO NO LOCAL\n`;
+      txt += `📌 IDENTIFICADOR: ${order.tableNumber ? `MESA / COMANDA ${order.tableNumber}` : (order.posIdentifierValue || 'SALÃO')}\n`;
+    } else if (order.deliveryType === 'delivery') {
+      txt += `🚀 ATENDIMENTO: ENTREGA EM DOMICÍLIO\n`;
+      txt += `📍 ENDEREÇO: ${order.street || ''}, Nº ${order.number || ''}\n`;
+      txt += `📍 BAIRRO: ${order.neighborhood || ''}\n`;
+      if (order.reference) txt += `📍 REF: ${order.reference}\n`;
+    } else {
+      txt += `🏪 ATENDIMENTO: RETIRADA NO BALCÃO\n`;
+    }
+
     txt += `CLIENTE: ${order.customerName}\n`;
-    txt += `TELEFONE: ${order.customerPhone}\n`;
-    txt += `TIPO: ${order.deliveryType === 'delivery' ? 'ENTREGA EM DOMICÍLIO' : 'RETIRADA NO BALCÃO'}\n`;
-    if (order.deliveryType === 'delivery') {
-      txt += `ENDEREÇO: ${order.street || ''}, Nº ${order.number || ''}\n`;
-      txt += `BAIRRO: ${order.neighborhood || ''}\n`;
-      if (order.reference) txt += `REF: ${order.reference}\n`;
-    }
-    txt += `----------------------------------------\n`;
-    txt += `ITENS DO PEDIDO:\n`;
+    if (order.customerPhone) txt += `FONE: ${order.customerPhone}\n`;
+    txt += `========================================\n`;
+    txt += `         ITENS PARA PREPARO             \n`;
+    txt += `========================================\n\n`;
+
     order.items.forEach((it, idx) => {
-      txt += `${idx + 1}. ${it.quantity}x ${it.productName} - ${formatPrice(it.totalPrice)}\n`;
-      if (it.size) txt += `   Tamanho: ${it.size}\n`;
-      if (it.pasta) txt += `   Massa: ${it.pasta}\n`;
-      if (it.sauce) txt += `   Molho: ${it.sauce}\n`;
-      if (it.toppings && it.toppings.length > 0) txt += `   Adicionais: ${it.toppings.join(', ')}\n`;
-      if (it.notes) txt += `   OBS: ${it.notes}\n`;
+      txt += `[ ${it.quantity}x ] ${it.productName.toUpperCase()}\n`;
+      if (it.size) txt += `   * Tamanho: ${it.size}\n`;
+      if (it.pasta) txt += `   * Massa: ${it.pasta}\n`;
+      if (it.sauce) txt += `   * Molho: ${it.sauce}\n`;
+      if (it.toppings && it.toppings.length > 0) txt += `   * Adicionais: ${it.toppings.join(', ')}\n`;
+      if (it.notes) {
+        txt += `   >> OBS COZINHA: "${it.notes}" <<\n`;
+      }
+      txt += `\n`;
     });
+
     txt += `----------------------------------------\n`;
-    txt += `Subtotal: ${formatPrice(order.itemsSubtotal)}\n`;
-    if (order.deliveryType === 'delivery') {
-      txt += `Taxa Entrega: ${formatPrice(order.deliveryFee)}\n`;
-    }
-    txt += `TOTAL GERAL: ${formatPrice(order.grandTotal)}\n`;
-    txt += `----------------------------------------\n`;
+    txt += `TOTAL DE VOLUMES: ${totalItemsCount} item(ns)\n`;
     txt += `PAGAMENTO: ${getPaymentLabel()}\n`;
+    txt += `VALOR TOTAL: ${formatPrice(order.grandTotal)}\n`;
     txt += `Cardápio Online: https://massasdavovo.vercel.app/\n`;
     txt += `========================================\n`;
+    txt += `        *** BOM TRABALHO! ***           \n`;
     return txt;
   };
 
@@ -93,122 +106,121 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-      <div className="fixed inset-0 -z-10" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:static">
+      <div className="fixed inset-0 -z-10 print:hidden" onClick={onClose} />
 
-      <div className="dark-glass-panel rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-scale-in my-8 border border-white/10 flex flex-col max-h-[90vh]">
-        {/* Modal Top Bar */}
-        <div className="p-4 bg-gray-900 text-white flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">🧾</span>
+      <div className="dark-glass-panel rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-scale-in my-auto border border-white/10 flex flex-col max-h-[92vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-none print:m-0 print:p-0 print:rounded-none">
+        
+        {/* Modal Top Bar (Hidden on Print) */}
+        <div className="p-4 bg-stone-900 text-white flex items-center justify-between shrink-0 border-b border-white/10 print:hidden">
+          <div className="flex items-center gap-2.5">
+            <span className="text-xl">🖨️</span>
             <div>
-              <h3 className="text-sm font-extrabold tracking-wide">Comanda de Produção</h3>
-              <p className="text-[10px] text-gray-300">Pedido {order.orderNumber}</p>
+              <h3 className="text-sm font-black tracking-wide">Comanda Térmica de Produção</h3>
+              <p className="text-[11px] text-amber-400 font-mono">Pedido {order.orderNumber} • Foco na Cozinha</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-white/10 text-gray-300 hover:text-white transition"
+            className="p-1.5 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Printable Kitchen Ticket Area */}
-        <div className="flex-1 overflow-y-auto p-6 bg-[#FCFBF7] text-left" id="printable-order-receipt">
-          <div className="bg-white p-5 rounded-2xl border border-dashed border-gray-300 shadow-xs font-mono text-xs text-gray-800 space-y-3">
-            {/* Header */}
-            <div className="text-center pb-3 border-b border-dashed border-gray-300 space-y-1">
-              <h2 className="font-extrabold text-base tracking-wider uppercase text-gray-950 font-sans">
+        {/* Printable Kitchen Ticket Area (Thermal Paper Design) */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 bg-stone-100 dark:bg-stone-950 text-left print:p-0 print:bg-white print:overflow-visible" id="printable-order-receipt">
+          
+          <div className="bg-white text-black p-5 sm:p-6 rounded-2xl border-2 border-dashed border-stone-300 shadow-md font-mono text-xs space-y-3.5 print:border-none print:shadow-none print:p-2 print:rounded-none print:w-[76mm] print:mx-auto">
+            
+            {/* Ticket Header */}
+            <div className="text-center pb-3 border-b-2 border-dashed border-black space-y-1">
+              <h2 className="font-black text-base sm:text-lg tracking-wider uppercase font-sans text-black">
                 🍝 MASSAS DA VOVÓ
               </h2>
-              <p className="text-[10px] text-gray-500">Culinária Artesanal em Primavera do Leste</p>
-              <p className="text-[10px] text-gray-500">WhatsApp: {settings.phone}</p>
-            </div>
-
-            {/* Order Badge & Info */}
-            <div className="flex items-center justify-between bg-gray-50 p-2.5 rounded-xl border border-gray-200/60 font-sans">
-              <div>
-                <span className="text-[10px] text-gray-400 font-bold block uppercase">Comanda</span>
-                <span className="text-sm font-black text-gray-900">{order.orderNumber}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-[10px] text-gray-400 font-bold block uppercase">Emissão</span>
-                <span className="text-[11px] font-bold text-gray-700">{formatDate(order.createdAt)}</span>
+              <p className="text-[11px] font-bold text-stone-800 tracking-wide">*** COMANDA DE PRODUÇÃO ***</p>
+              <div className="flex items-center justify-between text-[11px] font-bold pt-1 text-stone-700">
+                <span>Nº: {order.orderNumber}</span>
+                <span>{formatDate(order.createdAt)}</span>
               </div>
             </div>
 
-            {/* Scheduled Order Highlight on Ticket */}
+            {/* Scheduled Tag */}
             {order.schedule?.isScheduled && (
-              <div className="bg-amber-100 border border-amber-300 p-2.5 rounded-xl font-sans text-amber-950 space-y-0.5">
-                <div className="flex items-center gap-1.5 font-black text-xs text-amber-900 uppercase">
-                  <Calendar className="w-3.5 h-3.5 text-amber-800" />
-                  <span>PEDIDO AGENDADO</span>
-                </div>
-                <p className="text-xs font-bold text-amber-950">
-                  {order.schedule.displayLabel}
-                </p>
+              <div className="bg-amber-100 border-2 border-black p-2.5 rounded-xl font-sans text-black text-center space-y-0.5">
+                <span className="font-black text-xs block uppercase">📅 PEDIDO AGENDADO COM ANTECEDÊNCIA</span>
+                <p className="text-sm font-black text-amber-900">{order.schedule.displayLabel}</p>
               </div>
             )}
 
-            {/* Customer Details */}
-            <div className="pt-2 border-t border-dashed border-gray-300 space-y-1">
-              <p><strong>CLIENTE:</strong> {order.customerName}</p>
-              <p><strong>CONTATO:</strong> {order.customerPhone}</p>
-              <p className="flex items-center gap-1 font-bold text-gray-900">
-                <span>MÉTODO:</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                  order.deliveryType === 'delivery' 
-                    ? 'bg-blue-100 text-blue-900' 
-                    : order.deliveryType === 'dine_in'
-                    ? 'bg-purple-100 text-purple-900'
-                    : 'bg-amber-100 text-amber-900'
-                }`}>
-                  {order.deliveryType === 'delivery' 
-                    ? '🚀 ENTREGA' 
-                    : order.deliveryType === 'dine_in' 
-                    ? `🍽️ CONSUMO NO LOCAL (MESA ${order.tableNumber || 'SALÃO'})` 
-                    : '🏪 BALCÃO / RETIRADA'}
+            {/* Service & Destination Prominent Box (Mesa / Entrega / Balcão) */}
+            <div className="border-2 border-black p-3 rounded-xl bg-stone-50 space-y-1 text-black font-sans">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-bold text-stone-600">Destino do Pedido:</span>
+                <span className="text-xs font-black uppercase px-2 py-0.5 bg-black text-white rounded">
+                  {order.deliveryType === 'dine_in' ? '🍽️ MESA / LOCAL' : order.deliveryType === 'delivery' ? '🚀 ENTREGA' : '🏪 RETIRADA BALCÃO'}
                 </span>
-              </p>
+              </div>
 
-              {order.deliveryType === 'delivery' && (
-                <div className="mt-1 bg-amber-50/70 p-2 rounded-lg border border-amber-200/50 space-y-0.5">
-                  <p><strong>RUA:</strong> {order.street}, Nº {order.number}</p>
-                  <p><strong>BAIRRO:</strong> {order.neighborhood}</p>
-                  {order.reference && <p><strong>REF:</strong> {order.reference}</p>}
+              {order.deliveryType === 'dine_in' && (
+                <div className="pt-1">
+                  <span className="text-base font-black text-black block">
+                    📌 {order.tableNumber ? `MESA / COMANDA: ${order.tableNumber}` : (order.posIdentifierValue ? `MESA: ${order.posIdentifierValue}` : 'SALÃO')}
+                  </span>
                 </div>
               )}
+
+              {order.deliveryType === 'delivery' && (
+                <div className="pt-1 text-xs space-y-0.5 font-bold">
+                  <p>📍 {order.street || ''}, Nº {order.number || ''}</p>
+                  <p>📍 Bairro: {order.neighborhood || ''}</p>
+                  {order.reference && <p className="text-amber-950 font-extrabold">📍 Ref: {order.reference}</p>}
+                </div>
+              )}
+
+              <div className="pt-1 border-t border-dashed border-stone-300 flex items-center justify-between text-[11px]">
+                <span><strong>Cliente:</strong> {order.customerName}</span>
+                {order.customerPhone && <span><strong>Tel:</strong> {order.customerPhone}</span>}
+              </div>
             </div>
 
-            {/* Items List */}
-            <div className="pt-2 border-t border-dashed border-gray-300 space-y-2">
-              <p className="font-extrabold uppercase text-[11px] text-gray-900 font-sans">
-                ITENS ({order.items.reduce((acc, i) => acc + i.quantity, 0)}):
-              </p>
-              <div className="space-y-2 divide-y divide-gray-100">
+            {/* KITCHEN ITEMS SECTION (Primary Focus) */}
+            <div className="pt-2 space-y-3">
+              <div className="bg-black text-white text-center py-1 font-black text-xs uppercase tracking-wider rounded">
+                ITENS PARA PREPARO ({totalItemsCount})
+              </div>
+
+              <div className="space-y-3.5 divide-y-2 divide-dashed divide-stone-300">
                 {order.items.map((item, idx) => (
-                  <div key={idx} className="pt-1.5 space-y-0.5">
-                    <div className="flex justify-between items-start font-bold">
-                      <span className="text-gray-950">{item.quantity}x {item.productName}</span>
-                      <span>{formatPrice(item.totalPrice)}</span>
+                  <div key={idx} className="pt-3 first:pt-0 space-y-1.5">
+                    
+                    {/* Big Item Title & Quantity */}
+                    <div className="flex items-start gap-2">
+                      <span className="bg-black text-white font-black text-sm sm:text-base px-2 py-0.5 rounded shrink-0">
+                        {item.quantity}x
+                      </span>
+                      <span className="font-black text-sm sm:text-base text-black font-sans leading-tight">
+                        {item.productName}
+                      </span>
                     </div>
 
-                    {/* Options */}
+                    {/* Customization Details */}
                     {(item.size || item.pasta || item.sauce || (item.toppings && item.toppings.length > 0)) && (
-                      <div className="text-[10px] text-gray-600 pl-3 border-l-2 border-gray-300 space-y-0.5">
-                        {item.size && <div>• Tamanho: {item.size}</div>}
-                        {item.pasta && <div>• Massa: {item.pasta}</div>}
-                        {item.sauce && <div>• Molho: {item.sauce}</div>}
+                      <div className="text-[11px] font-bold text-stone-900 pl-3 border-l-3 border-black space-y-0.5">
+                        {item.size && <div>• <strong>Tamanho:</strong> {item.size}</div>}
+                        {item.pasta && <div>• <strong>Massa:</strong> {item.pasta}</div>}
+                        {item.sauce && <div>• <strong>Molho:</strong> {item.sauce}</div>}
                         {item.toppings && item.toppings.length > 0 && (
-                          <div>• Adicionais: {item.toppings.join(', ')}</div>
+                          <div>• <strong>Adicionais:</strong> {item.toppings.join(', ')}</div>
                         )}
                       </div>
                     )}
 
+                    {/* High-Visibility Kitchen Observation Note */}
                     {item.notes && (
-                      <div className="text-[10px] bg-red-50 text-red-700 p-1.5 rounded font-bold">
-                        OBS: "{item.notes}"
+                      <div className="border-2 border-black bg-stone-100 text-black p-2 rounded-lg text-xs font-black flex items-start gap-1.5 mt-1">
+                        <AlertCircle className="w-4 h-4 text-black shrink-0 mt-0.5" />
+                        <span>OBS: "{item.notes}"</span>
                       </div>
                     )}
                   </div>
@@ -216,81 +228,65 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               </div>
             </div>
 
-            {/* Financial Totals */}
-            <div className="pt-3 border-t-2 border-dashed border-gray-300 space-y-1">
-              <div className="flex justify-between">
-                <span>Subtotal itens:</span>
-                <span>{formatPrice(order.itemsSubtotal)}</span>
+            {/* General Order Observation if any */}
+            {order.notes && (
+              <div className="border-2 border-black bg-amber-50 p-2.5 rounded-xl font-bold text-xs">
+                <strong>OBS GERAL:</strong> "{order.notes}"
               </div>
-              {order.deliveryType === 'delivery' && (
-                <div className="flex justify-between">
-                  <span>Taxa entrega:</span>
-                  <span>{formatPrice(order.deliveryFee)}</span>
-                </div>
-              )}
-              <div className="flex justify-between font-extrabold text-sm text-gray-950 pt-1 border-t border-gray-200">
-                <span>TOTAL:</span>
+            )}
+
+            {/* Compact Bottom Summary (Subtle Cashier / Payment Reference) */}
+            <div className="pt-3 border-t-2 border-dashed border-black space-y-1 text-[11px]">
+              <div className="flex justify-between font-bold">
+                <span>Total de Volumes:</span>
+                <span>{totalItemsCount} prato(s)</span>
+              </div>
+              <div className="flex justify-between font-bold">
+                <span>Pagamento:</span>
+                <span className="font-black">{getPaymentLabel()}</span>
+              </div>
+              <div className="flex justify-between font-black text-xs pt-1 border-t border-stone-300">
+                <span>VALOR TOTAL:</span>
                 <span>{formatPrice(order.grandTotal)}</span>
               </div>
             </div>
 
-            {/* Payment info */}
-            <div className="pt-2 border-t border-dashed border-gray-300 bg-gray-50 p-2.5 rounded-xl font-sans">
-              <span className="text-[10px] text-gray-400 font-bold uppercase block">Forma de Pagamento:</span>
-              <span className="font-extrabold text-gray-900 text-[11px] block mt-0.5">
-                {getPaymentLabel()}
-              </span>
-            </div>
-
-            {/* Google Maps 5-Star Review Callout */}
-            <div className="pt-2 text-center font-sans">
-              <a
-                href="https://maps.app.goo.gl/hecpUqJLLVd8EghW9"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-1.5 p-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-[11px] font-bold transition w-full"
-              >
-                <Star className="w-3.5 h-3.5 fill-yellow-400 text-amber-500 shrink-0" />
-                <span>Avaliar com 5 Estrelas no Google</span>
-                <ExternalLink className="w-3 h-3 text-amber-700 ml-0.5" />
-              </a>
-            </div>
-
-            <div className="text-center pt-1 text-[9px] text-gray-500 font-sans">
-              <p>🌐 https://massasdavovo.vercel.app/</p>
-              <p className="text-gray-400 mt-0.5">*** Obrigado pela preferência! Bom apetite! ***</p>
+            {/* Footer Ticket Cut */}
+            <div className="text-center pt-2 border-t-2 border-dashed border-black text-[10px] text-stone-600 font-sans space-y-0.5">
+              <p className="font-bold">🌐 https://massasdavovo.vercel.app/</p>
+              <p className="font-black text-black">*** BOM TRABALHO / COZINHA ***</p>
             </div>
           </div>
         </div>
 
-        {/* Actions Footer */}
-        <div className="p-4 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
+        {/* Modal Actions Footer (Hidden on Print) */}
+        <div className="p-3.5 bg-stone-900 border-t border-white/10 flex items-center gap-2 shrink-0 print:hidden">
           {onDeleteOrder && (
             <button
               type="button"
               onClick={() => onDeleteOrder(order)}
-              className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition cursor-pointer"
+              className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 font-bold text-xs transition cursor-pointer"
               title="Excluir este pedido"
             >
-              <Trash2 className="w-4 h-4 text-rose-600" />
+              <Trash2 className="w-4 h-4 text-rose-400" />
               <span>Excluir</span>
             </button>
           )}
 
           <button
             onClick={handleCopyText}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-50 transition"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-white/15 text-stone-200 font-bold text-xs hover:bg-white/10 transition cursor-pointer"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
             <span>{copied ? 'Copiado!' : 'Copiar Texto'}</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-gray-900 hover:bg-black text-white font-bold text-xs shadow-sm transition"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-amber-400 hover:bg-amber-300 text-stone-950 font-black text-xs shadow-md transition cursor-pointer"
           >
             <Printer className="w-4 h-4" />
-            <span>Imprimir</span>
+            <span>Imprimir Térmica (80mm/58mm)</span>
           </button>
         </div>
       </div>

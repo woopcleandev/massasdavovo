@@ -5,7 +5,7 @@ import {
   X, Minus, Plus, Trash2, ShoppingCart, Send, MapPin, 
   CreditCard, Clock, CheckCircle, Home, Briefcase, Tag, 
   AlertCircle, Copy, Check, ChevronRight, ShieldCheck, Sparkles,
-  Calendar, Zap, BellRing
+  Calendar, Zap, BellRing, Utensils
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';

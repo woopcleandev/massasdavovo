@@ -1,4 +1,4 @@
-import { CategoryId, Product } from './types';
+import { CategoryId, Product, Category } from './types';
 
 // Let's import the actual generated images. They are located inside '/src/assets/images/'
 import logoImage from './assets/images/logo_massas_da_vovo_actual.png';
@@ -23,7 +23,7 @@ export const RESTAURANT_INFO = {
   description: 'Massas e macarrão artesanais frescos em Primavera do Leste - MT. Lasanhas, nhoques, rondelli, sorrentinos e molhos rústicos.',
 };
 
-export const CATEGORIES = [
+export const CATEGORIES: Category[] = [
   { id: CategoryId.SORRENTINO, name: 'Sorrentino', icon: '🥟' },
   { id: CategoryId.NHOQUE, name: 'Nhoque', icon: '🍲' },
   { id: CategoryId.LASANHAS, name: 'Lasanha (Pronta)', icon: '🍕' },

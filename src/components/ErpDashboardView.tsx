@@ -91,7 +91,7 @@ export const ErpDashboardView: React.FC = () => {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0).getTime();
 
     return cashMovements.filter(m => {
-      const movementTime = new Date(m.timestamp).getTime();
+      const movementTime = new Date(m.createdAt).getTime();
       if (isNaN(movementTime)) return true;
       if (periodFilter === 'today') return movementTime >= startOfToday;
       if (periodFilter === '7days') return movementTime >= sevenDaysAgo;
