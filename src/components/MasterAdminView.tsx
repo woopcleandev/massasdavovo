@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useCompany } from '../context/CompanyContext';
 import { useTheme, ThemeMode } from '../context/ThemeContext';
 import { CategoryId, Order, OrderStatus, Product } from '../types';
-import { CATEGORIES } from '../data';
+import { CATEGORIES, RESTAURANT_INFO } from '../data';
 import { OrderReceiptModal } from './OrderReceiptModal';
 import { PosDirectSaleView } from './PosDirectSaleView';
 import { ErpDashboardView } from './ErpDashboardView';
@@ -42,7 +42,8 @@ import {
   Moon,
   Monitor,
   Store,
-  BarChart3
+  BarChart3,
+  X
 } from 'lucide-react';
 
 const PRESET_PASTA_IMAGES = [
@@ -90,6 +91,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   // Selected Order for Deletion confirmation
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
   const [isDeletingOrder, setIsDeletingOrder] = useState(false);
+  const [deleteSuccessMsg, setDeleteSuccessMsg] = useState('');
 
   // Status Filter for Orders
   const [statusFilter, setStatusFilter] = useState<string>('todos');
@@ -354,15 +356,22 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
         <div className="dark-glass-panel rounded-3xl p-8 max-w-md w-full shadow-2xl border border-stone-200 dark:border-white/10 text-left animate-scale-in relative z-10">
           <div className="text-center mb-6">
-            <div className="w-18 h-18 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-3xl flex items-center justify-center mx-auto mb-4 border border-amber-500/30 shadow-lg shadow-amber-500/10">
-              <ShieldCheck className="w-10 h-10 text-amber-600 dark:text-amber-400" />
+            <div className="relative w-20 h-20 mx-auto mb-4 p-1 rounded-3xl bg-white/20 dark:bg-white/5 border-2 border-amber-400/50 shadow-xl shadow-amber-500/15">
+              <img
+                src={RESTAURANT_INFO.logo}
+                alt={RESTAURANT_INFO.name}
+                className="w-full h-full object-cover rounded-2xl"
+              />
+              <span className="absolute -bottom-1 -right-1 bg-amber-400 text-stone-950 p-1 rounded-full border border-black shadow-sm">
+                <ShieldCheck className="w-4 h-4" />
+              </span>
             </div>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-500/20 dark:border-amber-400/30 dark:text-amber-300 text-[11px] font-black uppercase tracking-wider mb-2">
               <Sparkles className="w-3 h-3 text-amber-600 dark:text-amber-400" />
               <span>Painel Master Admin</span>
             </div>
-            <h1 className="text-2xl font-black text-stone-900 dark:text-white tracking-tight">Massas da Vovó</h1>
-            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-medium">Gestão Completa • Cozinha & Comandas</p>
+            <h1 className="text-2xl font-black text-stone-900 dark:text-white tracking-tight">{RESTAURANT_INFO.name}</h1>
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-medium">Gestão Completa • Cozinha, PDV & Finanças</p>
           </div>
 
           {loginError && (
@@ -439,8 +448,15 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
           {/* Top Bar: Brand, Admin Badge, Theme Switcher & Quick Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-2xl border border-amber-500/30 shadow-md shadow-amber-500/10 shrink-0">
-                <ShieldCheck className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              <div className="relative p-1 bg-white/20 dark:bg-white/5 rounded-2xl border-2 border-amber-400/40 shadow-lg shadow-amber-500/10 shrink-0">
+                <img
+                  src={RESTAURANT_INFO.logo}
+                  alt={RESTAURANT_INFO.name}
+                  className="w-12 h-12 rounded-xl object-cover"
+                />
+                <span className="absolute -bottom-1 -right-1 bg-amber-400 text-stone-950 p-0.5 rounded-full border border-black shadow-xs">
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                </span>
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
@@ -453,7 +469,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                     Tempo Real (Firestore)
                   </span>
                 </div>
-                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">Massas da Vovó • Gestão da Cozinha & Configurações</p>
+                <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5 font-medium">{RESTAURANT_INFO.name} • Cozinha, PDV & Finanças</p>
               </div>
             </div>
 
@@ -609,6 +625,23 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         {/* ============================================================ */}
         {adminTab === 'sales' && (
           <div className="space-y-6 animate-fade-in">
+            {/* Delete Success Alert */}
+            {deleteSuccessMsg && (
+              <div className="bg-rose-600 text-white p-4 rounded-3xl shadow-xl flex items-center justify-between text-xs font-black animate-fade-in border border-rose-400">
+                <div className="flex items-center gap-2.5">
+                  <Trash2 className="w-5 h-5 text-white" />
+                  <span>{deleteSuccessMsg}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDeleteSuccessMsg('')}
+                  className="p-1 hover:bg-black/20 rounded-full transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
             {/* Quick Metrics Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               
@@ -772,11 +805,11 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                           <button
                             type="button"
                             onClick={() => setOrderToDelete(ord)}
-                            className="flex items-center gap-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 font-bold text-xs py-2.5 px-3 rounded-full transition cursor-pointer shadow-sm"
-                            title="Excluir este pedido do painel"
+                            className="flex items-center gap-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 font-bold text-xs py-2.5 px-3.5 rounded-full transition cursor-pointer shadow-sm active:scale-95"
+                            title="Excluir este pedido permanentemente"
                           >
                             <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                            <span className="hidden sm:inline">Excluir</span>
+                            <span>Excluir</span>
                           </button>
                         </div>
                       </div>
@@ -1505,36 +1538,89 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
         <OrderReceiptModal
           order={receiptOrder}
           onClose={() => setReceiptOrder(null)}
+          onDeleteOrder={(ord) => {
+            setReceiptOrder(null);
+            setOrderToDelete(ord);
+          }}
         />
       )}
 
       {/* ============================================================ */}
-      {/* MODAL: CONFIRMAÇÃO DE EXCLUSÃO DE PEDIDO */}
+      {/* TELA DE CONFIRMAÇÃO DEFENSIVA: EXCLUSÃO DE PEDIDO */}
       {/* ============================================================ */}
       {orderToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-left">
-            <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 flex items-center justify-center">
-              <Trash2 className="w-6 h-6" />
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in">
+          <div className="bg-white dark:bg-stone-900 border-2 border-rose-500/50 rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-4 text-left">
+            
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-300 dark:border-rose-500/40 flex items-center justify-center shrink-0">
+                <Trash2 className="w-6 h-6 text-rose-600 dark:text-rose-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="font-mono text-xs font-black text-amber-900 dark:text-amber-400 bg-amber-100 dark:bg-black/60 px-2.5 py-0.5 rounded-lg border border-amber-300 dark:border-amber-400/30">
+                  {orderToDelete.orderNumber}
+                </span>
+                <h3 className="text-lg font-black text-stone-900 dark:text-white mt-1 leading-snug">
+                  Confirmar Exclusão de Pedido?
+                </h3>
+              </div>
             </div>
 
-            <div>
-              <h3 className="text-lg font-black text-stone-900 dark:text-white">
-                Excluir Pedido {orderToDelete.orderNumber}?
-              </h3>
-              <p className="text-xs text-stone-600 dark:text-stone-300 mt-1 leading-relaxed">
-                Esta ação removerá permanentemente o pedido de <strong>{orderToDelete.customerName}</strong> ({formatPrice(orderToDelete.grandTotal)}) do sistema e do banco de dados.
+            {/* Order Details Preview Box */}
+            <div className="bg-stone-50 dark:bg-black/40 p-4 rounded-2xl border border-stone-200 dark:border-white/10 space-y-2 text-xs">
+              <div className="flex justify-between items-center text-stone-700 dark:text-stone-300">
+                <span className="text-stone-500 dark:text-stone-400 font-bold">Cliente:</span>
+                <span className="font-black text-stone-900 dark:text-white">{orderToDelete.customerName}</span>
+              </div>
+
+              <div className="flex justify-between items-center text-stone-700 dark:text-stone-300">
+                <span className="text-stone-500 dark:text-stone-400 font-bold">Tipo:</span>
+                <span className="font-semibold text-stone-900 dark:text-white">
+                  {orderToDelete.deliveryType === 'delivery' 
+                    ? '🚀 Entrega' 
+                    : orderToDelete.deliveryType === 'dine_in' 
+                    ? `🍽️ Consumo Local (Mesa ${orderToDelete.tableNumber || 'Salão'})` 
+                    : '🏪 Balcão / Retirada'}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center text-stone-700 dark:text-stone-300">
+                <span className="text-stone-500 dark:text-stone-400 font-bold">Valor Total:</span>
+                <span className="text-base font-black text-amber-700 dark:text-amber-400">
+                  {formatPrice(orderToDelete.grandTotal)}
+                </span>
+              </div>
+
+              {orderToDelete.items && orderToDelete.items.length > 0 && (
+                <div className="pt-2 border-t border-stone-200 dark:border-white/10 text-[11px] text-stone-600 dark:text-stone-400">
+                  <span className="font-bold text-stone-700 dark:text-stone-300 block mb-0.5">
+                    Itens ({orderToDelete.items.length}):
+                  </span>
+                  <p className="line-clamp-2 italic">
+                    {orderToDelete.items.map(it => `${it.quantity}x ${it.productName}`).join(', ')}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Red Warning Callout */}
+            <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/30 p-3.5 rounded-2xl flex items-start gap-2.5 text-xs text-rose-900 dark:text-rose-200">
+              <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+              <p className="leading-relaxed">
+                <strong>Atenção:</strong> Esta ação é permanente e irreversível. O pedido será removido do banco de dados em tempo real e de todos os relatórios de faturamento.
               </p>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            {/* Modal Actions */}
+            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => setOrderToDelete(null)}
                 disabled={isDeletingOrder}
-                className="flex-1 py-3 px-4 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs transition cursor-pointer"
+                className="flex-1 py-3 px-4 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs transition cursor-pointer text-center"
               >
-                Cancelar
+                ✕ Cancelar e Manter Pedido
               </button>
 
               <button
@@ -1543,22 +1629,26 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                 onClick={async () => {
                   setIsDeletingOrder(true);
                   try {
+                    const orderNum = orderToDelete.orderNumber;
                     await deleteOrder(orderToDelete.id);
+                    setDeleteSuccessMsg(`Pedido ${orderNum} foi excluído com sucesso do sistema!`);
+                    setTimeout(() => setDeleteSuccessMsg(''), 4500);
                     setOrderToDelete(null);
                   } catch (e) {
                     console.error('Erro ao excluir pedido:', e);
+                    alert('Erro ao excluir pedido do banco de dados.');
                   } finally {
                     setIsDeletingOrder(false);
                   }
                 }}
-                className="flex-1 py-3 px-4 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-lg transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 py-3 px-5 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-lg transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isDeletingOrder ? (
                   <Loader2 className="w-4 h-4 animate-spin text-white" />
                 ) : (
                   <>
                     <Trash2 className="w-4 h-4" />
-                    <span>Confirmar Exclusão</span>
+                    <span>Sim, Excluir Definitivamente</span>
                   </>
                 )}
               </button>

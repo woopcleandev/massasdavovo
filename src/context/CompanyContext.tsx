@@ -143,6 +143,16 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return [];
   });
 
+  // 4.1 Deleted order IDs to prevent ghost restoration
+  const [deletedOrderIds, setDeletedOrderIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('vovo_deleted_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // 5. Master Auth state
   const [isMasterAuth, setIsMasterAuth] = useState<boolean>(() => {
     try {
@@ -265,9 +275,17 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const ordersRef = collection(db, 'orders');
       const q = query(ordersRef, orderBy('createdAt', 'desc'));
       const unsubscribe = onSnapshot(q, (snapshot) => {
+        let savedDeleted: string[] = [];
+        try {
+          savedDeleted = JSON.parse(localStorage.getItem('vovo_deleted_orders') || '[]');
+        } catch {}
+
         const list: Order[] = [];
         snapshot.forEach(docSnap => {
           const d = docSnap.data();
+          if (d.deleted === true || savedDeleted.includes(docSnap.id)) {
+            return;
+          }
           const phone = d.customerPhone || '';
           list.push({
             id: docSnap.id,
@@ -296,10 +314,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
             updatedAt: d.updatedAt?.toDate ? d.updatedAt.toDate().toISOString() : (d.updatedAt || new Date().toISOString()),
           });
         });
-        if (list.length > 0) {
-          setOrders(list);
-          localStorage.setItem('vovo_orders_history', JSON.stringify(list));
-        }
+        setOrders(list);
+        localStorage.setItem('vovo_orders_history', JSON.stringify(list));
       }, (err) => {
         console.warn('Orders onSnapshot error (using local orders list):', err);
       });
@@ -523,17 +539,44 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
-  // Delete Order
+  // Delete Order Permanently
   const deleteOrder = async (orderId: string) => {
-    const updatedOrders = orders.filter(o => o.id !== orderId);
-    setOrders(updatedOrders);
-    localStorage.setItem('vovo_orders_history', JSON.stringify(updatedOrders));
+    // 1. Mark in deleted order IDs list immediately
+    setDeletedOrderIds(prev => {
+      const updated = Array.from(new Set([...prev, orderId]));
+      localStorage.setItem('vovo_deleted_orders', JSON.stringify(updated));
+      return updated;
+    });
 
+    // 2. Remove from active state and localStorage
+    setOrders(prev => {
+      const updated = prev.filter(o => o.id !== orderId);
+      localStorage.setItem('vovo_orders_history', JSON.stringify(updated));
+      return updated;
+    });
+
+    // 3. Remove from user local order IDs if present
+    try {
+      const myIds: string[] = JSON.parse(localStorage.getItem('vovo_my_order_ids') || '[]');
+      const filtered = myIds.filter(id => id !== orderId);
+      localStorage.setItem('vovo_my_order_ids', JSON.stringify(filtered));
+    } catch (e) {
+      console.warn('Error clearing my_order_ids:', e);
+    }
+
+    // 4. Delete from Firestore
     try {
       const orderRef = doc(db, 'orders', orderId);
       await deleteDoc(orderRef);
+      console.log('Order deleted permanently from Firestore:', orderId);
     } catch (err) {
-      console.warn('Could not delete order from Firestore:', err);
+      console.warn('Could not delete order from Firestore, marking as deleted:', err);
+      try {
+        const orderRef = doc(db, 'orders', orderId);
+        await updateDoc(orderRef, { deleted: true, status: 'cancelado' });
+      } catch (e2) {
+        console.error('Fallback mark deleted also failed:', e2);
+      }
     }
   };
 

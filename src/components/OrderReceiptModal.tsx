@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
-import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink } from 'lucide-react';
+import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink, Trash2 } from 'lucide-react';
 
 interface OrderReceiptModalProps {
   order: Order;
   onClose: () => void;
+  onDeleteOrder?: (order: Order) => void;
 }
 
-export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onClose }) => {
+export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onClose, onDeleteOrder }) => {
   const { settings } = useCompany();
   const [copied, setCopied] = useState(false);
 
@@ -272,6 +273,18 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
 
         {/* Actions Footer */}
         <div className="p-4 bg-white border-t border-gray-100 flex items-center gap-2 shrink-0">
+          {onDeleteOrder && (
+            <button
+              type="button"
+              onClick={() => onDeleteOrder(order)}
+              className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold text-xs transition cursor-pointer"
+              title="Excluir este pedido"
+            >
+              <Trash2 className="w-4 h-4 text-rose-600" />
+              <span>Excluir</span>
+            </button>
+          )}
+
           <button
             onClick={handleCopyText}
             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl border border-gray-200 text-gray-700 font-bold text-xs hover:bg-gray-50 transition"
