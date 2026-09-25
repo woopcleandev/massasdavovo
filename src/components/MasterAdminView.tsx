@@ -63,6 +63,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     deleteProduct,
     orders,
     updateOrderStatus,
+    deleteOrder,
     isMasterAuth,
     loginMaster,
     logoutMaster,
@@ -81,6 +82,10 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
   // Selected Order for Receipt view
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
+
+  // Selected Order for Deletion confirmation
+  const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
 
   // Status Filter for Orders
   const [statusFilter, setStatusFilter] = useState<string>('todos');
@@ -708,9 +713,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                           </p>
                         </div>
 
-                        {/* Right: Total Amount & Ver Comanda Button */}
-                        <div className="flex items-center gap-3">
-                          <div className="text-right">
+                        {/* Right: Total Amount & Action Buttons */}
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                          <div className="text-right mr-1">
                             <span className="text-[10px] text-stone-500 dark:text-stone-400 block font-bold uppercase">Valor Total</span>
                             <span className="text-lg font-black text-amber-700 dark:text-amber-400">{formatPrice(ord.grandTotal)}</span>
                           </div>
@@ -721,6 +726,16 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                           >
                             <Receipt className="w-4 h-4 text-stone-950" />
                             <span>Ver Comanda</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setOrderToDelete(ord)}
+                            className="flex items-center gap-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 font-bold text-xs py-2.5 px-3 rounded-full transition cursor-pointer shadow-sm"
+                            title="Excluir este pedido do painel"
+                          >
+                            <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                            <span className="hidden sm:inline">Excluir</span>
                           </button>
                         </div>
                       </div>
@@ -1443,6 +1458,65 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
           order={receiptOrder}
           onClose={() => setReceiptOrder(null)}
         />
+      )}
+
+      {/* ============================================================ */}
+      {/* MODAL: CONFIRMAÇÃO DE EXCLUSÃO DE PEDIDO */}
+      {/* ============================================================ */}
+      {orderToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-white/10 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-left">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/30 flex items-center justify-center">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-black text-stone-900 dark:text-white">
+                Excluir Pedido {orderToDelete.orderNumber}?
+              </h3>
+              <p className="text-xs text-stone-600 dark:text-stone-300 mt-1 leading-relaxed">
+                Esta ação removerá permanentemente o pedido de <strong>{orderToDelete.customerName}</strong> ({formatPrice(orderToDelete.grandTotal)}) do sistema e do banco de dados.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setOrderToDelete(null)}
+                disabled={isDeletingOrder}
+                className="flex-1 py-3 px-4 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs transition cursor-pointer"
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                disabled={isDeletingOrder}
+                onClick={async () => {
+                  setIsDeletingOrder(true);
+                  try {
+                    await deleteOrder(orderToDelete.id);
+                    setOrderToDelete(null);
+                  } catch (e) {
+                    console.error('Erro ao excluir pedido:', e);
+                  } finally {
+                    setIsDeletingOrder(false);
+                  }
+                }}
+                className="flex-1 py-3 px-4 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-black text-xs shadow-lg transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isDeletingOrder ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-white" />
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>Confirmar Exclusão</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

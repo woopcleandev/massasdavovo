@@ -5,11 +5,13 @@
 
 import { useState, useEffect } from 'react';
 import { CATEGORIES, RESTAURANT_INFO } from './data';
-import { CategoryId, Product, CartItem } from './types';
+import { CategoryId, Product, CartItem, Order } from './types';
 import { ProductCard } from './components/ProductCard';
 import { ProductModal } from './components/ProductModal';
 import { CartDrawer } from './components/CartDrawer';
 import { AboutTab } from './components/AboutTab';
+import { OrderReceiptModal } from './components/OrderReceiptModal';
+import { OrderStatusNotifier } from './components/OrderStatusNotifier';
 import { 
   ShoppingBag, Search, Clock, MapPin, X, Info, Phone, 
   ArrowRight, Heart, User, Sparkles, SlidersHorizontal,
@@ -57,6 +59,7 @@ function MainApp() {
   // Modal tracking
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
 
   // Sync cart items to localStorage on change
   useEffect(() => {
@@ -601,6 +604,17 @@ function MainApp() {
       )}
 
       {/* 5. Modals & Drawer Overlays */}
+      <OrderStatusNotifier
+        onOpenOrderReceipt={(ord) => setTrackedOrder(ord)}
+      />
+
+      {trackedOrder && (
+        <OrderReceiptModal
+          order={trackedOrder}
+          onClose={() => setTrackedOrder(null)}
+        />
+      )}
+
       <BuyWebsiteModal
         isOpen={isBuyModalOpen}
         onClose={() => setIsBuyModalOpen(false)}

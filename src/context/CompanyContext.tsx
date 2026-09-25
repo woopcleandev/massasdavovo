@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { CompanySettings, Order, OrderStatus, Product, CartItem } from '../types';
 import { RESTAURANT_INFO, PRODUCTS } from '../data';
 import { db, auth, sanitizeFirestoreData } from '../lib/firebase';
-import { doc, getDoc, setDoc, collection, getDocs, updateDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, updateDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { normalizePhoneNumber } from '../utils/phone';
 
 interface CompanyContextType {
@@ -19,6 +19,7 @@ interface CompanyContextType {
   orders: Order[];
   createOrder: (orderInput: Omit<Order, 'id' | 'orderNumber' | 'status' | 'createdAt' | 'updatedAt'>) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  deleteOrder: (orderId: string) => Promise<void>;
 
   // Master Admin Auth
   isMasterAuth: boolean;
@@ -496,6 +497,20 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Delete Order
+  const deleteOrder = async (orderId: string) => {
+    const updatedOrders = orders.filter(o => o.id !== orderId);
+    setOrders(updatedOrders);
+    localStorage.setItem('vovo_orders_history', JSON.stringify(updatedOrders));
+
+    try {
+      const orderRef = doc(db, 'orders', orderId);
+      await deleteDoc(orderRef);
+    } catch (err) {
+      console.warn('Could not delete order from Firestore:', err);
+    }
+  };
+
   // Master Login
   const loginMaster = (user: string, pass: string): boolean => {
     const targetUser = (settings.adminUser || 'Admin').trim().toLowerCase();
@@ -537,6 +552,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         orders,
         createOrder,
         updateOrderStatus,
+        deleteOrder,
         isMasterAuth,
         loginMaster,
         logoutMaster,
