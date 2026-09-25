@@ -363,14 +363,23 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
             </span>
           </div>
 
-          <button
-            id="btn-confirm-add-cart"
-            onClick={handleAddToCart}
-            className="flex-1 flex items-center justify-center gap-2 rounded-full dark-glass-button-gold py-3.5 px-6 text-sm font-black shadow-lg cursor-pointer hover:scale-102 active:scale-95 transition-transform"
-          >
-            <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
-            <span>Adicionar ao Pedido</span>
-          </button>
+          {product.isOutOfStock ? (
+            <button
+              disabled
+              className="flex-1 flex items-center justify-center gap-2 rounded-full bg-stone-200 dark:bg-white/10 py-3.5 px-6 text-sm font-bold text-stone-500 dark:text-stone-400 cursor-not-allowed select-none"
+            >
+              <span>Prato Pausado na Cozinha</span>
+            </button>
+          ) : (
+            <button
+              id="btn-confirm-add-cart"
+              onClick={handleAddToCart}
+              className="flex-1 flex items-center justify-center gap-2 rounded-full dark-glass-button-gold py-3.5 px-6 text-sm font-black shadow-lg cursor-pointer hover:scale-102 active:scale-95 transition-transform"
+            >
+              <ShoppingBag className="w-4 h-4 stroke-[2.5]" />
+              <span>Adicionar ao Pedido</span>
+            </button>
+          )}
         </div>
 
       </div>

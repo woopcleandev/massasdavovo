@@ -364,16 +364,11 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
                         }}
                       />
                       {isOutOfStock && (
-                        <div className="absolute inset-0 bg-stone-950/70 flex items-center justify-center">
-                          <span className="text-[10px] font-black uppercase text-rose-300 bg-rose-950/80 px-2 py-0.5 rounded-full border border-rose-500/40">
-                            Esgotado
+                        <div className="absolute inset-0 bg-stone-950/75 flex items-center justify-center p-2">
+                          <span className="text-[10px] font-black uppercase text-rose-300 bg-rose-950/90 px-2.5 py-1 rounded-full border border-rose-500/50 shadow-md">
+                            ⏸️ Pausado / Esgotado
                           </span>
                         </div>
-                      )}
-                      {prod.stock !== undefined && prod.stock > 0 && !isOutOfStock && (
-                        <span className="absolute bottom-1 right-1 text-[9px] font-bold bg-black/70 text-amber-300 px-1.5 py-0.5 rounded-md backdrop-blur-sm">
-                          {prod.stock} un
-                        </span>
                       )}
                     </div>
 
@@ -388,7 +383,11 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
                     </div>
 
                     {/* Sizes Selection or Simple Add Button */}
-                    {prod.sizes && prod.sizes.length > 0 ? (
+                    {isOutOfStock ? (
+                      <div className="w-full py-1.5 px-3 rounded-xl bg-stone-200 dark:bg-white/5 text-stone-400 dark:text-stone-500 font-bold text-xs text-center border border-dashed border-stone-300 dark:border-white/10 select-none">
+                        Indisponível no momento
+                      </div>
+                    ) : prod.sizes && prod.sizes.length > 0 ? (
                       <div className="space-y-1">
                         <span className="text-[9px] font-bold text-stone-400 block uppercase">Tamanhos:</span>
                         <div className="grid grid-cols-2 gap-1">

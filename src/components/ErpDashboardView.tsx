@@ -23,7 +23,11 @@ import {
   Sparkles,
   BarChart3,
   Archive,
-  ArrowRight
+  ArrowRight,
+  Search,
+  PauseCircle,
+  PlayCircle,
+  Check
 } from 'lucide-react';
 
 export const ErpDashboardView: React.FC = () => {
@@ -39,8 +43,9 @@ export const ErpDashboardView: React.FC = () => {
   // Period filter for metrics
   const [periodFilter, setPeriodFilter] = useState<'today' | '7days' | 'month' | 'all'>('all');
 
-  // Sub-tabs in ERP: 'overview' | 'stock' | 'cash'
-  const [erpTab, setErpTab] = useState<'overview' | 'stock' | 'cash'>('overview');
+  // Sub-tabs in ERP: 'overview' | 'availability' | 'cash'
+  const [erpTab, setErpTab] = useState<'overview' | 'availability' | 'cash'>('overview');
+  const [availabilitySearch, setAvailabilitySearch] = useState('');
 
   // Cash movement modal state
   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
@@ -189,7 +194,7 @@ export const ErpDashboardView: React.FC = () => {
             <span>Módulo de Gestão ERP & Inteligência de Negócio</span>
           </h2>
           <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">
-            DRE executivo, controle de fluxo de caixa, estoque e comparativo balcão vs delivery
+            DRE executivo, fluxo de caixa, controle de pausa de pratos e comparativo balcão vs delivery
           </p>
         </div>
 
@@ -197,7 +202,7 @@ export const ErpDashboardView: React.FC = () => {
         <div className="flex bg-stone-100 dark:bg-black/40 p-1 rounded-2xl border border-stone-200 dark:border-white/10 gap-1 overflow-x-auto no-scrollbar">
           {[
             { id: 'overview', label: 'DRE & Finanças', icon: TrendingUp },
-            { id: 'stock', label: 'Estoque de Pratos', icon: Package },
+            { id: 'availability', label: 'Disponibilidade (Pausa)', icon: Package },
             { id: 'cash', label: 'Frente de Caixa', icon: DollarSign },
           ].map(tab => {
             const Icon = tab.icon;
@@ -400,99 +405,156 @@ export const ErpDashboardView: React.FC = () => {
       )}
 
       {/* ========================================================= */}
-      {/* TAB 2: CONTROLE DE ESTOQUE & DISPONIBILIDADE */}
+      {/* TAB 2: CONTROLE DE DISPONIBILIDADE DO CARDÁPIO (PAUSA DE PRATOS) */}
       {/* ========================================================= */}
-      {erpTab === 'stock' && (
+      {erpTab === 'availability' && (
         <div className="space-y-4">
-          <div className="dark-glass-panel p-5 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl space-y-2">
-            <h3 className="text-xs font-black uppercase tracking-wider text-stone-900 dark:text-white flex items-center gap-2">
-              <Package className="w-4 h-4 text-amber-500" />
-              <span>Gestão de Estoque e Pausa de Pratos Esgotados</span>
-            </h3>
-            <p className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-              Pause pratos que acabaram na cozinha para que nem os clientes do site nem o balcão vendam itens sem estoque. Adicione ou retire porções em tempo real.
-            </p>
+          
+          {/* Header Explanation Banner */}
+          <div className="dark-glass-panel p-5 rounded-3xl border border-stone-200 dark:border-white/10 shadow-xl space-y-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-wider text-stone-900 dark:text-white flex items-center gap-2">
+                  <Package className="w-5 h-5 text-amber-500" />
+                  <span>Disponibilidade do Cardápio para Delivery (Sob Demanda)</span>
+                </h3>
+                <p className="text-xs text-stone-600 dark:text-stone-300 mt-1 leading-relaxed">
+                  No delivery gastronômico os pratos são preparados sob demanda e <strong>não possuem limites numéricos de estoque</strong>. 
+                  Todos os itens ativos aceitam pedidos ilimitados. Use o botão de <strong>Pausa Rápida</strong> apenas quando faltar algum insumo ou ingrediente específico na cozinha hoje.
+                </p>
+              </div>
+
+              {/* Status Counters */}
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 px-3 py-1.5 rounded-2xl text-center">
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 block uppercase">Disponíveis</span>
+                  <span className="text-sm font-black text-emerald-800 dark:text-emerald-300">
+                    {allProducts.filter(p => !p.isOutOfStock).length} pratos
+                  </span>
+                </div>
+                <div className="bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 px-3 py-1.5 rounded-2xl text-center">
+                  <span className="text-[10px] font-bold text-rose-700 dark:text-rose-400 block uppercase">Pausados</span>
+                  <span className="text-sm font-black text-rose-800 dark:text-rose-300">
+                    {allProducts.filter(p => p.isOutOfStock).length} pratos
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Search */}
+            <div className="relative pt-2">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+              <input
+                type="text"
+                value={availabilitySearch}
+                onChange={(e) => setAvailabilitySearch(e.target.value)}
+                placeholder="Filtrar prato por nome para pausar ou reativar..."
+                className="w-full bg-stone-100 dark:bg-black/30 border border-stone-200 dark:border-white/10 rounded-2xl py-2 pl-10 pr-4 text-xs font-medium text-stone-900 dark:text-white focus:outline-none focus:border-amber-400 transition"
+              />
+              {availabilitySearch && (
+                <button
+                  type="button"
+                  onClick={() => setAvailabilitySearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-stone-400 hover:text-stone-700 dark:hover:text-white font-bold"
+                >
+                  Limpar
+                </button>
+              )}
+            </div>
           </div>
 
+          {/* Dishes Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
-            {allProducts.map(prod => {
-              const isOut = prod.isOutOfStock;
-              const stockQty = prod.stock ?? 15;
+            {allProducts
+              .filter(prod => {
+                if (!availabilitySearch) return true;
+                const query = availabilitySearch.toLowerCase();
+                return prod.name.toLowerCase().includes(query) || (prod.description || '').toLowerCase().includes(query);
+              })
+              .map(prod => {
+                const isOut = prod.isOutOfStock;
 
-              return (
-                <div
-                  key={prod.id}
-                  className={`dark-glass-card rounded-2xl border p-4 flex flex-col justify-between gap-3 text-left transition ${
-                    isOut 
-                      ? 'border-rose-400/40 bg-rose-50/20 dark:bg-rose-950/20' 
-                      : 'border-stone-200 dark:border-white/10 hover:border-amber-400/40'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <img
-                      src={prod.image}
-                      alt={prod.name}
-                      className="w-14 h-14 rounded-xl object-cover bg-stone-200 dark:bg-stone-800 shrink-0"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=200';
-                      }}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs font-black text-stone-900 dark:text-white truncate">
-                        {prod.name}
-                      </h4>
-                      <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
-                        {formatPrice(prod.price)}
-                      </p>
-                      
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full mt-1 ${
-                        isOut 
-                          ? 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300' 
-                          : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300'
-                      }`}>
-                        {isOut ? '❌ Esgotado / Pausado' : `✅ Em Estoque (${stockQty} un)`}
-                      </span>
+                return (
+                  <div
+                    key={prod.id}
+                    className={`dark-glass-card rounded-2xl border p-4 flex flex-col justify-between gap-3 text-left transition ${
+                      isOut 
+                        ? 'border-rose-400/50 bg-rose-50/20 dark:bg-rose-950/20 shadow-none' 
+                        : 'border-stone-200 dark:border-white/10 hover:border-amber-400/40 shadow-sm'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-stone-200 dark:bg-stone-800 shrink-0">
+                        <img
+                          src={prod.image}
+                          alt={prod.name}
+                          className={`w-full h-full object-cover transition ${isOut ? 'grayscale opacity-60' : ''}`}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?auto=format&fit=crop&q=80&w=200';
+                          }}
+                        />
+                        {isOut && (
+                          <div className="absolute inset-0 bg-stone-950/70 flex items-center justify-center">
+                            <span className="text-[9px] font-black text-rose-300 uppercase px-1 text-center">
+                              Pausado
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs font-black text-stone-900 dark:text-white truncate">
+                          {prod.name}
+                        </h4>
+                        <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 mt-0.5">
+                          {formatPrice(prod.price)}
+                        </p>
+                        
+                        <div className="mt-1">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                            isOut 
+                              ? 'bg-rose-100 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300' 
+                              : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300'
+                          }`}>
+                            {isOut ? '❌ Pausado / Esgotado' : '🟢 Disponível (Ilimitado)'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Stock Controls */}
-                  <div className="flex items-center justify-between pt-2 border-t border-stone-200 dark:border-white/10 gap-2 text-xs">
-                    {/* Toggle Out of stock */}
-                    <button
-                      type="button"
-                      onClick={() => toggleProductStockStatus(prod.id, !isOut)}
-                      className={`py-1.5 px-3 rounded-xl font-black text-[11px] transition cursor-pointer ${
-                        isOut
-                          ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                          : 'bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-500/20 dark:text-rose-300'
-                      }`}
-                    >
-                      {isOut ? 'Reativar Prato' : 'Pausar (Esgotou)'}
-                    </button>
+                    <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-snug">
+                      {isOut 
+                        ? 'Item bloqueado para pedidos no site e balcão. Reative quando houver insumos.' 
+                        : 'Prato liberado para receber pedidos online e no caixa sem travas de quantidade.'}
+                    </p>
 
-                    {/* Stock counter adjust */}
-                    <div className="flex items-center gap-1">
+                    {/* Fast Toggle Action Button */}
+                    <div className="pt-2 border-t border-stone-200 dark:border-white/10">
                       <button
                         type="button"
-                        onClick={() => updateProductStockQuantity(prod.id, stockQty - 1)}
-                        className="w-7 h-7 rounded-lg bg-stone-100 dark:bg-white/10 hover:bg-stone-200 flex items-center justify-center font-bold text-stone-800 dark:text-white cursor-pointer"
-                        title="Diminuir 1 un"
+                        onClick={() => toggleProductStockStatus(prod.id, !isOut)}
+                        className={`w-full py-2 px-3 rounded-xl font-black text-xs transition cursor-pointer flex items-center justify-center gap-1.5 shadow-sm active:scale-98 ${
+                          isOut
+                            ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
+                            : 'bg-rose-50 hover:bg-rose-100 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30'
+                        }`}
                       >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateProductStockQuantity(prod.id, stockQty + 5)}
-                        className="py-1 px-2 rounded-lg bg-stone-100 dark:bg-white/10 hover:bg-amber-400 hover:text-stone-950 font-bold text-[10px] text-stone-800 dark:text-white cursor-pointer"
-                        title="Adicionar 5 unidades ao estoque"
-                      >
-                        +5 un
+                        {isOut ? (
+                          <>
+                            <PlayCircle className="w-4 h-4" />
+                            <span>Reativar Prato (Disponibilizar)</span>
+                          </>
+                        ) : (
+                          <>
+                            <PauseCircle className="w-4 h-4" />
+                            <span>Pausar Prato (Esgotou Insumo)</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
         </div>
       )}
