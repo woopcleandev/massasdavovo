@@ -25,6 +25,9 @@ export interface Product {
   price: number; // Base price for default option
   image: string;
   isPopular?: boolean;
+  stock?: number;
+  isOutOfStock?: boolean;
+  costPrice?: number;
   sizes?: {
     name: string;
     price: number;
@@ -64,7 +67,7 @@ export interface OrderSchedule {
 export interface CustomerInfo {
   name: string;
   phone: string;
-  deliveryType: 'delivery' | 'takeaway';
+  deliveryType: 'delivery' | 'takeaway' | 'dine_in';
   street?: string;
   number?: string;
   neighborhood?: string;
@@ -96,7 +99,9 @@ export interface Order {
   customerPhone: string;
   customerPhoneClean?: string;
   customerId?: string;
-  deliveryType: 'delivery' | 'takeaway';
+  deliveryType: 'delivery' | 'takeaway' | 'dine_in';
+  tableNumber?: string;
+  origin?: 'web' | 'pos';
   street?: string;
   number?: string;
   neighborhood?: string;
@@ -112,6 +117,14 @@ export interface Order {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CashMovement {
+  id: string;
+  type: 'suprimento' | 'sangria';
+  amount: number;
+  reason: string;
+  createdAt: string;
 }
 
 export interface OperatingHoursSettings {

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CompanySettings, Order, OrderStatus, Product, CartItem } from '../types';
+import { CompanySettings, Order, OrderStatus, Product, CartItem, OrderItem, PaymentMethod, CashMovement } from '../types';
 import { RESTAURANT_INFO, PRODUCTS } from '../data';
 import { db, auth, sanitizeFirestoreData } from '../lib/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, updateDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
@@ -14,12 +14,33 @@ interface CompanyContextType {
   addProduct: (newProd: Omit<Product, 'id'>) => Promise<Product>;
   updateProduct: (id: string, updated: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+  toggleProductStockStatus: (productId: string, isOutOfStock: boolean) => Promise<void>;
+  updateProductStockQuantity: (productId: string, newStock: number) => Promise<void>;
 
   // Orders
   orders: Order[];
   createOrder: (orderInput: Omit<Order, 'id' | 'orderNumber' | 'status' | 'createdAt' | 'updatedAt'>) => Promise<Order>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
   deleteOrder: (orderId: string) => Promise<void>;
+
+  // POS / Direct Sales (Balcão)
+  createDirectSale: (saleInput: {
+    customerName?: string;
+    customerPhone?: string;
+    deliveryType: 'takeaway' | 'dine_in';
+    tableNumber?: string;
+    paymentMethod: PaymentMethod;
+    changeFor?: string;
+    items: OrderItem[];
+    itemsSubtotal: number;
+    grandTotal: number;
+    notes?: string;
+    status?: OrderStatus;
+  }) => Promise<Order>;
+
+  // Cash Movements (Caixa do ERP: Suprimento e Sangria)
+  cashMovements: CashMovement[];
+  addCashMovement: (type: 'suprimento' | 'sangria', amount: number, reason: string) => Promise<void>;
 
   // Master Admin Auth
   isMasterAuth: boolean;
@@ -190,6 +211,9 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
               price: Number(data.price) || baseProd?.price || 0,
               image: remoteImage,
               isPopular: Boolean(data.isPopular),
+              stock: data.stock !== undefined ? Number(data.stock) : baseProd?.stock,
+              isOutOfStock: data.isOutOfStock !== undefined ? Boolean(data.isOutOfStock) : Boolean(baseProd?.isOutOfStock),
+              costPrice: data.costPrice !== undefined ? Number(data.costPrice) : baseProd?.costPrice,
               customizable: data.customizable !== undefined ? data.customizable : baseProd?.customizable,
               sizes: data.sizes !== undefined ? data.sizes : baseProd?.sizes,
             });
@@ -253,6 +277,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
             customerPhoneClean: d.customerPhoneClean || normalizePhoneNumber(phone),
             customerId: d.customerId || undefined,
             deliveryType: d.deliveryType || 'delivery',
+            tableNumber: d.tableNumber || undefined,
+            origin: d.origin || 'web',
             street: d.street,
             number: d.number,
             neighborhood: d.neighborhood,
@@ -511,6 +537,129 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Direct POS / Balcão Sale
+  const createDirectSale = async (saleInput: {
+    customerName?: string;
+    customerPhone?: string;
+    deliveryType: 'takeaway' | 'dine_in';
+    tableNumber?: string;
+    paymentMethod: PaymentMethod;
+    changeFor?: string;
+    items: OrderItem[];
+    itemsSubtotal: number;
+    grandTotal: number;
+    notes?: string;
+    status?: OrderStatus;
+  }): Promise<Order> => {
+    const randomSuffix = Math.floor(100 + Math.random() * 900);
+    const orderNumber = `#BALCAO-${randomSuffix}`;
+    const id = `pos-${Date.now()}`;
+    const nowIso = new Date().toISOString();
+    const cleanPhone = saleInput.customerPhone ? normalizePhoneNumber(saleInput.customerPhone) : '';
+
+    const newOrder: Order = {
+      id,
+      orderNumber,
+      customerName: saleInput.customerName?.trim() || 'Cliente Balcão',
+      customerPhone: saleInput.customerPhone || '',
+      customerPhoneClean: cleanPhone,
+      deliveryType: saleInput.deliveryType,
+      tableNumber: saleInput.tableNumber,
+      origin: 'pos',
+      paymentMethod: saleInput.paymentMethod,
+      changeFor: saleInput.changeFor,
+      items: saleInput.items,
+      itemsSubtotal: saleInput.itemsSubtotal,
+      deliveryFee: 0,
+      grandTotal: saleInput.grandTotal,
+      status: saleInput.status || 'concluido',
+      notes: saleInput.notes,
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+
+    // Update orders immediately in state and storage
+    const updatedOrders = [newOrder, ...orders];
+    setOrders(updatedOrders);
+    localStorage.setItem('vovo_orders_history', JSON.stringify(updatedOrders));
+
+    // Persist to Firestore
+    try {
+      const orderRef = doc(db, 'orders', id);
+      const cleanedData = sanitizeFirestoreData({
+        ...newOrder,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      await setDoc(orderRef, cleanedData);
+    } catch (err) {
+      console.warn('Could not save POS order to Firestore, local state preserved:', err);
+    }
+
+    return newOrder;
+  };
+
+  // Cash Movements (Caixa)
+  const [cashMovements, setCashMovements] = useState<CashMovement[]>(() => {
+    try {
+      const saved = localStorage.getItem('vovo_cash_movements');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error(e);
+    }
+    return [];
+  });
+
+  const addCashMovement = async (type: 'suprimento' | 'sangria', amount: number, reason: string) => {
+    const newMovement: CashMovement = {
+      id: `mov-${Date.now()}`,
+      type,
+      amount,
+      reason: reason.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newMovement, ...cashMovements];
+    setCashMovements(updated);
+    localStorage.setItem('vovo_cash_movements', JSON.stringify(updated));
+    try {
+      await setDoc(doc(db, 'cash_movements', newMovement.id), {
+        ...newMovement,
+        createdAt: serverTimestamp(),
+      });
+    } catch (e) {
+      console.warn('Could not save cash movement to Firestore:', e);
+    }
+  };
+
+  // Stock Quick Controls
+  const toggleProductStockStatus = async (productId: string, isOutOfStock: boolean) => {
+    setProductsList(prev => {
+      const updated = prev.map(p => p.id === productId ? { ...p, isOutOfStock } : p);
+      safeSetLocalStorage('vovo_menu_items', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      const prodRef = doc(db, 'menu_items', productId);
+      await setDoc(prodRef, { isOutOfStock, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (err) {
+      console.warn('Could not update isOutOfStock in Firestore:', err);
+    }
+  };
+
+  const updateProductStockQuantity = async (productId: string, newStock: number) => {
+    setProductsList(prev => {
+      const updated = prev.map(p => p.id === productId ? { ...p, stock: Math.max(0, newStock), isOutOfStock: newStock <= 0 } : p);
+      safeSetLocalStorage('vovo_menu_items', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      const prodRef = doc(db, 'menu_items', productId);
+      await setDoc(prodRef, { stock: Math.max(0, newStock), isOutOfStock: newStock <= 0, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (err) {
+      console.warn('Could not update stock in Firestore:', err);
+    }
+  };
+
   // Master Login
   const loginMaster = (user: string, pass: string): boolean => {
     const targetUser = (settings.adminUser || 'Admin').trim().toLowerCase();
@@ -549,10 +698,15 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addProduct,
         updateProduct,
         deleteProduct,
+        toggleProductStockStatus,
+        updateProductStockQuantity,
         orders,
         createOrder,
         updateOrderStatus,
         deleteOrder,
+        createDirectSale,
+        cashMovements,
+        addCashMovement,
         isMasterAuth,
         loginMaster,
         logoutMaster,

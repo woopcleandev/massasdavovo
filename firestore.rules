@@ -107,12 +107,18 @@ service cloud.firestore {
       allow write: if true;
     }
 
-    // Customer orders placed via delivery or pickup
+    // Customer orders placed via delivery, pickup or POS
     match /orders/{orderId} {
       allow read: if true;
       allow create: if true;
       allow update: if true;
-      allow delete: if false;
+      allow delete: if true;
+    }
+
+    // Cash movements (suprimentos e sangrias)
+    match /cash_movements/{movementId} {
+      allow read: if true;
+      allow write: if true;
     }
   }
 }

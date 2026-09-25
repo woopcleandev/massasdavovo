@@ -4,6 +4,8 @@ import { useTheme, ThemeMode } from '../context/ThemeContext';
 import { CategoryId, Order, OrderStatus, Product } from '../types';
 import { CATEGORIES } from '../data';
 import { OrderReceiptModal } from './OrderReceiptModal';
+import { PosDirectSaleView } from './PosDirectSaleView';
+import { ErpDashboardView } from './ErpDashboardView';
 import { formatWhatsappDisplay } from '../utils/phone';
 import { 
   ShieldCheck, 
@@ -38,7 +40,9 @@ import {
   MessageCircle,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  Store,
+  BarChart3
 } from 'lucide-react';
 
 const PRESET_PASTA_IMAGES = [
@@ -78,7 +82,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   const [loginError, setLoginError] = useState('');
 
   // Active Admin Tab
-  const [adminTab, setAdminTab] = useState<'sales' | 'menu' | 'settings'>('sales');
+  const [adminTab, setAdminTab] = useState<'pos' | 'sales' | 'erp' | 'menu' | 'settings'>('pos');
 
   // Selected Order for Receipt view
   const [receiptOrder, setReceiptOrder] = useState<Order | null>(null);
@@ -516,16 +520,31 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
           {/* Sub-tabs Navigation: Rounded Pill Bar */}
           <div className="flex bg-stone-100 dark:bg-black/40 p-1.5 rounded-2xl sm:rounded-full border border-stone-200 dark:border-white/10 gap-1.5 overflow-x-auto no-scrollbar">
+            
+            {/* Tab 1: PDV Venda Direta / Balcão */}
+            <button
+              onClick={() => setAdminTab('pos')}
+              className={`flex-1 min-w-[170px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
+                adminTab === 'pos'
+                  ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
+              }`}
+            >
+              <Store className="w-4 h-4" />
+              <span>PDV • Venda Balcão</span>
+            </button>
+
+            {/* Tab 2: Histórico de Vendas & Comandas */}
             <button
               onClick={() => setAdminTab('sales')}
-              className={`flex-1 min-w-[200px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
+              className={`flex-1 min-w-[180px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
                 adminTab === 'sales'
                   ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
               }`}
             >
               <TrendingUp className="w-4 h-4" />
-              <span>Histórico de Vendas & Comandas</span>
+              <span>Comandas & Pedidos</span>
               {pendingOrders > 0 && (
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${adminTab === 'sales' ? 'bg-stone-950 text-amber-300' : 'bg-amber-400 text-stone-950'}`}>
                   {pendingOrders}
@@ -533,28 +552,43 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               )}
             </button>
 
+            {/* Tab 3: ERP & Gestão Financeira */}
+            <button
+              onClick={() => setAdminTab('erp')}
+              className={`flex-1 min-w-[170px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
+                adminTab === 'erp'
+                  ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
+              }`}
+            >
+              <BarChart3 className="w-4 h-4" />
+              <span>ERP & Finanças</span>
+            </button>
+
+            {/* Tab 4: Cardápio */}
             <button
               onClick={() => setAdminTab('menu')}
-              className={`flex-1 min-w-[200px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
+              className={`flex-1 min-w-[170px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
                 adminTab === 'menu'
                   ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
               }`}
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Cardápio & Novos Pratos</span>
+              <span>Cardápio & Pratos</span>
             </button>
 
+            {/* Tab 5: Configurações */}
             <button
               onClick={() => setAdminTab('settings')}
-              className={`flex-1 min-w-[200px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
+              className={`flex-1 min-w-[170px] py-2.5 px-4 rounded-full text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition cursor-pointer ${
                 adminTab === 'settings'
                   ? 'bg-amber-400 text-stone-950 shadow-md shadow-amber-500/20'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-950 dark:hover:text-white hover:bg-stone-200/60 dark:hover:bg-white/5'
               }`}
             >
               <Settings className="w-4 h-4" />
-              <span>Configurações & Chave PIX</span>
+              <span>Configurações & PIX</span>
             </button>
           </div>
         </div>
@@ -563,6 +597,13 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 py-6 mt-2">
         
+        {/* ============================================================ */}
+        {/* TAB 0: TERMINAL DE VENDA DIRETA / BALCÃO (PDV) */}
+        {/* ============================================================ */}
+        {adminTab === 'pos' && (
+          <PosDirectSaleView onSaleCompleted={(order) => setReceiptOrder(order)} />
+        )}
+
         {/* ============================================================ */}
         {/* TAB 1: HISTÓRICO DE VENDAS & COMANDAS */}
         {/* ============================================================ */}
@@ -827,6 +868,13 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               </div>
             )}
           </div>
+        )}
+
+        {/* ============================================================ */}
+        {/* TAB 1.5: ERP & GESTÃO FINANCEIRA E ESTOQUE */}
+        {/* ============================================================ */}
+        {adminTab === 'erp' && (
+          <ErpDashboardView />
         )}
 
         {/* ============================================================ */}

@@ -165,8 +165,18 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               <p><strong>CONTATO:</strong> {order.customerPhone}</p>
               <p className="flex items-center gap-1 font-bold text-gray-900">
                 <span>MÉTODO:</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] ${order.deliveryType === 'delivery' ? 'bg-blue-100 text-blue-900' : 'bg-amber-100 text-amber-900'}`}>
-                  {order.deliveryType === 'delivery' ? '🚀 ENTREGA' : '🏪 RETIRADA NO LOCAL'}
+                <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                  order.deliveryType === 'delivery' 
+                    ? 'bg-blue-100 text-blue-900' 
+                    : order.deliveryType === 'dine_in'
+                    ? 'bg-purple-100 text-purple-900'
+                    : 'bg-amber-100 text-amber-900'
+                }`}>
+                  {order.deliveryType === 'delivery' 
+                    ? '🚀 ENTREGA' 
+                    : order.deliveryType === 'dine_in' 
+                    ? `🍽️ CONSUMO NO LOCAL (MESA ${order.tableNumber || 'SALÃO'})` 
+                    : '🏪 BALCÃO / RETIRADA'}
                 </span>
               </p>
 
