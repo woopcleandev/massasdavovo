@@ -77,6 +77,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
     txt += `TOTAL GERAL: ${formatPrice(order.grandTotal)}\n`;
     txt += `----------------------------------------\n`;
     txt += `PAGAMENTO: ${getPaymentLabel()}\n`;
+    txt += `Cardápio Online: https://massasdavovo.vercel.app/\n`;
     txt += `========================================\n`;
     return txt;
   };
@@ -255,8 +256,9 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               </a>
             </div>
 
-            <div className="text-center pt-1 text-[9px] text-gray-400">
-              *** Obrigado pela preferência! Bom apetite! ***
+            <div className="text-center pt-1 text-[9px] text-gray-500 font-sans">
+              <p>🌐 https://massasdavovo.vercel.app/</p>
+              <p className="text-gray-400 mt-0.5">*** Obrigado pela preferência! Bom apetite! ***</p>
             </div>
           </div>
         </div>

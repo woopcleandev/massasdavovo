@@ -22,7 +22,6 @@ import { CompanyProvider, useCompany } from './context/CompanyContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { MyAccountView } from './components/MyAccountView';
 import { MasterAdminView } from './components/MasterAdminView';
-import { BuyWebsiteModal } from './components/BuyWebsiteModal';
 
 function MainApp() {
   const { allProducts, settings, categories } = useCompany();
@@ -33,17 +32,6 @@ function MainApp() {
   const [selectedCategory, setSelectedCategory] = useState<string | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPopularOnly, setFilterPopularOnly] = useState(false);
-
-  // Buy Website Modal state (automatic popup after 10s)
-  const [isBuyModalOpen, setIsBuyModalOpen] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsBuyModalOpen(true);
-    }, 10000); // 10 seconds trigger
-
-    return () => clearTimeout(timer);
-  }, []);
 
   // Cart state, initialized from localStorage if exists
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -613,23 +601,6 @@ function MainApp() {
           order={trackedOrder}
           onClose={() => setTrackedOrder(null)}
         />
-      )}
-
-      <BuyWebsiteModal
-        isOpen={isBuyModalOpen}
-        onClose={() => setIsBuyModalOpen(false)}
-      />
-
-      {/* Floating buy offer reopen button (discreet in bottom-left) */}
-      {!isBuyModalOpen && (
-        <button
-          onClick={() => setIsBuyModalOpen(true)}
-          className="fixed bottom-3 left-3 sm:bottom-4 sm:left-4 z-20 bg-amber-500 hover:bg-amber-400 text-stone-950 px-3.5 py-2 rounded-full font-black text-[11px] shadow-xl flex items-center gap-1.5 transition-all transform hover:scale-105 active:scale-95 border border-amber-300 cursor-pointer"
-          title="Comprar este projeto de site completo"
-        >
-          <Sparkles className="w-3.5 h-3.5 fill-stone-950" />
-          <span>Comprar este Site (10% OFF)</span>
-        </button>
       )}
 
       {selectedProduct && (

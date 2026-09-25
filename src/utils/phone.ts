@@ -61,7 +61,8 @@ export function buildCustomerOrderConfirmationUrl(order: Order): string {
     text += `🏪 *Retirada no Balcão*\n`;
   }
 
-  text += `\nQualquer dúvida estamos à disposição por aqui! Bom apetite! 👵💛`;
+  text += `\nQualquer dúvida estamos à disposição por aqui! Bom apetite! 👵💛\n`;
+  text += `🌐 Acesse nosso cardápio online: https://massasdavovo.vercel.app/`;
 
   return `https://api.whatsapp.com/send?phone=${phoneWithCountry}&text=${encodeURIComponent(text)}`;
 }
@@ -78,7 +79,7 @@ export function buildCustomerOrderCancellationUrl(order: Order, reason = 'Indisp
   let text = `Olá, *${order.customerName}*. 👋\n\n`;
   text += `Aqui é da equipe da *Massas da Vovó* referente ao seu pedido *${order.orderNumber}*.\n\n`;
   text += `⚠️ *Aviso Importante:* Infelizmente não conseguiremos prosseguir com este pedido no momento devido a: *${reason}*.\n\n`;
-  text += `Pedimos sinceras desculpas pelo transtorno. Caso deseje substituir por outro prato do cardápio ou reagendar, basta nos responder por aqui! 🙏`;
+  text += `Pedimos sinceras desculpas pelo transtorno. Caso deseje substituir por outro prato do cardápio ou reagendar, basta nos responder por aqui ou acessar https://massasdavovo.vercel.app/ ! 🙏`;
 
   return `https://api.whatsapp.com/send?phone=${phoneWithCountry}&text=${encodeURIComponent(text)}`;
 }

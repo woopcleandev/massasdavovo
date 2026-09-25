@@ -377,7 +377,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       message += `----------------------------------------\n`;
     }
 
-    message += `_Pedido realizado pelo Cardápio Digital Massas da Vovó_ 👵❤`;
+    message += `_Pedido realizado pelo Cardápio Digital Massas da Vovó_ 👵❤\n`;
+    message += `🌐 Acompanhe e peça novamente em: https://massasdavovo.vercel.app/`;
 
     const cleanText = encodeURIComponent(message);
     const waUrl = `https://api.whatsapp.com/send?phone=${activeMasterWhatsapp}&text=${cleanText}`;
