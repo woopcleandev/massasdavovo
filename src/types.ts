@@ -75,6 +75,8 @@ export interface CustomerInfo {
   name: string;
   phone: string;
   deliveryType: 'delivery' | 'takeaway' | 'dine_in';
+  tableNumber?: string;
+  posIdentifierValue?: string;
   street?: string;
   number?: string;
   neighborhood?: string;

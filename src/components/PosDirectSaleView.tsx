@@ -45,9 +45,9 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  // POS Fast Identifier State: Mesa, Comanda, Assento ou Nome
+  // POS Fast Identifier State: Mesa, Comanda, Assento ou Nome (Digitação Livre)
   const [identifierType, setIdentifierType] = useState<'mesa' | 'comanda' | 'assento' | 'cliente'>('mesa');
-  const [identifierValue, setIdentifierValue] = useState<string>('01');
+  const [identifierValue, setIdentifierValue] = useState<string>('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
 
@@ -145,7 +145,7 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
   // Clear ticket
   const handleClearTicket = () => {
     setTicketItems([]);
-    setIdentifierValue(identifierType === 'cliente' ? '' : '01');
+    setIdentifierValue('');
     setCustomerPhone('');
     setOrderNotes('');
     setCashReceived('');
@@ -434,21 +434,23 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
                 )}
               </div>
 
-              {/* Identificador de Atendimento Rápido: Mesa, Comanda, Assento ou Nome */}
+              {/* Identificador de Atendimento: Mesa, Comanda, Assento ou Nome (Digitação Livre) */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase text-stone-500 dark:text-stone-400 tracking-wider">
-                    Identificador do Atendimento:
+                  <span className="text-[11px] font-black uppercase text-stone-700 dark:text-stone-300 tracking-wider">
+                    ✍️ Digite a Mesa, Comanda ou Detalhe:
                   </span>
-                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-400/10 px-2 py-0.5 rounded-full">
-                    {identifierType === 'mesa' ? `Mesa #${identifierValue}` :
-                     identifierType === 'comanda' ? `Comanda #${identifierValue}` :
-                     identifierType === 'assento' ? `Assento #${identifierValue}` :
-                     (identifierValue ? `Cliente: ${identifierValue}` : 'Sem identificação')}
-                  </span>
+                  {identifierValue.trim() && (
+                    <span className="text-[11px] font-black text-amber-900 dark:text-amber-300 bg-amber-100 dark:bg-amber-400/20 px-2.5 py-0.5 rounded-full border border-amber-300 dark:border-amber-400/30">
+                      {identifierType === 'mesa' ? `Mesa: ${identifierValue}` :
+                       identifierType === 'comanda' ? `Comanda: ${identifierValue}` :
+                       identifierType === 'assento' ? `Assento: ${identifierValue}` :
+                       `Cliente: ${identifierValue}`}
+                    </span>
+                  )}
                 </div>
 
-                {/* 4 Mode Pills */}
+                {/* 4 Mode Pills to tag the type */}
                 <div className="grid grid-cols-4 gap-1.5">
                   {[
                     { id: 'mesa', label: 'Mesa', icon: '🍽️' },
@@ -459,11 +461,7 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
                     <button
                       key={t.id}
                       type="button"
-                      onClick={() => {
-                        setIdentifierType(t.id as any);
-                        if (t.id === 'cliente' && identifierValue === '01') setIdentifierValue('');
-                        if (t.id !== 'cliente' && !identifierValue) setIdentifierValue('01');
-                      }}
+                      onClick={() => setIdentifierType(t.id as any)}
                       className={`py-2 px-1.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer border ${
                         identifierType === t.id
                           ? 'bg-amber-400 text-stone-950 font-black border-amber-500 shadow-sm'
@@ -476,50 +474,41 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
                   ))}
                 </div>
 
-                {/* Identifier Input */}
+                {/* Open Type-In Identifier Input */}
                 <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={identifierValue}
-                    onChange={(e) => setIdentifierValue(e.target.value)}
-                    placeholder={
-                      identifierType === 'mesa' ? 'Nº da Mesa (ex: 04, 12, Varanda 2...)' :
-                      identifierType === 'comanda' ? 'Nº da Comanda / Ficha (ex: 15, 23...)' :
-                      identifierType === 'assento' ? 'Nº do Assento / Banqueta (ex: 02, Balcão 1...)' :
-                      'Nome do Cliente (ex: Carlos Silva)'
-                    }
-                    className="flex-1 bg-stone-100 dark:bg-black/40 border-2 border-amber-400/50 rounded-2xl py-2 px-3 text-xs sm:text-sm font-black text-stone-900 dark:text-white focus:outline-none focus:border-amber-400 shadow-inner"
-                  />
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      value={identifierValue}
+                      onChange={(e) => setIdentifierValue(e.target.value)}
+                      placeholder={
+                        identifierType === 'mesa' ? 'Digite o nº da mesa (ex: 04, 12, Varanda 2...)' :
+                        identifierType === 'comanda' ? 'Digite o nº da comanda / ficha (ex: 15, 23...)' :
+                        identifierType === 'assento' ? 'Digite o nº do assento / banqueta (ex: 02, Balcão 1...)' :
+                        'Digite o nome do cliente (ex: Carlos Silva)'
+                      }
+                      className="w-full bg-stone-50 dark:bg-black/40 border-2 border-amber-400/60 rounded-2xl py-2.5 px-3.5 text-xs sm:text-sm font-black text-stone-900 dark:text-white placeholder-stone-400 focus:outline-none focus:border-amber-500 shadow-inner"
+                    />
+                    {identifierValue && (
+                      <button
+                        type="button"
+                        onClick={() => setIdentifierValue('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-stone-300 dark:bg-white/20 text-stone-700 dark:text-white flex items-center justify-center text-xs hover:bg-stone-400 transition"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Optional quick phone for receipt */}
+                  {/* Optional WhatsApp phone */}
                   <input
                     type="text"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="WhatsApp (opcional)"
-                    className="w-36 bg-stone-100 dark:bg-black/30 border border-stone-200 dark:border-white/10 rounded-2xl py-2 px-2.5 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-amber-400 hidden sm:block"
+                    className="w-36 bg-stone-50 dark:bg-black/30 border border-stone-300 dark:border-white/10 rounded-2xl py-2.5 px-3 text-xs text-stone-900 dark:text-white focus:outline-none focus:border-amber-400 hidden sm:block"
                   />
                 </div>
-
-                {/* Fast Number Chips for Touchscreens */}
-                {identifierType !== 'cliente' && (
-                  <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                    {QUICK_NUMBERS.map(num => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => setIdentifierValue(num)}
-                        className={`min-w-7 h-7 px-1.5 rounded-lg text-[11px] font-black shrink-0 transition cursor-pointer ${
-                          identifierValue === num
-                            ? 'bg-amber-400 text-stone-950 font-black shadow-xs ring-1 ring-amber-500'
-                            : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/15'
-                        }`}
-                      >
-                        {num}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
 

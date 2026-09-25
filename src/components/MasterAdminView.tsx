@@ -6,7 +6,8 @@ import { CATEGORIES, RESTAURANT_INFO } from '../data';
 import { OrderReceiptModal } from './OrderReceiptModal';
 import { PosDirectSaleView } from './PosDirectSaleView';
 import { ErpDashboardView } from './ErpDashboardView';
-import { formatWhatsappDisplay } from '../utils/phone';
+import { IncomingOrderBanner } from './IncomingOrderBanner';
+import { formatWhatsappDisplay, buildCustomerOrderConfirmationUrl, buildCustomerOrderCancellationUrl } from '../utils/phone';
 import { playAdminNewOrderAlarm, unlockAudioContext } from '../utils/audioAlerts';
 import { formatExactDateTime } from '../utils/date';
 import { 
@@ -178,13 +179,14 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   const [confirmPass, setConfirmPass] = useState('');
   const [credMessage, setCredMessage] = useState({ text: '', type: '' });
 
-  // Admin Incoming Order Alarm State
+  // Admin Incoming Order Alarm & Floating Notification State
   const [alarmEnabled, setAlarmEnabled] = useState(true);
   const [alarmPlayingTest, setAlarmPlayingTest] = useState(false);
+  const [activeIncomingOrder, setActiveIncomingOrder] = useState<Order | null>(null);
   const knownOrderIdsRef = useRef<Set<string>>(new Set());
   const initialMountRef = useRef(false);
 
-  // Monitor incoming orders to play LOUD admin buzzer / bell
+  // Monitor incoming orders to play LOUD admin buzzer / bell & show floating alert
   useEffect(() => {
     if (orders.length === 0) return;
 
@@ -194,18 +196,21 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
       return;
     }
 
-    let hasNewArrival = false;
+    let newestOrder: Order | null = null;
     orders.forEach(o => {
       if (!knownOrderIdsRef.current.has(o.id)) {
         knownOrderIdsRef.current.add(o.id);
         if (o.status === 'novo') {
-          hasNewArrival = true;
+          newestOrder = o;
         }
       }
     });
 
-    if (hasNewArrival && alarmEnabled) {
-      playAdminNewOrderAlarm();
+    if (newestOrder) {
+      if (alarmEnabled) {
+        playAdminNewOrderAlarm();
+      }
+      setActiveIncomingOrder(newestOrder);
     }
   }, [orders, alarmEnabled]);
 
@@ -896,27 +901,46 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                         </div>
 
                         {/* Right: Total Amount & Action Buttons */}
-                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
                           <div className="text-right mr-1">
                             <span className="text-[10px] text-stone-500 dark:text-stone-400 block font-bold uppercase">Valor Total</span>
                             <span className="text-lg font-black text-amber-700 dark:text-amber-400">{formatPrice(ord.grandTotal)}</span>
                           </div>
+
+                          {/* Quick WhatsApp Confirmation Button */}
+                          {ord.customerPhone && (
+                            <a
+                              href={buildCustomerOrderConfirmationUrl(ord)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => {
+                                if (ord.status === 'novo') {
+                                  updateOrderStatus(ord.id, 'preparo');
+                                }
+                              }}
+                              className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs py-2 px-3.5 rounded-full shadow-md transition active:scale-95 cursor-pointer"
+                              title="Confirmar recebimento do pedido e início do preparo via WhatsApp"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5 fill-white text-emerald-600 shrink-0" />
+                              <span>Confirmar no WhatsApp</span>
+                            </a>
+                          )}
                           
                           <button
                             onClick={() => setReceiptOrder(ord)}
-                            className="flex items-center gap-2 dark-glass-button-gold font-black text-xs py-2.5 px-4 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
+                            className="flex items-center gap-1.5 dark-glass-button-gold font-black text-xs py-2 px-3.5 rounded-full shadow-md transition active:scale-98 cursor-pointer"
                           >
-                            <Receipt className="w-4 h-4 text-stone-950" />
+                            <Receipt className="w-3.5 h-3.5 text-stone-950" />
                             <span>Ver Comanda</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => setOrderToDelete(ord)}
-                            className="flex items-center gap-1.5 bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 font-bold text-xs py-2.5 px-3.5 rounded-full transition cursor-pointer shadow-sm active:scale-95"
+                            className="flex items-center gap-1 bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-500/20 dark:hover:bg-rose-500/30 dark:text-rose-300 border border-rose-300 dark:border-rose-500/30 font-bold text-xs py-2 px-3 rounded-full transition cursor-pointer shadow-sm active:scale-95"
                             title="Excluir este pedido permanentemente"
                           >
-                            <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                            <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
                             <span>Excluir</span>
                           </button>
                         </div>
@@ -1923,6 +1947,19 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
             </div>
           </div>
         </div>
+      )}
+      {/* ============================================================ */}
+      {/* FLOATING INCOMING ORDER ALERT BANNER (REAL-TIME POPUP) */}
+      {/* ============================================================ */}
+      {activeIncomingOrder && (
+        <IncomingOrderBanner
+          order={activeIncomingOrder}
+          onClose={() => setActiveIncomingOrder(null)}
+          onOpenReceipt={(ord) => {
+            setActiveIncomingOrder(null);
+            setReceiptOrder(ord);
+          }}
+        />
       )}
     </div>
   );

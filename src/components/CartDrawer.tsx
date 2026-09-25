@@ -170,6 +170,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
       if (!customer.neighborhood) errs.neighborhood = 'Bairro é obrigatório';
     }
 
+    if (customer.deliveryType === 'dine_in') {
+      if (!customer.tableNumber?.trim()) errs.tableNumber = 'Digite o número da sua mesa ou comanda';
+    }
+
     if (isSchedulingMode) {
       if (!selectedDateStr) errs.scheduleDate = 'Selecione o dia do agendamento';
       if (!selectedTimeStr) errs.scheduleTime = 'Selecione o horário do agendamento';
@@ -237,6 +241,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         customerPhone: customer.phone,
         customerId: currentUser?.uid,
         deliveryType: customer.deliveryType,
+        tableNumber: customer.tableNumber,
+        posIdentifierValue: customer.tableNumber || customer.posIdentifierValue,
         street: customer.street,
         number: customer.number,
         neighborhood: customer.neighborhood,
@@ -257,6 +263,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
         customerName: customer.name,
         customerPhone: customer.phone,
         deliveryType: customer.deliveryType,
+        tableNumber: customer.tableNumber,
+        posIdentifierValue: customer.tableNumber || customer.posIdentifierValue,
         street: customer.street,
         number: customer.number,
         neighborhood: customer.neighborhood,
@@ -295,7 +303,13 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     message += `----------------------------------------\n`;
     message += `*Cliente:* ${customer.name}\n`;
     message += `*Contato:* ${customer.phone}\n`;
-    message += `*Método:* ${customer.deliveryType === 'delivery' ? '🚀 Entrega em Domicílio' : '🏪 Retirar no Local'}\n`;
+    message += `*Método:* ${
+      customer.deliveryType === 'delivery'
+        ? '🚀 Entrega em Domicílio'
+        : customer.deliveryType === 'dine_in'
+        ? `🍽️ Consumo no Local (Mesa/Comanda: ${customer.tableNumber || 'Salão'})`
+        : '🏪 Retirar no Local'
+    }\n`;
     message += `----------------------------------------\n\n`;
 
     message += `*ITENS DO PEDIDO:*\n`;
@@ -694,29 +708,80 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   <span>Método de Entrega</span>
                 </h3>
 
-                {/* Delivery tabs */}
-                <div className="grid grid-cols-2 gap-2 p-1 bg-stone-100 dark:bg-white/5 rounded-2xl border border-stone-200 dark:border-white/5">
+                {/* Delivery tabs (3 modes: Entregar, Retirar, Mesa) */}
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-stone-100 dark:bg-white/5 rounded-2xl border border-stone-200 dark:border-white/5">
                   <button
+                    type="button"
                     onClick={() => setCustomer({ ...customer, deliveryType: 'delivery' })}
-                    className={`py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    className={`py-2 px-1 text-[11px] sm:text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
                       customer.deliveryType === 'delivery'
                         ? 'bg-amber-400 text-black shadow-xs font-black'
                         : 'text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white'
                     }`}
                   >
-                    🚀 Entregar em Casa
+                    <span>🚀 Entrega</span>
                   </button>
                   <button
+                    type="button"
                     onClick={() => setCustomer({ ...customer, deliveryType: 'takeaway' })}
-                    className={`py-2.5 px-3 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    className={`py-2 px-1 text-[11px] sm:text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
                       customer.deliveryType === 'takeaway'
                         ? 'bg-amber-400 text-black shadow-xs font-black'
                         : 'text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white'
                     }`}
                   >
-                    🏪 Retirar no Local
+                    <span>🏪 Retirada</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCustomer({ ...customer, deliveryType: 'dine_in' })}
+                    className={`py-2 px-1 text-[11px] sm:text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                      customer.deliveryType === 'dine_in'
+                        ? 'bg-amber-400 text-black shadow-xs font-black'
+                        : 'text-stone-600 dark:text-gray-400 hover:text-stone-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <span>🍽️ Na Mesa</span>
                   </button>
                 </div>
+
+                {/* Local Dine-In / Mesa Input (Customer Digits Table Number / Details) */}
+                {customer.deliveryType === 'dine_in' && (
+                  <div id="field-tableNumber" className="bg-amber-50 dark:bg-amber-500/10 text-stone-800 dark:text-amber-200 p-3.5 rounded-2xl border-2 border-amber-400/50 space-y-2 text-xs animate-fade-in">
+                    <div className="flex items-center gap-2 font-black text-amber-800 dark:text-amber-300">
+                      <Utensils className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>Consumo no Restaurante (Mesa ou Comanda)</span>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold block mb-1 text-stone-700 dark:text-gray-300">
+                        ✍️ Digite o Número da Mesa / Comanda ou Detalhe:
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ex: Mesa 04, Comanda 12, Varanda Mesa 2, Assento 3..."
+                        value={customer.tableNumber || ''}
+                        onChange={(e) => {
+                          setCustomer({
+                            ...customer,
+                            tableNumber: e.target.value,
+                            posIdentifierValue: e.target.value
+                          });
+                          if (errors.tableNumber) setErrors({ ...errors, tableNumber: '' });
+                        }}
+                        className={`w-full rounded-xl bg-white dark:bg-black/40 border-2 p-3 text-sm font-black text-stone-900 dark:text-white placeholder-stone-400 focus:border-amber-500 outline-none shadow-inner ${
+                          errors.tableNumber ? 'border-red-500 bg-red-50 dark:bg-red-500/10' : 'border-amber-400/60'
+                        }`}
+                        autoFocus
+                      />
+                      {errors.tableNumber && (
+                        <span className="text-[11px] text-red-500 mt-1 block font-bold">{errors.tableNumber}</span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-stone-600 dark:text-gray-300 leading-snug">
+                      Digite o número onde você está sentado para a nossa equipe levar o prato até você!
+                    </p>
+                  </div>
+                )}
 
                 {/* Local Pickup Notice */}
                 {customer.deliveryType === 'takeaway' && (
