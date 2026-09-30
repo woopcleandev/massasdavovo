@@ -71,7 +71,22 @@ export function sanitizeFirestoreData<T>(obj: T): T {
       .filter(item => item !== undefined)
       .map(item => sanitizeFirestoreData(item)) as unknown as T;
   }
-  if (typeof obj === 'object' && !(obj instanceof Date)) {
+  if (typeof obj === 'object') {
+    if (obj instanceof Date) return obj;
+    // Preserve Firestore FieldValue and Sentinel objects
+    const constructorName = (obj as any).constructor?.name;
+    if (
+      '_methodName' in (obj as any) ||
+      constructorName === 'FieldValue' ||
+      constructorName === 'ServerTimestampTransform' ||
+      constructorName === 'DeleteTransform'
+    ) {
+      return obj;
+    }
+    // Only sanitize plain objects
+    if (constructorName && constructorName !== 'Object') {
+      return obj;
+    }
     const cleaned: Record<string, any> = {};
     for (const [key, value] of Object.entries(obj as Record<string, any>)) {
       if (value !== undefined) {

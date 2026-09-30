@@ -373,6 +373,46 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
             return;
           }
           const phone = d.customerPhone || '';
+          // Robust parsing of createdAt and updatedAt from Firestore
+          let createdAtStr = new Date().toISOString();
+          if (d.createdAt) {
+            if (typeof d.createdAt.toDate === 'function') {
+              try { createdAtStr = d.createdAt.toDate().toISOString(); } catch {}
+            } else if (typeof d.createdAt === 'string' && d.createdAt.trim() && d.createdAt !== '[object Object]') {
+              createdAtStr = d.createdAt;
+            } else if (typeof d.createdAt.seconds === 'number') {
+              createdAtStr = new Date(d.createdAt.seconds * 1000).toISOString();
+            } else if (typeof d.createdAt._seconds === 'number') {
+              createdAtStr = new Date(d.createdAt._seconds * 1000).toISOString();
+            } else if (typeof d.createdAt === 'number') {
+              createdAtStr = new Date(d.createdAt).toISOString();
+            }
+          } else if (d.createdAtIso) {
+            createdAtStr = d.createdAtIso;
+          } else if (typeof d.timestamp === 'number') {
+            createdAtStr = new Date(d.timestamp).toISOString();
+          } else {
+            // Check if document id contains timestamp (pos-1727690000000 or ord-1727690000000)
+            const match = docSnap.id.match(/\d{12,14}/);
+            if (match) {
+              const ts = Number(match[0]);
+              if (!isNaN(ts)) createdAtStr = new Date(ts).toISOString();
+            }
+          }
+
+          let updatedAtStr = createdAtStr;
+          if (d.updatedAt) {
+            if (typeof d.updatedAt.toDate === 'function') {
+              try { updatedAtStr = d.updatedAt.toDate().toISOString(); } catch {}
+            } else if (typeof d.updatedAt === 'string' && d.updatedAt.trim() && d.updatedAt !== '[object Object]') {
+              updatedAtStr = d.updatedAt;
+            } else if (typeof d.updatedAt.seconds === 'number') {
+              updatedAtStr = new Date(d.updatedAt.seconds * 1000).toISOString();
+            } else if (typeof d.updatedAt._seconds === 'number') {
+              updatedAtStr = new Date(d.updatedAt._seconds * 1000).toISOString();
+            }
+          }
+
           list.push({
             id: docSnap.id,
             orderNumber: d.orderNumber || docSnap.id,
@@ -398,8 +438,8 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
             status: d.status || 'novo',
             schedule: d.schedule,
             notes: d.notes,
-            createdAt: d.createdAt?.toDate ? d.createdAt.toDate().toISOString() : (d.createdAt || new Date().toISOString()),
-            updatedAt: d.updatedAt?.toDate ? d.updatedAt.toDate().toISOString() : (d.updatedAt || new Date().toISOString()),
+            createdAt: createdAtStr,
+            updatedAt: updatedAtStr,
           });
         });
         setOrders(list);
@@ -597,8 +637,10 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const cleanedData = sanitizeFirestoreData({
         ...newOrder,
         customerPhoneClean: cleanPhone,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: nowIso,
+        createdAtIso: nowIso,
+        timestamp: Date.now(),
+        updatedAt: nowIso,
       });
       await setDoc(orderRef, cleanedData);
       console.log('Order successfully persisted in Firestore database:', id);
@@ -738,8 +780,10 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const orderRef = doc(db, 'orders', id);
       const cleanedData = sanitizeFirestoreData({
         ...newOrder,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
+        createdAt: nowIso,
+        createdAtIso: nowIso,
+        timestamp: Date.now(),
+        updatedAt: nowIso,
       });
       await setDoc(orderRef, cleanedData);
     } catch (err) {

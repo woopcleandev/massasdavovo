@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
-import { formatExactDateTime } from '../utils/date';
+import { formatExactDateTime, parseToDate } from '../utils/date';
 import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink, Trash2, Utensils, AlertCircle } from 'lucide-react';
 
 interface OrderReceiptModalProps {
@@ -19,8 +19,38 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
     return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  const formatDate = (iso: string) => {
-    return formatExactDateTime(iso);
+  const formatDate = (val?: any) => {
+    // 1. Try parsing provided value (e.g. order.createdAt)
+    let d = parseToDate(val);
+
+    // 2. Fallback to order.createdAt if different
+    if (!d && order.createdAt) {
+      d = parseToDate(order.createdAt);
+    }
+
+    // 3. Fallback to order.updatedAt
+    if (!d && order.updatedAt) {
+      d = parseToDate(order.updatedAt);
+    }
+
+    // 4. Fallback to timestamp embedded in order.id (e.g. pos-1727690000000 or ord-1727690000000)
+    if (!d && order.id) {
+      const match = order.id.match(/\d{12,14}/);
+      if (match) {
+        const ts = Number(match[0]);
+        if (!isNaN(ts)) {
+          const idDate = new Date(ts);
+          if (!isNaN(idDate.getTime())) d = idDate;
+        }
+      }
+    }
+
+    // 5. Emission Fallback: Use current date/time so thermal ticket NEVER prints --/--/----
+    if (!d) {
+      d = new Date();
+    }
+
+    return formatExactDateTime(d);
   };
 
   const getPaymentLabel = () => {
@@ -29,13 +59,19 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
       case 'pix':
         return `PIX Agora (Chave: ${settings.pixKey})`;
       case 'pix_delivery':
-        return 'PIX na Entrega (QR Code Maquininha/Celular)';
+        return 'PIX na Entrega (QR Code)';
       case 'credit':
-        return 'Cartão de Crédito (Levar maquininha)';
+        return 'Cartão de Crédito';
       case 'debit':
-        return 'Cartão de Débito (Levar maquininha)';
+        return 'Cartão de Débito';
       case 'cash':
-        return `Dinheiro (Troco para ${order.changeFor || 'Não precisa'})`;
+        if (!order.changeFor || order.changeFor.trim() === 'Não precisa') {
+          return 'Dinheiro (Sem troco)';
+        }
+        if (order.changeFor.includes('Recebido:') || order.changeFor.includes('Valor exato:')) {
+          return `Dinheiro (${order.changeFor})`;
+        }
+        return `Dinheiro (Troco para ${order.changeFor})`;
       default:
         return order.paymentMethod;
     }
@@ -242,9 +278,9 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
                 <span>Total de Volumes:</span>
                 <span>{totalItemsCount} prato(s)</span>
               </div>
-              <div className="flex justify-between font-bold">
-                <span>Pagamento:</span>
-                <span className="font-black">{getPaymentLabel()}</span>
+              <div className="pt-0.5 text-stone-900 font-bold">
+                <span>Pagamento: </span>
+                <span className="font-black text-black">{getPaymentLabel()}</span>
               </div>
               <div className="flex justify-between font-black text-xs pt-1 border-t border-stone-300">
                 <span>VALOR TOTAL:</span>
@@ -405,8 +441,8 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               <span>Total de Volumes:</span>
               <span>{totalItemsCount} prato(s)</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginTop: '2px' }}>
-              <span>Pagamento:</span>
+            <div style={{ marginTop: '3px', fontWeight: 'bold' }}>
+              <span>Pagamento: </span>
               <span style={{ fontWeight: '900' }}>{getPaymentLabel()}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '900', borderTop: '1px solid #aaa', marginTop: '4px', paddingTop: '4px' }}>
