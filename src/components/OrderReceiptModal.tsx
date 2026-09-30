@@ -78,6 +78,10 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
   };
 
   const totalItemsCount = order.items.reduce((acc, i) => acc + i.quantity, 0);
+  const deliveryFeeVal = Number(order.deliveryFee) || 0;
+  const orderSubtotal = Number(order.itemsSubtotal) > 0
+    ? Number(order.itemsSubtotal)
+    : Math.max(0, Number(order.grandTotal) - deliveryFeeVal);
 
   const getPlainTextReceipt = () => {
     let txt = `========================================\n`;
@@ -97,15 +101,16 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
       txt += `📌 IDENTIFICADOR: ${order.tableNumber ? `MESA / COMANDA ${order.tableNumber}` : (order.posIdentifierValue || 'SALÃO')}\n`;
     } else if (order.deliveryType === 'delivery') {
       txt += `🚀 ATENDIMENTO: ENTREGA EM DOMICÍLIO\n`;
-      txt += `📍 ENDEREÇO: ${order.street || ''}, Nº ${order.number || ''}\n`;
-      txt += `📍 BAIRRO: ${order.neighborhood || ''}\n`;
-      if (order.reference) txt += `📍 REF: ${order.reference}\n`;
+      txt += `📍 LOCAL DE ENTREGA:\n`;
+      txt += `   Endereço: ${order.street || ''}, Nº ${order.number || ''}\n`;
+      txt += `   Bairro: ${order.neighborhood || ''}\n`;
+      if (order.reference) txt += `   Ponto de Ref: ${order.reference}\n`;
     } else {
       txt += `🏪 ATENDIMENTO: RETIRADA NO BALCÃO\n`;
     }
 
     txt += `CLIENTE: ${order.customerName}\n`;
-    if (order.customerPhone) txt += `FONE: ${order.customerPhone}\n`;
+    if (order.customerPhone) txt += `TELEFONE: ${order.customerPhone}\n`;
     txt += `========================================\n`;
     txt += `         ITENS PARA PREPARO             \n`;
     txt += `========================================\n\n`;
@@ -124,8 +129,12 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
 
     txt += `----------------------------------------\n`;
     txt += `TOTAL DE VOLUMES: ${totalItemsCount} item(ns)\n`;
-    txt += `PAGAMENTO: ${getPaymentLabel()}\n`;
+    txt += `VALOR DO PEDIDO (ITENS): ${formatPrice(orderSubtotal)}\n`;
+    if (order.deliveryType === 'delivery') {
+      txt += `TAXA DE ENTREGA (${order.neighborhood || 'Bairro'}): ${formatPrice(deliveryFeeVal)}\n`;
+    }
     txt += `VALOR TOTAL: ${formatPrice(order.grandTotal)}\n`;
+    txt += `FORMA DE PAGAMENTO: ${getPaymentLabel()}\n`;
     txt += `Cardápio Online: https://massasdavovo.vercel.app/\n`;
     txt += `========================================\n`;
     txt += `        BOM TRABALHO / COZINHA          \n`;
@@ -208,10 +217,21 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               )}
 
               {order.deliveryType === 'delivery' && (
-                <div className="pt-1 text-xs space-y-0.5 font-bold">
-                  <p>📍 {order.street || ''}, Nº {order.number || ''}</p>
-                  <p>📍 Bairro: {order.neighborhood || ''}</p>
-                  {order.reference && <p className="text-amber-950 font-extrabold">📍 Ref: {order.reference}</p>}
+                <div className="pt-2 pb-1 space-y-1 bg-stone-50 border-2 border-black p-2.5 rounded-lg text-xs font-bold">
+                  <div className="text-[10px] font-black uppercase tracking-wider text-black flex items-center gap-1">
+                    <span>📍 LOCAL DE ENTREGA:</span>
+                  </div>
+                  <p className="text-black font-extrabold text-sm">
+                    {order.street || ''}, Nº {order.number || ''}
+                  </p>
+                  <p className="text-stone-900">
+                    <strong>Bairro:</strong> {order.neighborhood || ''}
+                  </p>
+                  {order.reference && (
+                    <p className="text-amber-950 font-black">
+                      <strong>Ponto de Ref:</strong> {order.reference}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -272,19 +292,29 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               </div>
             )}
 
-            {/* Compact Bottom Summary (Subtle Cashier / Payment Reference) */}
+            {/* Compact Bottom Summary: Pedido + Entrega = Total */}
             <div className="pt-3 border-t-2 border-dashed border-black space-y-1 text-[11px]">
               <div className="flex justify-between font-bold">
                 <span>Total de Volumes:</span>
                 <span>{totalItemsCount} prato(s)</span>
               </div>
-              <div className="pt-0.5 text-stone-900 font-bold">
+              <div className="flex justify-between font-bold text-stone-800">
+                <span>Valor do Pedido:</span>
+                <span className="font-black text-black">{formatPrice(orderSubtotal)}</span>
+              </div>
+              {order.deliveryType === 'delivery' && (
+                <div className="flex justify-between font-bold text-stone-800">
+                  <span>Taxa de Entrega ({order.neighborhood || 'Bairro'}):</span>
+                  <span className="font-black text-black">{formatPrice(deliveryFeeVal)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-black text-sm pt-1.5 border-t-2 border-black text-black">
+                <span>VALOR TOTAL:</span>
+                <span className="text-base">{formatPrice(order.grandTotal)}</span>
+              </div>
+              <div className="pt-1 text-stone-900 font-bold border-t border-dashed border-stone-300">
                 <span>Pagamento: </span>
                 <span className="font-black text-black">{getPaymentLabel()}</span>
-              </div>
-              <div className="flex justify-between font-black text-xs pt-1 border-t border-stone-300">
-                <span>VALOR TOTAL:</span>
-                <span>{formatPrice(order.grandTotal)}</span>
               </div>
             </div>
 
@@ -375,10 +405,15 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
             )}
 
             {order.deliveryType === 'delivery' && (
-              <div style={{ fontSize: '11px', fontWeight: 'bold', marginTop: '4px' }}>
-                <div>📍 Rua: {order.street || ''}, Nº {order.number || ''}</div>
-                <div>📍 Bairro: {order.neighborhood || ''}</div>
-                {order.reference && <div>📍 Ref: {order.reference}</div>}
+              <div style={{ fontSize: '11px', fontWeight: 'bold', marginTop: '6px', background: '#f5f5f5', padding: '6px', border: '1.5px solid #000' }}>
+                <div style={{ fontSize: '10px', textTransform: 'uppercase', fontWeight: '900', marginBottom: '2px' }}>
+                  📍 LOCAL DE ENTREGA:
+                </div>
+                <div style={{ fontSize: '12px', fontWeight: '900' }}>
+                  {order.street || ''}, Nº {order.number || ''}
+                </div>
+                <div><strong>Bairro:</strong> {order.neighborhood || ''}</div>
+                {order.reference && <div style={{ marginTop: '2px' }}><strong>Ref:</strong> {order.reference}</div>}
               </div>
             )}
 
@@ -435,19 +470,29 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
             </div>
           )}
 
-          {/* Summary / Total */}
+          {/* Summary / Total: Pedido + Entrega = Total */}
           <div style={{ borderTop: '2px dashed #000', paddingTop: '6px', marginBottom: '8px', fontSize: '11px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
               <span>Total de Volumes:</span>
               <span>{totalItemsCount} prato(s)</span>
             </div>
-            <div style={{ marginTop: '3px', fontWeight: 'bold' }}>
-              <span>Pagamento: </span>
-              <span style={{ fontWeight: '900' }}>{getPaymentLabel()}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginTop: '3px' }}>
+              <span>Valor do Pedido:</span>
+              <span style={{ fontWeight: '900' }}>{formatPrice(orderSubtotal)}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '900', borderTop: '1px solid #aaa', marginTop: '4px', paddingTop: '4px' }}>
+            {order.deliveryType === 'delivery' && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginTop: '2px' }}>
+                <span>Taxa de Entrega ({order.neighborhood || 'Bairro'}):</span>
+                <span style={{ fontWeight: '900' }}>{formatPrice(deliveryFeeVal)}</span>
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: '900', borderTop: '1.5px solid #000', marginTop: '5px', paddingTop: '4px' }}>
               <span>VALOR TOTAL:</span>
               <span>{formatPrice(order.grandTotal)}</span>
+            </div>
+            <div style={{ marginTop: '4px', fontWeight: 'bold', borderTop: '1px dashed #666', paddingTop: '4px' }}>
+              <span>Pagamento: </span>
+              <span style={{ fontWeight: '900' }}>{getPaymentLabel()}</span>
             </div>
           </div>
 

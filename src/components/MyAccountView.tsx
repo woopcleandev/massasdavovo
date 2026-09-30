@@ -863,9 +863,27 @@ export const MyAccountView: React.FC = () => {
                   onChange={(e) => setNeighborhood(e.target.value)}
                   className="w-full rounded-2xl border border-stone-300 dark:border-white/10 bg-white dark:bg-black/60 text-stone-900 dark:text-white p-3 text-xs focus:border-amber-500 outline-none font-medium"
                 >
-                  {NEIGHBORHOODS.map((n) => (
-                    <option key={n.name} value={n.name} className="bg-stone-50 dark:bg-gray-900 text-stone-900 dark:text-white">{n.name}</option>
-                  ))}
+                  <optgroup label="📍 Faixa R$ 10,00">
+                    {NEIGHBORHOODS.filter(n => n.fee === 10).map((n) => (
+                      <option key={n.name} value={n.name} className="bg-stone-50 dark:bg-gray-900 text-stone-900 dark:text-white">
+                        {n.name} (R$ 10,00)
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="📍 Faixa R$ 15,00">
+                    {NEIGHBORHOODS.filter(n => n.fee === 15).map((n) => (
+                      <option key={n.name} value={n.name} className="bg-stone-50 dark:bg-gray-900 text-stone-900 dark:text-white">
+                        {n.name} (R$ 15,00)
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="📍 Faixa R$ 20,00">
+                    {NEIGHBORHOODS.filter(n => n.fee === 20).map((n) => (
+                      <option key={n.name} value={n.name} className="bg-stone-50 dark:bg-gray-900 text-stone-900 dark:text-white">
+                        {n.name} (R$ 20,00)
+                      </option>
+                    ))}
+                  </optgroup>
                 </select>
               </div>
 

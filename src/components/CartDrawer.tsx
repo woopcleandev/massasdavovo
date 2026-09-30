@@ -919,11 +919,27 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                                 errors.neighborhood ? 'border-red-500 bg-red-50 dark:bg-red-500/10' : 'border-stone-300 dark:border-white/10'
                               }`}
                             >
-                              {NEIGHBORHOODS.map((n) => (
-                                <option key={n.name} value={n.name} className="bg-white dark:bg-gray-900 text-stone-900 dark:text-white">
-                                  {n.name} — Taxa: {formatPrice(n.fee)}
-                                </option>
-                              ))}
+                              <optgroup label="📍 Faixa R$ 10,00">
+                                {NEIGHBORHOODS.filter(n => n.fee === 10).map((n) => (
+                                  <option key={n.name} value={n.name} className="bg-white dark:bg-gray-900 text-stone-900 dark:text-white">
+                                    {n.name} — {formatPrice(n.fee)}
+                                  </option>
+                                ))}
+                              </optgroup>
+                              <optgroup label="📍 Faixa R$ 15,00">
+                                {NEIGHBORHOODS.filter(n => n.fee === 15).map((n) => (
+                                  <option key={n.name} value={n.name} className="bg-white dark:bg-gray-900 text-stone-900 dark:text-white">
+                                    {n.name} — {formatPrice(n.fee)}
+                                  </option>
+                                ))}
+                              </optgroup>
+                              <optgroup label="📍 Faixa R$ 20,00">
+                                {NEIGHBORHOODS.filter(n => n.fee === 20).map((n) => (
+                                  <option key={n.name} value={n.name} className="bg-white dark:bg-gray-900 text-stone-900 dark:text-white">
+                                    {n.name} — {formatPrice(n.fee)}
+                                  </option>
+                                ))}
+                              </optgroup>
                             </select>
                           </div>
 
