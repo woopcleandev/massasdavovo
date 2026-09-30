@@ -24,6 +24,7 @@ import {
 import { formatExactDateTime } from '../utils/date';
 import { formatWhatsappDisplay, buildCustomerOrderConfirmationUrl, buildCustomerOrderCancellationUrl } from '../utils/phone';
 import { stopAdminNewOrderAlarm } from '../utils/audioAlerts';
+import { formatPrice } from '../utils/format';
 
 interface IncomingOrderBannerProps {
   order: Order;
@@ -57,10 +58,6 @@ export const IncomingOrderBanner: React.FC<IncomingOrderBannerProps> = ({
   const handleDismiss = () => {
     stopAdminNewOrderAlarm();
     onClose();
-  };
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   const handleConfirmAndSendToKitchen = async () => {

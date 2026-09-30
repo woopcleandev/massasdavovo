@@ -9,6 +9,7 @@ import { db } from '../lib/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { normalizePhoneNumber, arePhonesEqual, formatWhatsappDisplay } from '../utils/phone';
 import { formatExactDateTime } from '../utils/date';
+import { formatPrice } from '../utils/format';
 import { 
   User, Lock, Phone, MapPin, Plus, Trash2, LogOut, 
   Home, Briefcase, Tag, Sparkles, CheckCircle, AlertCircle, Loader2,
@@ -64,10 +65,6 @@ export const MyAccountView: React.FC = () => {
 
   // Optional manual phone lookup for guest order tracking
   const [lookupPhone, setLookupPhone] = useState('');
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const formatDate = (iso: string) => {
     return formatExactDateTime(iso);

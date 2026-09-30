@@ -10,6 +10,7 @@ import { IncomingOrderBanner } from './IncomingOrderBanner';
 import { formatWhatsappDisplay, buildCustomerOrderConfirmationUrl, buildCustomerOrderCancellationUrl } from '../utils/phone';
 import { playAdminNewOrderAlarm, startAdminNewOrderAlarmLoop, stopAdminNewOrderAlarm, unlockAudioContext } from '../utils/audioAlerts';
 import { formatExactDateTime } from '../utils/date';
+import { formatPrice } from '../utils/format';
 import { 
   ShieldCheck, 
   Lock, 
@@ -261,10 +262,6 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
       stopAdminNewOrderAlarm();
       setAlarmPlayingTest(false);
     }, 4000);
-  };
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   const formatDate = (iso?: string | null) => {

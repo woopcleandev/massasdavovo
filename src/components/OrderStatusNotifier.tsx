@@ -7,6 +7,8 @@ import { playCustomerStatusSound } from '../utils/audioAlerts';
 import { formatTimeOnly } from '../utils/date';
 import { Bell, BellRing, ChefHat, Bike, CheckCircle, XCircle, Clock, X, Eye, Sparkles, Volume2 } from 'lucide-react';
 
+import { formatPrice } from '../utils/format';
+
 interface NotificationToast {
   order: Order;
   oldStatus: OrderStatus;
@@ -217,7 +219,7 @@ export const OrderStatusNotifier: React.FC<OrderStatusNotifierProps> = ({ onOpen
           </p>
 
           <p className="text-xs text-stone-300 mt-0.5">
-            Total: <strong>{order.grandTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
+            Total: <strong>{formatPrice(order.grandTotal)}</strong>
           </p>
 
           {/* Action button */}

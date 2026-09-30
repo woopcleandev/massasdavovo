@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, CustomizationOption, CartItem } from '../types';
 import { X, Minus, Plus, ShoppingBag, Star, Clock, Sparkles } from 'lucide-react';
+import { formatPrice } from '../utils/format';
 
 interface ProductModalProps {
   product: Product;
@@ -90,10 +91,6 @@ export const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, on
 
     onAddToCart(cartItem);
     onClose();
-  };
-
-  const formatPrice = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
   return (

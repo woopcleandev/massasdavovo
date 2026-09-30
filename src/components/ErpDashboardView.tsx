@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useCompany } from '../context/CompanyContext';
 import { Order, Product, CashMovement } from '../types';
 import { formatExactDateTime, formatShortDateTime } from '../utils/date';
+import { formatPrice } from '../utils/format';
 import { 
   TrendingUp, 
   DollarSign, 
@@ -53,10 +54,6 @@ export const ErpDashboardView: React.FC = () => {
   const [cashType, setCashType] = useState<'suprimento' | 'sangria'>('suprimento');
   const [cashAmount, setCashAmount] = useState('');
   const [cashReason, setCashReason] = useState('');
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const formatDate = (iso: string) => {
     return formatExactDateTime(iso);

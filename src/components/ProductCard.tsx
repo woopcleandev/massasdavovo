@@ -1,6 +1,7 @@
 import React from 'react';
 import { Product } from '../types';
 import { Plus, Flame, Star, Clock } from 'lucide-react';
+import { formatPrice } from '../utils/format';
 
 interface ProductCardProps {
   product: Product;
@@ -9,10 +10,6 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
   const isOutOfStock = Boolean(product.isOutOfStock);
-
-  const formatPrice = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const handleCardClick = () => {
     if (isOutOfStock) return;

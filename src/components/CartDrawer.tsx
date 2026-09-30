@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import { OrderSuccessModal } from './OrderSuccessModal';
 import { getBusinessStatus, getAvailableScheduleSlots, DayScheduleOption } from '../utils/businessHours';
+import { formatPrice } from '../utils/format';
 
 interface CartDrawerProps {
   cartItems: CartItem[];
@@ -141,10 +142,6 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
 
   // Keep track of validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  const formatPrice = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   // Get active delivery fee
   const activeNeighborhood = NEIGHBORHOODS.find(n => n.name === customer.neighborhood);

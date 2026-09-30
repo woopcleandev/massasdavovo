@@ -22,6 +22,7 @@ import { CompanyProvider, useCompany } from './context/CompanyContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { MyAccountView } from './components/MyAccountView';
 import { MasterAdminView } from './components/MasterAdminView';
+import { formatPrice } from './utils/format';
 
 function MainApp() {
   const { allProducts, settings, categories } = useCompany();
@@ -111,10 +112,6 @@ function MainApp() {
 
     return matchesCategory && matchesPopular && matchesSearch;
   });
-
-  const formatPrice = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const cartItemsCount = cartItems.reduce((acc, curr) => acc + curr.quantity, 0);
   const cartTotalValue = cartItems.reduce((acc, curr) => acc + curr.totalUnitPrice * curr.quantity, 0);

@@ -4,6 +4,7 @@ import { useCompany } from '../context/CompanyContext';
 import { CheckCircle2, Copy, Check, Send, Receipt, ArrowRight, Clock, Star, ExternalLink, Calendar, X, Utensils, Home } from 'lucide-react';
 import { OrderReceiptModal } from './OrderReceiptModal';
 import { formatExactDateTime } from '../utils/date';
+import { formatPrice } from '../utils/format';
 
 interface OrderSuccessModalProps {
   order: Order;
@@ -19,10 +20,6 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({
   const { settings } = useCompany();
   const [copiedPix, setCopiedPix] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const handleCopyPix = () => {
     navigator.clipboard.writeText(settings.pixKey);

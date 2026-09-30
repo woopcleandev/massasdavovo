@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
 import { formatExactDateTime, parseToDate } from '../utils/date';
+import { formatPrice } from '../utils/format';
 import { Printer, Copy, Check, X, Phone, MapPin, Calendar, Clock, ShoppingBag, Star, ExternalLink, Trash2, Utensils, AlertCircle } from 'lucide-react';
 
 interface OrderReceiptModalProps {
@@ -14,10 +15,6 @@ interface OrderReceiptModalProps {
 export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onClose, onDeleteOrder }) => {
   const { settings } = useCompany();
   const [copied, setCopied] = useState(false);
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   const formatDate = (val?: any) => {
     // 1. Try parsing provided value (e.g. order.createdAt)

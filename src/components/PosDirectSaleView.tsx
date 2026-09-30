@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useCompany } from '../context/CompanyContext';
 import { Product, CategoryId, OrderItem, PaymentMethod, Order } from '../types';
 import { playCashRegisterChime } from '../utils/audioAlerts';
+import { formatPrice } from '../utils/format';
 import { 
   ShoppingBag, 
   Search, 
@@ -89,10 +90,6 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
 
   const numCashReceived = parseFloat(cashReceived) || 0;
   const changeAmount = numCashReceived > grandTotal ? numCashReceived - grandTotal : 0;
-
-  const formatPrice = (val: number) => {
-    return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  };
 
   // Add product to ticket
   const handleAddItem = (product: Product, sizeOption?: { name: string; price: number }) => {

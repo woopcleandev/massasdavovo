@@ -2,6 +2,7 @@
  * Phone number normalization utilities for Brazil (DDD + 8 or 9 digits)
  */
 import { Order } from '../types';
+import { formatPrice } from './format';
 
 export function normalizePhoneNumber(phone: string): string {
   if (!phone) return '';
@@ -44,7 +45,7 @@ export function buildCustomerOrderConfirmationUrl(order: Order): string {
   if (!digits) return '';
 
   const phoneWithCountry = digits.startsWith('55') ? digits : `55${digits}`;
-  const totalStr = order.grandTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const totalStr = formatPrice(order.grandTotal);
 
   let text = `Olá, *${order.customerName}*! 👋\n\n`;
   text += `Confirmamos com sucesso o recebimento do seu pedido *${order.orderNumber}* na *Massas da Vovó*! 🍝✨\n\n`;
