@@ -32,6 +32,7 @@ export interface Product {
   price: number; // Base price for default option
   image: string;
   isPopular?: boolean;
+  isActive?: boolean;
   stock?: number;
   isOutOfStock?: boolean;
   costPrice?: number;

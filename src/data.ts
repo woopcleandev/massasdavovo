@@ -33,7 +33,6 @@ export const CATEGORIES: Category[] = [
   { id: CategoryId.NHOQUE_TRADICIONAL, name: 'Nhôque Tradicional', icon: '🍝' },
   { id: CategoryId.CARNES, name: 'Carnes', icon: '🥩' },
   { id: CategoryId.SOBREMESAS, name: 'Sobremesas', icon: '🍰' },
-  { id: CategoryId.BEBIDAS, name: 'Bebidas', icon: '🥤' },
 ];
 
 export const PRODUCTS: Product[] = [
@@ -349,7 +348,7 @@ export const PRODUCTS: Product[] = [
     image: 'https://images.unsplash.com/photo-1511018556340-d16986a1c194?auto=format&fit=crop&q=80&w=600',
   },
 
-  // 10. BEBIDAS
+  // 10. BEBIDAS (INATIVADAS TEMPORARIAMENTE)
   {
     id: 'coca-lata',
     categoryId: CategoryId.BEBIDAS,
@@ -357,6 +356,8 @@ export const PRODUCTS: Product[] = [
     description: 'Geladíssima.',
     price: 6.00,
     image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&q=80&w=600',
+    isActive: false,
+    isOutOfStock: true,
   },
   {
     id: 'guarana-lata',
@@ -365,6 +366,8 @@ export const PRODUCTS: Product[] = [
     description: 'Original da Amazônia.',
     price: 6.00,
     image: 'https://images.unsplash.com/photo-1527960650-066b8d441d44?auto=format&fit=crop&q=80&w=600',
+    isActive: false,
+    isOutOfStock: true,
   },
   {
     id: 'coca-2l',
@@ -373,6 +376,8 @@ export const PRODUCTS: Product[] = [
     description: 'Ideal para compartilhar com a família.',
     price: 12.00,
     image: coca2lImage,
+    isActive: false,
+    isOutOfStock: true,
   },
   {
     id: 'suco-laranja',
@@ -381,6 +386,8 @@ export const PRODUCTS: Product[] = [
     description: 'Feito na hora, 100% puro suco de laranja da fruta.',
     price: 9.00,
     image: 'https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&q=80&w=600',
+    isActive: false,
+    isOutOfStock: true,
   },
   {
     id: 'cerveja-heineken',
@@ -389,6 +396,8 @@ export const PRODUCTS: Product[] = [
     description: 'Cerveja premium lager gelada.',
     price: 9.00,
     image: 'https://images.unsplash.com/photo-1608270586620-248524c67de9?auto=format&fit=crop&q=80&w=600',
+    isActive: false,
+    isOutOfStock: true,
   },
   {
     id: 'agua-mineral',
@@ -397,5 +406,7 @@ export const PRODUCTS: Product[] = [
     description: 'Fria.',
     price: 4.00,
     image: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&q=80&w=600',
+    isActive: false,
+    isOutOfStock: true,
   },
 ];

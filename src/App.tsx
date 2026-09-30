@@ -54,6 +54,13 @@ function MainApp() {
     localStorage.setItem('vovo_cart_items', JSON.stringify(cartItems));
   }, [cartItems]);
 
+  // Ensure active category is valid (e.g. if 'bebidas' was previously selected)
+  useEffect(() => {
+    if (selectedCategory !== 'all' && !categories.some(c => c.id === selectedCategory)) {
+      setSelectedCategory('all');
+    }
+  }, [categories, selectedCategory]);
+
   const handleAddToCart = (newItem: CartItem) => {
     setCartItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex((item) => item.id === newItem.id);

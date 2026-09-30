@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { CompanySettings, Order, OrderStatus, Product, CartItem, OrderItem, PaymentMethod, CashMovement, Category } from '../types';
+import { CompanySettings, Order, OrderStatus, Product, CartItem, OrderItem, PaymentMethod, CashMovement, Category, CategoryId } from '../types';
 import { RESTAURANT_INFO, PRODUCTS, CATEGORIES } from '../data';
 import { db, auth, sanitizeFirestoreData } from '../lib/firebase';
 import { doc, getDoc, setDoc, collection, getDocs, updateDoc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
@@ -184,18 +184,19 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       const savedDeleted = localStorage.getItem('vovo_deleted_categories');
       const deletedIds: string[] = savedDeleted ? JSON.parse(savedDeleted) : [];
+      const isBebida = (id: string, name?: string) => id === 'bebidas' || (name && name.toLowerCase().trim() === 'bebidas');
       const saved = localStorage.getItem('vovo_categories');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.filter((c: Category) => !deletedIds.includes(c.id));
+          return parsed.filter((c: Category) => !deletedIds.includes(c.id) && !isBebida(c.id, c.name));
         }
       }
-      return CATEGORIES.filter(c => !deletedIds.includes(c.id));
+      return CATEGORIES.filter(c => !deletedIds.includes(c.id) && !isBebida(c.id, c.name));
     } catch (e) {
       console.error(e);
     }
-    return CATEGORIES;
+    return CATEGORIES.filter(c => c.id !== 'bebidas');
   });
 
   // Fetch & Subscribe to Categories from Firestore in real-time
@@ -206,12 +207,13 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       unsubscribe = onSnapshot(catRef, (snapshot) => {
         const savedDeleted = localStorage.getItem('vovo_deleted_categories');
         const currentDeleted: string[] = savedDeleted ? JSON.parse(savedDeleted) : [];
+        const isBebida = (id: string, name?: string) => id === 'bebidas' || (name && name.toLowerCase().trim() === 'bebidas');
 
         if (!snapshot.empty) {
           const remoteCats: Category[] = [];
           snapshot.forEach(docSnap => {
             const d = docSnap.data();
-            if (d.name && d.icon && !currentDeleted.includes(docSnap.id) && d.isActive !== false) {
+            if (d.name && d.icon && !currentDeleted.includes(docSnap.id) && d.isActive !== false && !isBebida(docSnap.id, d.name)) {
               remoteCats.push({
                 id: docSnap.id,
                 name: d.name,
@@ -223,9 +225,10 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
           // Merge default categories with custom categories from Firestore
           setCategories(prev => {
-            const baseCats = CATEGORIES.filter(c => !currentDeleted.includes(c.id));
+            const baseCats = CATEGORIES.filter(c => !currentDeleted.includes(c.id) && !isBebida(c.id, c.name));
             const merged = [...baseCats];
             remoteCats.forEach(rc => {
+              if (isBebida(rc.id, rc.name)) return;
               const existingIdx = merged.findIndex(c => c.id === rc.id);
               if (existingIdx >= 0) {
                 merged[existingIdx] = rc;
@@ -981,8 +984,13 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return true;
   };
 
-  // Active products: all in productsList that are not in deletedProductIds
-  const allProducts: Product[] = productsList.filter(p => !deletedProductIds.includes(p.id));
+  // Active products: all in productsList that are not in deletedProductIds, not inactive, and not in bebidas category
+  const allProducts: Product[] = productsList.filter(p =>
+    !deletedProductIds.includes(p.id) &&
+    p.isActive !== false &&
+    p.categoryId !== 'bebidas' &&
+    p.categoryId !== CategoryId.BEBIDAS
+  );
 
   return (
     <CompanyContext.Provider
