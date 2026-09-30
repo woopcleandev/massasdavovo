@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Order } from '../types';
 import { useCompany } from '../context/CompanyContext';
 import { formatExactDateTime } from '../utils/date';
@@ -290,6 +291,138 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
           </button>
         </div>
       </div>
+
+      {/* ============================================================ */}
+      {/* EXCLUSIVE THERMAL RECEIPT PRINT CONTAINER (DIRECT CHILD OF BODY) */}
+      {/* ============================================================ */}
+      {typeof document !== 'undefined' && createPortal(
+        <div id="comanda-impressao" aria-hidden="true">
+          {/* Header */}
+          <div style={{ textAlign: 'center', paddingBottom: '6px', borderBottom: '2px dashed #000', marginBottom: '8px' }}>
+            <div style={{ fontSize: '16px', fontWeight: '900', textTransform: 'uppercase', marginBottom: '2px', fontFamily: 'sans-serif' }}>
+              🍝 MASSAS DA VOVÓ
+            </div>
+            <div style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px' }}>
+              *** COMANDA DE PRODUÇÃO ***
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold', marginTop: '6px' }}>
+              <span>Nº: {order.orderNumber}</span>
+              <span>{formatDate(order.createdAt)}</span>
+            </div>
+          </div>
+
+          {/* Scheduled Tag */}
+          {order.schedule?.isScheduled && (
+            <div style={{ border: '2px solid #000', padding: '6px', textAlign: 'center', marginBottom: '8px' }}>
+              <div style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                📅 PEDIDO AGENDADO COM ANTECEDÊNCIA
+              </div>
+              <div style={{ fontSize: '12px', fontWeight: '900', marginTop: '2px' }}>
+                {order.schedule.displayLabel}
+              </div>
+            </div>
+          )}
+
+          {/* Destination & Customer Box */}
+          <div style={{ border: '2px solid #000', padding: '6px', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase' }}>
+              <span>DESTINO DO PEDIDO:</span>
+              <span style={{ background: '#000', color: '#fff', padding: '1px 5px', fontSize: '10px' }}>
+                {order.deliveryType === 'dine_in' ? 'MESA / LOCAL' : order.deliveryType === 'delivery' ? 'ENTREGA' : 'BALCÃO'}
+              </span>
+            </div>
+
+            {order.deliveryType === 'dine_in' && (
+              <div style={{ fontSize: '14px', fontWeight: '900', marginTop: '4px' }}>
+                📌 MESA / COMANDA: {order.tableNumber || order.posIdentifierValue || '01'}
+              </div>
+            )}
+
+            {order.deliveryType === 'delivery' && (
+              <div style={{ fontSize: '11px', fontWeight: 'bold', marginTop: '4px' }}>
+                <div>📍 Rua: {order.street || ''}, Nº {order.number || ''}</div>
+                <div>📍 Bairro: {order.neighborhood || ''}</div>
+                {order.reference && <div>📍 Ref: {order.reference}</div>}
+              </div>
+            )}
+
+            <div style={{ borderTop: '1px dashed #666', marginTop: '6px', paddingTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
+              <span><strong>Cliente:</strong> {order.customerName}</span>
+              {order.customerPhone && <span><strong>Tel:</strong> {order.customerPhone}</span>}
+            </div>
+          </div>
+
+          {/* Items Section */}
+          <div style={{ marginBottom: '8px' }}>
+            <div style={{ background: '#000', color: '#fff', textAlign: 'center', padding: '3px 0', fontSize: '11px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>
+              ITENS PARA PREPARO ({totalItemsCount})
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {order.items.map((item, idx) => (
+                <div key={idx} style={{ borderBottom: idx < order.items.length - 1 ? '1px dashed #999' : 'none', paddingBottom: idx < order.items.length - 1 ? '6px' : '0' }}>
+                  {/* Quantity & Product Name with automatic line-wrap */}
+                  <div style={{ fontSize: '13px', fontWeight: '900', lineHeight: '1.25', wordBreak: 'break-word' }}>
+                    <span style={{ background: '#000', color: '#fff', padding: '1px 5px', marginRight: '6px', fontSize: '12px' }}>
+                      {item.quantity}x
+                    </span>
+                    <span>{item.productName}</span>
+                  </div>
+
+                  {/* Customizations */}
+                  {(item.size || item.pasta || item.sauce || (item.toppings && item.toppings.length > 0)) && (
+                    <div style={{ fontSize: '11px', fontWeight: 'bold', marginLeft: '6px', marginTop: '3px', borderLeft: '2px solid #000', paddingLeft: '6px' }}>
+                      {item.size && <div>• Tamanho: {item.size}</div>}
+                      {item.pasta && <div>• Massa: {item.pasta}</div>}
+                      {item.sauce && <div>• Molho: {item.sauce}</div>}
+                      {item.toppings && item.toppings.length > 0 && (
+                        <div>• Adicionais: {item.toppings.join(', ')}</div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Kitchen Observation */}
+                  {item.notes && (
+                    <div style={{ border: '2px solid #000', padding: '4px 6px', fontSize: '11px', fontWeight: '900', marginTop: '4px', background: '#e5e5e5', wordBreak: 'break-word' }}>
+                      &gt;&gt; OBS COZINHA: "{item.notes}" &lt;&lt;
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* General Order Observation */}
+          {order.notes && (
+            <div style={{ border: '2px solid #000', padding: '6px', fontSize: '11px', fontWeight: 'bold', marginBottom: '8px', background: '#f0f0f0', wordBreak: 'break-word' }}>
+              <strong>OBS GERAL DO PEDIDO:</strong> "{order.notes}"
+            </div>
+          )}
+
+          {/* Summary / Total */}
+          <div style={{ borderTop: '2px dashed #000', paddingTop: '6px', marginBottom: '8px', fontSize: '11px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold' }}>
+              <span>Total de Volumes:</span>
+              <span>{totalItemsCount} prato(s)</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginTop: '2px' }}>
+              <span>Pagamento:</span>
+              <span style={{ fontWeight: '900' }}>{getPaymentLabel()}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '900', borderTop: '1px solid #aaa', marginTop: '4px', paddingTop: '4px' }}>
+              <span>VALOR TOTAL:</span>
+              <span>{formatPrice(order.grandTotal)}</span>
+            </div>
+          </div>
+
+          {/* Ticket Footer */}
+          <div style={{ borderTop: '2px dashed #000', paddingTop: '6px', textAlign: 'center', fontSize: '10px' }}>
+            <div style={{ fontWeight: 'bold' }}>🌐 https://massasdavovo.vercel.app/</div>
+            <div style={{ fontWeight: '900', marginTop: '2px' }}>*** BOM TRABALHO / COZINHA ***</div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
