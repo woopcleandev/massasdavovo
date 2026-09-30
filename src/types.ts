@@ -163,15 +163,15 @@ export interface NeighborhoodFee {
 }
 
 export const NEIGHBORHOODS: NeighborhoodFee[] = [
-  { name: 'Centro', fee: 5.0 },
-  { name: 'Primaveras', fee: 6.0 },
-  { name: 'Jardim Riva', fee: 5.0 },
-  { name: 'Castelândia', fee: 7.0 },
-  { name: 'Parque dos Lagos', fee: 8.0 },
-  { name: 'Poncho Verde', fee: 7.0 },
-  { name: 'Guterres', fee: 8.0 },
-  { name: 'Industrial', fee: 10.0 },
-  { name: 'Outro Bairro (A combinar)', fee: 10.0 },
+  { name: 'Centro', fee: 9.0 },
+  { name: 'Primaveras', fee: 10.0 },
+  { name: 'Jardim Riva', fee: 9.0 },
+  { name: 'Castelândia', fee: 11.0 },
+  { name: 'Parque dos Lagos', fee: 12.0 },
+  { name: 'Poncho Verde', fee: 11.0 },
+  { name: 'Guterres', fee: 12.0 },
+  { name: 'Industrial', fee: 14.0 },
+  { name: 'Outro Bairro (A combinar)', fee: 14.0 },
 ];
 
 export interface UserProfile {
