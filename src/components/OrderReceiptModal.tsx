@@ -52,7 +52,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
     txt += `EMISSÃO: ${formatDate(order.createdAt)}\n`;
     
     if (order.schedule?.isScheduled) {
-      txt += `\n*** PEDIDO AGENDADO: ${order.schedule.displayLabel} ***\n`;
+      txt += `\nPEDIDO AGENDADO: ${order.schedule.displayLabel}\n`;
     }
 
     txt += `----------------------------------------\n`;
@@ -76,10 +76,10 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
 
     order.items.forEach((it, idx) => {
       txt += `[ ${it.quantity}x ] ${it.productName.toUpperCase()}\n`;
-      if (it.size) txt += `   * Tamanho: ${it.size}\n`;
-      if (it.pasta) txt += `   * Massa: ${it.pasta}\n`;
-      if (it.sauce) txt += `   * Molho: ${it.sauce}\n`;
-      if (it.toppings && it.toppings.length > 0) txt += `   * Adicionais: ${it.toppings.join(', ')}\n`;
+      if (it.size) txt += `   • Tamanho: ${it.size}\n`;
+      if (it.pasta) txt += `   • Massa: ${it.pasta}\n`;
+      if (it.sauce) txt += `   • Molho: ${it.sauce}\n`;
+      if (it.toppings && it.toppings.length > 0) txt += `   • Adicionais: ${it.toppings.join(', ')}\n`;
       if (it.notes) {
         txt += `   >> OBS COZINHA: "${it.notes}" <<\n`;
       }
@@ -92,7 +92,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
     txt += `VALOR TOTAL: ${formatPrice(order.grandTotal)}\n`;
     txt += `Cardápio Online: https://massasdavovo.vercel.app/\n`;
     txt += `========================================\n`;
-    txt += `        *** BOM TRABALHO! ***           \n`;
+    txt += `        BOM TRABALHO / COZINHA          \n`;
     return txt;
   };
 
@@ -139,7 +139,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
               <h2 className="font-black text-base sm:text-lg tracking-wider uppercase font-sans text-black">
                 🍝 MASSAS DA VOVÓ
               </h2>
-              <p className="text-[11px] font-bold text-stone-800 tracking-wide">*** COMANDA DE PRODUÇÃO ***</p>
+              <p className="text-[11px] font-bold text-stone-800 tracking-wide uppercase">COMANDA DE PRODUÇÃO</p>
               <div className="flex items-center justify-between text-[11px] font-bold pt-1 text-stone-700">
                 <span>Nº: {order.orderNumber}</span>
                 <span>{formatDate(order.createdAt)}</span>
@@ -255,7 +255,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
             {/* Footer Ticket Cut */}
             <div className="text-center pt-2 border-t-2 border-dashed border-black text-[10px] text-stone-600 font-sans space-y-0.5">
               <p className="font-bold">🌐 https://massasdavovo.vercel.app/</p>
-              <p className="font-black text-black">*** BOM TRABALHO / COZINHA ***</p>
+              <p className="font-black text-black">BOM TRABALHO / COZINHA</p>
             </div>
           </div>
         </div>
@@ -302,8 +302,8 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
             <div style={{ fontSize: '16px', fontWeight: '900', textTransform: 'uppercase', marginBottom: '2px', fontFamily: 'sans-serif' }}>
               🍝 MASSAS DA VOVÓ
             </div>
-            <div style={{ fontSize: '11px', fontWeight: 'bold', letterSpacing: '1px' }}>
-              *** COMANDA DE PRODUÇÃO ***
+            <div style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+              COMANDA DE PRODUÇÃO
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 'bold', marginTop: '6px' }}>
               <span>Nº: {order.orderNumber}</span>
@@ -418,7 +418,7 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
           {/* Ticket Footer */}
           <div style={{ borderTop: '2px dashed #000', paddingTop: '6px', textAlign: 'center', fontSize: '10px' }}>
             <div style={{ fontWeight: 'bold' }}>🌐 https://massasdavovo.vercel.app/</div>
-            <div style={{ fontWeight: '900', marginTop: '2px' }}>*** BOM TRABALHO / COZINHA ***</div>
+            <div style={{ fontWeight: '900', marginTop: '2px' }}>BOM TRABALHO / COZINHA</div>
           </div>
         </div>,
         document.body
