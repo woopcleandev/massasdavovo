@@ -96,8 +96,11 @@ function MainApp() {
     setCartItems([]);
   };
 
+  // Public active products (inativos are hidden from customer view)
+  const activeProducts = allProducts.filter((product) => product.isActive !== false);
+
   // Filter products by selected category, popular badge, and search query
-  const filteredProducts = allProducts.filter((product) => {
+  const filteredProducts = activeProducts.filter((product) => {
     // Category match
     const matchesCategory = selectedCategory === 'all' || product.categoryId === selectedCategory;
 
@@ -120,7 +123,7 @@ function MainApp() {
   const activePhone = settings.phone || RESTAURANT_INFO.phone;
 
   // Signature featured product for desktop spotlight banner
-  const featuredProduct = allProducts.find(p => p.id === 'lasanha-bolonhesa') || allProducts[0];
+  const featuredProduct = activeProducts.find(p => p.id === 'lasanha-bolonhesa') || activeProducts[0];
 
   const toggleTheme = () => {
     if (themeMode === 'light') {
@@ -371,7 +374,7 @@ function MainApp() {
                       : 'dark-glass-pill text-stone-600 dark:text-gray-300 hover:text-black dark:hover:text-white'
                   }`}
                 >
-                  Todos ({allProducts.length})
+                  Todos ({activeProducts.length})
                 </button>
 
                 <button
@@ -393,7 +396,7 @@ function MainApp() {
               <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
                 {categories.map((category) => {
                   const isSelected = selectedCategory === category.id;
-                  const categoryCount = allProducts.filter(p => p.categoryId === category.id).length;
+                  const categoryCount = activeProducts.filter(p => p.categoryId === category.id).length;
 
                   return (
                     <button

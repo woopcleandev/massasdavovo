@@ -20,6 +20,7 @@ interface CompanyContextType {
   addProduct: (newProd: Omit<Product, 'id'>) => Promise<Product>;
   updateProduct: (id: string, updated: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
+  toggleProductActiveStatus: (productId: string, isActive: boolean) => Promise<void>;
   toggleProductStockStatus: (productId: string, isOutOfStock: boolean) => Promise<void>;
   updateProductStockQuantity: (productId: string, newStock: number) => Promise<void>;
 
@@ -297,7 +298,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
-          if (data.isActive === false) {
+          if (data.deleted === true || data.isDeleted === true) {
             remoteDeleted.push(docSnap.id);
           } else if (data.name) {
             const baseProd = PRODUCTS.find(p => p.id === docSnap.id);
@@ -310,6 +311,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
               price: Number(data.price) || baseProd?.price || 0,
               image: remoteImage,
               isPopular: Boolean(data.isPopular),
+              isActive: data.isActive !== undefined ? Boolean(data.isActive) : (baseProd?.isActive !== undefined ? baseProd.isActive : true),
               stock: data.stock !== undefined ? Number(data.stock) : baseProd?.stock,
               isOutOfStock: data.isOutOfStock !== undefined ? Boolean(data.isOutOfStock) : Boolean(baseProd?.isOutOfStock),
               costPrice: data.costPrice !== undefined ? Number(data.costPrice) : baseProd?.costPrice,
@@ -528,6 +530,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
       price: updatedFields.price !== undefined ? Number(updatedFields.price) : (existing?.price ?? base?.price ?? 0),
       image: (updatedFields.image !== undefined ? updatedFields.image : (existing?.image || base?.image || '')).trim(),
       isPopular: updatedFields.isPopular !== undefined ? Boolean(updatedFields.isPopular) : (existing?.isPopular ?? base?.isPopular ?? false),
+      isActive: updatedFields.isActive !== undefined ? Boolean(updatedFields.isActive) : (existing?.isActive ?? base?.isActive ?? true),
       customizable: existing?.customizable ?? base?.customizable,
       sizes: existing?.sizes ?? base?.sizes,
     };
@@ -567,7 +570,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         price: mergedProduct.price,
         image: mergedProduct.image,
         isPopular: mergedProduct.isPopular,
-        isActive: true,
+        isActive: mergedProduct.isActive !== false,
         updatedAt: serverTimestamp(),
       };
       if (mergedProduct.customizable !== undefined) payload.customizable = mergedProduct.customizable;
@@ -595,7 +598,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     try {
       const prodRef = doc(db, 'menu_items', id);
-      await setDoc(prodRef, { isActive: false, deletedAt: serverTimestamp() }, { merge: true });
+      await setDoc(prodRef, { deleted: true, isDeleted: true, isActive: false, deletedAt: serverTimestamp() }, { merge: true });
     } catch (err) {
       console.warn('Could not mark product as deleted in Firestore:', err);
     }
@@ -929,6 +932,21 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  // Active / Inactive Status Controls (Inativar / Reativar Produto)
+  const toggleProductActiveStatus = async (productId: string, isActive: boolean) => {
+    setProductsList(prev => {
+      const updated = prev.map(p => p.id === productId ? { ...p, isActive } : p);
+      safeSetLocalStorage('vovo_menu_items', JSON.stringify(updated));
+      return updated;
+    });
+    try {
+      const prodRef = doc(db, 'menu_items', productId);
+      await setDoc(prodRef, { isActive, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (err) {
+      console.warn('Could not update isActive in Firestore:', err);
+    }
+  };
+
   // Stock Quick Controls
   const toggleProductStockStatus = async (productId: string, isOutOfStock: boolean) => {
     setProductsList(prev => {
@@ -984,13 +1002,17 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
     return true;
   };
 
-  // Active products: all in productsList that are not in deletedProductIds, not inactive, and not in bebidas category
-  const allProducts: Product[] = productsList.filter(p =>
-    !deletedProductIds.includes(p.id) &&
-    p.isActive !== false &&
-    p.categoryId !== 'bebidas' &&
-    p.categoryId !== CategoryId.BEBIDAS
-  );
+  // All catalog products that are not permanently deleted (with explicit isActive flag)
+  const allProducts: Product[] = productsList
+    .filter(p =>
+      !deletedProductIds.includes(p.id) &&
+      p.categoryId !== 'bebidas' &&
+      p.categoryId !== CategoryId.BEBIDAS
+    )
+    .map(p => ({
+      ...p,
+      isActive: p.isActive !== false,
+    }));
 
   return (
     <CompanyContext.Provider
@@ -1005,6 +1027,7 @@ export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({ child
         addProduct,
         updateProduct,
         deleteProduct,
+        toggleProductActiveStatus,
         toggleProductStockStatus,
         updateProductStockQuantity,
         orders,

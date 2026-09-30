@@ -28,6 +28,10 @@ import {
   Image as ImageIcon, 
   Upload, 
   Eye, 
+  EyeOff,
+  Power,
+  ToggleLeft,
+  ToggleRight,
   Check, 
   AlertCircle, 
   Receipt, 
@@ -88,6 +92,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     addProduct,
     updateProduct,
     deleteProduct,
+    toggleProductActiveStatus,
     orders,
     updateOrderStatus,
     deleteOrder,
@@ -121,6 +126,9 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   // Menu Category Filter
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('todos');
 
+  // Product Active/Inactive Status Filter (Todos / Ativos / Inativos)
+  const [productStatusFilter, setProductStatusFilter] = useState<'todos' | 'ativos' | 'inativos'>('todos');
+
   // Category Manager Modal State (Adicionar, Alterar, Remover)
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<{ id: string; name: string; icon: string } | null>(null);
@@ -139,11 +147,27 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
     price: '',
     image: '',
     isPopular: false,
+    isActive: true,
   });
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [imageLoadError, setImageLoadError] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const openNewProduct = () => {
+    setEditingProductId(null);
+    setImageLoadError(false);
+    setProductForm({
+      name: '',
+      categoryId: categories[0]?.id || 'lasanhas',
+      description: '',
+      price: '',
+      image: '',
+      isPopular: false,
+      isActive: true,
+    });
+    setIsProductModalOpen(true);
+  };
 
   const handleOpenNewCategoryModal = () => {
     setEditingCategory(null);
@@ -327,6 +351,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
           price: numPrice,
           image: finalImage,
           isPopular: productForm.isPopular,
+          isActive: productForm.isActive,
         });
         setProductSuccess(`Prato "${productForm.name}" atualizado com sucesso!`);
       } else {
@@ -337,6 +362,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
           price: numPrice,
           image: finalImage,
           isPopular: productForm.isPopular,
+          isActive: productForm.isActive,
         });
         setProductSuccess(`Novo prato "${productForm.name}" inserido no cardápio!`);
       }
@@ -362,6 +388,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
       price: prod.price.toString(),
       image: prod.image || '',
       isPopular: Boolean(prod.isPopular),
+      isActive: prod.isActive !== false,
     });
     setIsProductModalOpen(true);
   };
@@ -1129,18 +1156,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
                 <button
                   type="button"
-                  onClick={() => {
-                    setEditingProductId(null);
-                    setProductForm({
-                      name: '',
-                      categoryId: categories[0]?.id || 'lasanhas',
-                      description: '',
-                      price: '',
-                      image: '',
-                      isPopular: false,
-                    });
-                    setIsProductModalOpen(true);
-                  }}
+                  onClick={openNewProduct}
                   className="flex items-center gap-2 dark-glass-button-gold font-black text-xs py-3 px-5 rounded-full shadow-lg transition active:scale-98 cursor-pointer"
                 >
                   <Plus className="w-4 h-4 text-stone-950" />
@@ -1157,66 +1173,116 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
               </div>
             )}
 
-            {/* Category Filter & Management Pills */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400 font-bold px-1">
-                <span>Categorias Cadastradas ({categories.length}):</span>
-                <span className="text-[10px] text-amber-700 dark:text-amber-400">💡 Passe o mouse ou clique no lápis ✏️ para editar ou na lixeira 🗑️ para remover</span>
+            {/* Status Filter (Ativos / Inativos) & Category Filter Pills */}
+            <div className="space-y-3">
+              {/* Active / Inactive Status Filter Bar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-stone-100 dark:bg-white/5 p-2 rounded-2xl border border-stone-200 dark:border-white/10">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-stone-700 dark:text-stone-300">
+                  <span className="text-[11px] text-stone-500 dark:text-stone-400">Filtrar por Status:</span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setProductStatusFilter('todos')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer ${
+                      productStatusFilter === 'todos'
+                        ? 'bg-amber-400 text-stone-950 font-black shadow-xs'
+                        : 'bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white'
+                    }`}
+                  >
+                    Todos ({allProducts.length})
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProductStatusFilter('ativos')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      productStatusFilter === 'ativos'
+                        ? 'bg-emerald-500 text-white font-black shadow-xs'
+                        : 'bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Ativos ({allProducts.filter(p => p.isActive !== false).length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setProductStatusFilter('inativos')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                      productStatusFilter === 'inativos'
+                        ? 'bg-stone-800 text-stone-100 font-black shadow-xs'
+                        : 'bg-stone-200 dark:bg-white/10 text-stone-700 dark:text-stone-300 hover:text-stone-950 dark:hover:text-white'
+                    }`}
+                  >
+                    <EyeOff className="w-3 h-3 text-rose-400" />
+                    <span>Inativos ({allProducts.filter(p => p.isActive === false).length})</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-                <button
-                  onClick={() => setSelectedCategoryFilter('todos')}
-                  className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-                    selectedCategoryFilter === 'todos'
-                      ? 'bg-amber-400 text-stone-950 font-black shadow-md'
-                      : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10'
-                  }`}
-                >
-                  Todos ({allProducts.length})
-                </button>
+              {/* Category Pills */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400 font-bold px-1">
+                  <span>Categorias ({categories.length}):</span>
+                  <span className="text-[10px] text-amber-700 dark:text-amber-400">💡 Lápis ✏️ altera o nome/emoji • Lixeira 🗑️ remove a categoria</span>
+                </div>
 
-                {categories.map(cat => (
-                  <div key={cat.id} className="relative group/cat shrink-0 flex items-center bg-stone-100 dark:bg-white/5 rounded-full border border-stone-200 dark:border-white/10 p-0.5 shadow-xs hover:border-amber-400/50 transition">
-                    <button
-                      onClick={() => setSelectedCategoryFilter(cat.id)}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
-                        selectedCategoryFilter === cat.id
-                          ? 'bg-amber-400 text-stone-950 font-black shadow-sm'
-                          : 'text-stone-800 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white'
-                      }`}
-                    >
-                      <span className="text-sm">{cat.icon}</span>
-                      <span>{cat.name}</span>
-                    </button>
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+                  <button
+                    onClick={() => setSelectedCategoryFilter('todos')}
+                    className={`px-4 py-2 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer ${
+                      selectedCategoryFilter === 'todos'
+                        ? 'bg-amber-400 text-stone-950 font-black shadow-md'
+                        : 'bg-stone-100 dark:bg-white/5 text-stone-700 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-white/10 border border-stone-200 dark:border-white/10'
+                    }`}
+                  >
+                    Todas Categorias ({allProducts.length})
+                  </button>
 
-                    {/* Edit Category Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenEditCategoryModal(cat);
-                      }}
-                      className="w-6 h-6 rounded-full hover:bg-amber-400/20 text-stone-500 hover:text-amber-600 dark:text-stone-400 dark:hover:text-amber-400 flex items-center justify-center transition cursor-pointer"
-                      title={`Alterar nome e emoji da categoria "${cat.name}"`}
-                    >
-                      <Edit3 className="w-3 h-3" />
-                    </button>
+                  {categories.map(cat => (
+                    <div key={cat.id} className="relative group/cat shrink-0 flex items-center bg-stone-100 dark:bg-white/5 rounded-full border border-stone-200 dark:border-white/10 p-0.5 shadow-xs hover:border-amber-400/50 transition">
+                      <button
+                        onClick={() => setSelectedCategoryFilter(cat.id)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                          selectedCategoryFilter === cat.id
+                            ? 'bg-amber-400 text-stone-950 font-black shadow-sm'
+                            : 'text-stone-800 dark:text-stone-200 hover:text-stone-950 dark:hover:text-white'
+                        }`}
+                      >
+                        <span className="text-sm">{cat.icon}</span>
+                        <span>{cat.name}</span>
+                      </button>
 
-                    {/* Delete Category Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteCategory(cat.id, cat.name);
-                      }}
-                      className="w-6 h-6 rounded-full hover:bg-rose-500/20 text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center transition cursor-pointer mr-0.5"
-                      title={`Remover categoria "${cat.name}"`}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                ))}
+                      {/* Edit Category Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenEditCategoryModal(cat);
+                        }}
+                        className="w-6 h-6 rounded-full hover:bg-amber-400/20 text-stone-500 hover:text-amber-600 dark:text-stone-400 dark:hover:text-amber-400 flex items-center justify-center transition cursor-pointer"
+                        title={`Alterar nome e emoji da categoria "${cat.name}"`}
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </button>
+
+                      {/* Delete Category Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCategory(cat.id, cat.name);
+                        }}
+                        className="w-6 h-6 rounded-full hover:bg-rose-500/20 text-stone-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center justify-center transition cursor-pointer mr-0.5"
+                        title={`Remover categoria "${cat.name}"`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -1224,68 +1290,131 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4.5">
               {allProducts
                 .filter(p => selectedCategoryFilter === 'todos' || p.categoryId === selectedCategoryFilter)
-                .map((prod) => (
-                <div
-                  key={prod.id}
-                  className="dark-glass-card rounded-3xl border border-stone-200 dark:border-white/10 overflow-hidden shadow-xl flex flex-col justify-between hover:border-amber-500/40 transition text-left"
-                >
-                  <div>
-                    <div className="relative h-44 bg-stone-100 dark:bg-stone-900 overflow-hidden">
-                      <img
-                        src={prod.image}
-                        alt={prod.name}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-
-                      <span className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md text-amber-300 border border-amber-400/30 font-black text-xs px-3 py-1 rounded-full shadow-lg">
-                        {formatPrice(prod.price)}
-                      </span>
-
-                      {prod.isPopular && (
-                        <span className="absolute top-3 left-3 bg-amber-400 text-stone-950 font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
-                          <Sparkles className="w-2.5 h-2.5 fill-stone-950" />
-                          <span>Mais Pedido</span>
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="p-5 space-y-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400/90 block">
-                        {CATEGORIES.find(c => c.id === prod.categoryId)?.name || prod.categoryId}
-                      </span>
-                      <h3 className="font-black text-sm text-stone-900 dark:text-white leading-tight">{prod.name}</h3>
-                      <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed font-medium">{prod.description}</p>
-                    </div>
-                  </div>
-
-                  <div className="p-5 pt-0 flex items-center gap-2">
-                    <button
-                      onClick={() => openEditProduct(prod)}
-                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 border border-stone-300 dark:border-white/15 text-stone-900 dark:text-white font-bold text-xs transition cursor-pointer"
+                .filter(p => {
+                  if (productStatusFilter === 'ativos') return p.isActive !== false;
+                  if (productStatusFilter === 'inativos') return p.isActive === false;
+                  return true;
+                })
+                .map((prod) => {
+                  const isActive = prod.isActive !== false;
+                  return (
+                    <div
+                      key={prod.id}
+                      className={`dark-glass-card rounded-3xl border overflow-hidden shadow-xl flex flex-col justify-between transition text-left ${
+                        isActive 
+                          ? 'border-stone-200 dark:border-white/10 hover:border-amber-500/40' 
+                          : 'border-rose-400/40 dark:border-rose-900/50 bg-rose-950/10 opacity-80'
+                      }`}
                     >
-                      <Edit3 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                      <span>Editar</span>
-                    </button>
+                      <div>
+                        <div className="relative h-44 bg-stone-100 dark:bg-stone-900 overflow-hidden">
+                          <img
+                            src={prod.image}
+                            alt={prod.name}
+                            referrerPolicy="no-referrer"
+                            className={`w-full h-full object-cover transition-transform duration-500 hover:scale-105 ${!isActive ? 'grayscale opacity-75' : ''}`}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1551183053-bf91a1d81141?auto=format&fit=crop&q=80&w=800';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
 
-                    <button
-                      onClick={() => {
-                        if (confirm(`Excluir o item "${prod.name}" do cardápio?`)) {
-                          deleteProduct(prod.id);
-                        }
-                      }}
-                      className="p-2.5 rounded-full bg-rose-100 dark:bg-rose-500/15 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-500/30 transition cursor-pointer"
-                      title="Excluir prato"
-                    >
-                      <Trash2 className="w-4 h-4 text-rose-600 dark:text-rose-400" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                          <span className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-md text-amber-300 border border-amber-400/30 font-black text-xs px-3 py-1 rounded-full shadow-lg">
+                            {formatPrice(prod.price)}
+                          </span>
+
+                          <div className="absolute top-3 left-3 flex flex-col gap-1 items-start">
+                            {isActive ? (
+                              <span className="bg-emerald-500/90 text-white font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 border border-emerald-400/40 backdrop-blur-sm">
+                                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                <span>Ativo no Cardápio</span>
+                              </span>
+                            ) : (
+                              <span className="bg-stone-900/90 text-stone-200 font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1 border border-stone-600/50 backdrop-blur-sm">
+                                <EyeOff className="w-3 h-3 text-rose-400" />
+                                <span>Inativado (Oculto)</span>
+                              </span>
+                            )}
+
+                            {prod.isPopular && isActive && (
+                              <span className="bg-amber-400 text-stone-950 font-black text-[10px] px-2.5 py-1 rounded-full shadow-md flex items-center gap-1">
+                                <Sparkles className="w-2.5 h-2.5 fill-stone-950" />
+                                <span>Mais Pedido</span>
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-5 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400/90 block">
+                              {CATEGORIES.find(c => c.id === prod.categoryId)?.name || prod.categoryId}
+                            </span>
+                            {!isActive && (
+                              <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
+                                Inativo
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="font-black text-sm text-stone-900 dark:text-white leading-tight">{prod.name}</h3>
+                          <p className="text-xs text-stone-600 dark:text-stone-400 line-clamp-2 leading-relaxed font-medium">{prod.description}</p>
+                        </div>
+                      </div>
+
+                      {/* Action buttons bar */}
+                      <div className="p-4 pt-0 flex items-center gap-2">
+                        {/* Inativar / Reativar Toggle Button */}
+                        <button
+                          type="button"
+                          onClick={() => toggleProductActiveStatus(prod.id, !isActive)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-full font-extrabold text-xs transition cursor-pointer shadow-sm ${
+                            isActive
+                              ? 'bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-rose-500/20 text-stone-800 dark:text-stone-200 hover:text-rose-600 dark:hover:text-rose-300 border border-stone-300 dark:border-white/15'
+                              : 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-md'
+                          }`}
+                          title={isActive ? 'Ocultar prato do cardápio dos clientes' : 'Tornar prato visível novamente para os clientes'}
+                        >
+                          {isActive ? (
+                            <>
+                              <EyeOff className="w-3.5 h-3.5 text-stone-500 dark:text-stone-400" />
+                              <span>Inativar</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye className="w-3.5 h-3.5 text-white" />
+                              <span>Reativar</span>
+                            </>
+                          )}
+                        </button>
+
+                        {/* Edit Button */}
+                        <button
+                          type="button"
+                          onClick={() => openEditProduct(prod)}
+                          className="p-2 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/20 border border-stone-300 dark:border-white/15 text-stone-900 dark:text-white font-bold text-xs transition cursor-pointer"
+                          title="Editar prato"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Excluir permanentemente o item "${prod.name}" do cardápio?`)) {
+                              deleteProduct(prod.id);
+                            }
+                          }}
+                          className="p-2 rounded-full bg-rose-100 dark:bg-rose-500/15 border border-rose-300 dark:border-rose-500/30 text-rose-800 dark:text-rose-300 hover:bg-rose-200 dark:hover:bg-rose-500/30 transition cursor-pointer"
+                          title="Excluir produto"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
@@ -1734,6 +1863,35 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Status (Ativo / Inativo) Toggle Card */}
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-stone-50 dark:bg-white/5 border border-stone-200 dark:border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <div className={`w-3 h-3 rounded-full ${productForm.isActive ? 'bg-emerald-500 shadow-sm shadow-emerald-500/50' : 'bg-stone-400'}`} />
+                  <div>
+                    <span className="text-xs font-bold text-stone-900 dark:text-white block">
+                      Status: {productForm.isActive ? '🟢 Ativo no Cardápio' : '⚪ Inativado (Oculto)'}
+                    </span>
+                    <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-medium">
+                      {productForm.isActive ? 'Visível para os clientes fazerem pedidos' : 'Oculto do cardápio, mas preservado no sistema'}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setProductForm({ ...productForm, isActive: !productForm.isActive })}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+                    productForm.isActive ? 'bg-emerald-500' : 'bg-stone-300 dark:bg-stone-700'
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      productForm.isActive ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
               </div>
 
               {/* Popular Checkbox */}
