@@ -148,12 +148,111 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
   };
 
   const handlePrint = () => {
-    window.print();
+    const printEl = document.getElementById('comanda-impressao');
+    if (!printEl) {
+      window.print();
+      return;
+    }
+
+    // Cria um iframe invisível isolado exclusivamente para a impressão da comanda térmica
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    iframe.style.visibility = 'hidden';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    doc.open();
+    doc.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Comanda_${order.orderNumber}</title>
+  <style>
+    @media print {
+      @page {
+        margin: 0;
+      }
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      margin: 0 !important;
+      padding: 0 !important;
+      width: 80mm !important;
+      min-width: 80mm !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      font-family: 'Courier New', Courier, monospace !important;
+      font-size: 12px !important;
+      line-height: 1.35 !important;
+    }
+    #comanda-impressao {
+      width: 76mm !important;
+      max-width: 76mm !important;
+      margin: 0 !important;
+      padding: 2mm !important;
+      box-sizing: border-box !important;
+      background: #ffffff !important;
+      color: #000000 !important;
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
+      overflow-wrap: anywhere;
+      word-break: normal;
+      white-space: normal;
+    }
+    #comanda-impressao, #comanda-impressao * {
+      break-inside: avoid;
+      page-break-inside: avoid;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="comanda-impressao">
+    ${printEl.innerHTML}
+  </div>
+</body>
+</html>`);
+    doc.close();
+
+    setTimeout(() => {
+      try {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+      } catch (e) {
+        console.error('Falha ao imprimir com iframe, usando padrão:', e);
+        window.print();
+      } finally {
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1500);
+      }
+    }, 250);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4 overflow-y-auto print:p-0 print:bg-white print:static">
-      <div className="fixed inset-0 -z-10 print:hidden" onClick={onClose} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-2 sm:p-4 overflow-y-auto print:hidden">
+      <div className="fixed inset-0 -z-10" onClick={onClose} />
 
       <div className="dark-glass-panel rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-scale-in my-auto border border-white/10 flex flex-col max-h-[92vh] print:max-h-none print:shadow-none print:border-none print:w-full print:max-w-none print:m-0 print:p-0 print:rounded-none">
         
@@ -362,7 +461,25 @@ export const OrderReceiptModal: React.FC<OrderReceiptModalProps> = ({ order, onC
       {/* EXCLUSIVE THERMAL RECEIPT PRINT CONTAINER (DIRECT CHILD OF BODY) */}
       {/* ============================================================ */}
       {typeof document !== 'undefined' && createPortal(
-        <div id="comanda-impressao" aria-hidden="true">
+        <div 
+          id="comanda-impressao" 
+          aria-hidden="true"
+          style={{
+            width: '76mm',
+            maxWidth: '76mm',
+            margin: '0',
+            padding: '2mm',
+            boxSizing: 'border-box',
+            background: '#ffffff',
+            color: '#000000',
+            height: 'auto',
+            minHeight: '0',
+            overflow: 'visible',
+            overflowWrap: 'anywhere',
+            wordBreak: 'normal',
+            whiteSpace: 'normal',
+          }}
+        >
           {/* Header */}
           <div style={{ textAlign: 'center', paddingBottom: '6px', borderBottom: '2px dashed #000', marginBottom: '8px' }}>
             <div style={{ fontSize: '16px', fontWeight: '900', textTransform: 'uppercase', marginBottom: '2px', fontFamily: 'sans-serif' }}>
