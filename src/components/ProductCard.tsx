@@ -1,7 +1,8 @@
 import React from 'react';
 import { Product } from '../types';
 import { Plus, Flame, Star, Clock } from 'lucide-react';
-import { formatPrice } from '../utils/format';
+import { formatPrice, getProductCategoryDisplayLabel } from '../utils/format';
+import { useCompany } from '../context/CompanyContext';
 
 interface ProductCardProps {
   product: Product;
@@ -9,7 +10,9 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
+  const { categories } = useCompany();
   const isOutOfStock = Boolean(product.isOutOfStock);
+  const catName = categories.find(c => c.id === product.categoryId)?.name;
 
   const handleCardClick = () => {
     if (isOutOfStock) return;
@@ -81,6 +84,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
             <span>30-45m</span>
           </div>
         </div>
+
+        <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400 block mb-0.5">
+          {getProductCategoryDisplayLabel(product.name, product.categoryId, catName)}
+        </span>
 
         <h3 className="text-sm sm:text-base font-black text-stone-900 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-300 transition-colors line-clamp-1 leading-snug">
           {product.name}

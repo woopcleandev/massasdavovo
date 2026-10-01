@@ -10,7 +10,7 @@ import { IncomingOrderBanner } from './IncomingOrderBanner';
 import { formatWhatsappDisplay, buildCustomerOrderConfirmationUrl, buildCustomerOrderCancellationUrl } from '../utils/phone';
 import { playAdminNewOrderAlarm, startAdminNewOrderAlarmLoop, stopAdminNewOrderAlarm, unlockAudioContext } from '../utils/audioAlerts';
 import { formatExactDateTime } from '../utils/date';
-import { formatPrice } from '../utils/format';
+import { formatPrice, getProductCategoryDisplayLabel } from '../utils/format';
 import { 
   ShieldCheck, 
   Lock, 
@@ -1348,7 +1348,7 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                         <div className="p-5 space-y-2">
                           <div className="flex items-center justify-between">
                             <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 dark:text-amber-400/90 block">
-                              {CATEGORIES.find(c => c.id === prod.categoryId)?.name || prod.categoryId}
+                              {getProductCategoryDisplayLabel(prod.name, prod.categoryId, categories.find(c => c.id === prod.categoryId)?.name)}
                             </span>
                             {!isActive && (
                               <span className="text-[10px] font-black text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
