@@ -301,7 +301,7 @@ export const PosDirectSaleView: React.FC<PosDirectSaleViewProps> = ({ onSaleComp
               >
                 Todos ({allProducts.length})
               </button>
-              {categories.map(cat => (
+              {categories.filter(cat => allProducts.some(p => p.categoryId === cat.id)).map(cat => (
                 <button
                   key={cat.id}
                   type="button"

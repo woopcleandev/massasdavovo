@@ -55,12 +55,15 @@ function MainApp() {
     localStorage.setItem('vovo_cart_items', JSON.stringify(cartItems));
   }, [cartItems]);
 
-  // Ensure active category is valid (e.g. if 'bebidas' was previously selected)
+  // Ensure active category is valid and has at least 1 active product
   useEffect(() => {
-    if (selectedCategory !== 'all' && !categories.some(c => c.id === selectedCategory)) {
-      setSelectedCategory('all');
+    if (selectedCategory !== 'all') {
+      const hasActiveOption = allProducts.some(p => p.isActive !== false && p.categoryId === selectedCategory);
+      if (!hasActiveOption) {
+        setSelectedCategory('all');
+      }
     }
-  }, [categories, selectedCategory]);
+  }, [allProducts, selectedCategory]);
 
   const handleAddToCart = (newItem: CartItem) => {
     setCartItems((prevItems) => {
@@ -98,6 +101,11 @@ function MainApp() {
 
   // Public active products (inativos are hidden from customer view)
   const activeProducts = allProducts.filter((product) => product.isActive !== false);
+
+  // Categories visible in online catalog (only those with at least 1 active option)
+  const visibleCategories = categories.filter((category) =>
+    activeProducts.some((p) => p.categoryId === category.id)
+  );
 
   // Filter products by selected category, popular badge, and search query
   const filteredProducts = activeProducts.filter((product) => {
@@ -394,7 +402,7 @@ function MainApp() {
             {/* B. Category Squircle Bar (Rounded smoothly) */}
             <div className="w-full overflow-hidden">
               <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0 scroll-smooth">
-                {categories.map((category) => {
+                {visibleCategories.map((category) => {
                   const isSelected = selectedCategory === category.id;
                   const categoryCount = activeProducts.filter(p => p.categoryId === category.id).length;
 
