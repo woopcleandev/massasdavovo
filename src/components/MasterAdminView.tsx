@@ -13,8 +13,6 @@ import { formatExactDateTime } from '../utils/date';
 import { formatPrice, getProductCategoryDisplayLabel } from '../utils/format';
 import { 
   ShieldCheck, 
-  ShieldAlert,
-  Copy,
   Lock, 
   Key, 
   User, 
@@ -121,10 +119,6 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
   const [orderToDelete, setOrderToDelete] = useState<Order | null>(null);
   const [isDeletingOrder, setIsDeletingOrder] = useState(false);
   const [deleteSuccessMsg, setDeleteSuccessMsg] = useState('');
-
-  // Overdue Payment Notice Modal State (Aviso de Pagamento em Atraso Parcela 1/3)
-  const [showOverdueModal, setShowOverdueModal] = useState(true);
-  const [pixCopied, setPixCopied] = useState(false);
 
   // Status Filter for Orders
   const [statusFilter, setStatusFilter] = useState<string>('todos');
@@ -787,46 +781,6 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
 
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 py-6 mt-2">
-        
-        {/* Persistent Overdue Payment Warning Strip */}
-        <div className="bg-rose-500/15 border border-rose-500/30 text-rose-900 dark:text-rose-200 px-4 py-3 rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-md text-xs font-black mb-6 backdrop-blur-md">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="p-2 rounded-xl bg-rose-600 text-white shrink-0 shadow-sm animate-pulse">
-              <ShieldAlert className="w-4 h-4" />
-            </div>
-            <div className="min-w-0 text-left">
-              <span className="text-stone-900 dark:text-white font-black block text-sm">
-                Aviso de Pendência: Parcela 1/3 em Atraso
-              </span>
-              <span className="text-stone-600 dark:text-stone-300 font-medium text-xs block">
-                Valor: <strong className="text-rose-600 dark:text-rose-400 font-black font-mono">R$ 166,66</strong> • Chave PIX: <code className="font-mono bg-white/20 px-1.5 py-0.5 rounded text-stone-900 dark:text-amber-300">05931416102</code> (CPF)
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                navigator.clipboard.writeText('05931416102');
-                setPixCopied(true);
-                setTimeout(() => setPixCopied(false), 3000);
-              }}
-              className="px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-stone-950 rounded-full text-xs font-black transition cursor-pointer shadow-sm flex items-center gap-1.5 active:scale-95"
-            >
-              {pixCopied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5 text-stone-950" />}
-              <span>{pixCopied ? 'Copiado!' : 'Copiar PIX'}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowOverdueModal(true)}
-              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-full text-xs font-black transition cursor-pointer shadow-md"
-            >
-              Ver Detalhes
-            </button>
-          </div>
-        </div>
         
         {/* ============================================================ */}
         {/* TAB 0: TERMINAL DE VENDA DIRETA / BALCÃO (PDV) */}
@@ -2210,154 +2164,6 @@ export const MasterAdminView: React.FC<MasterAdminViewProps> = ({ onBackToMenu }
                 )}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-      {/* ============================================================ */}
-      {/* POP-UP MODAL: AVISO DE PAGAMENTO EM ATRASO PARCELA 1/3 */}
-      {/* ============================================================ */}
-      {showOverdueModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto">
-          <div className="fixed inset-0 -z-10" onClick={() => setShowOverdueModal(false)} />
-
-          <div className="dark-glass-panel rounded-3xl w-full max-w-lg shadow-2xl border border-rose-500/40 overflow-hidden animate-scale-in my-8 text-left text-stone-900 dark:text-white relative">
-            
-            {/* Modal Red Header */}
-            <div className="bg-gradient-to-r from-rose-600 via-rose-700 to-amber-600 p-6 text-white relative overflow-hidden">
-              <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none" />
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white shadow-lg shrink-0">
-                    <ShieldAlert className="w-7 h-7" />
-                  </div>
-                  <div>
-                    <span className="text-[10px] uppercase font-black tracking-widest bg-white/20 text-white px-2.5 py-0.5 rounded-full border border-white/30 inline-block mb-1">
-                      Aviso Financeiro do Sistema
-                    </span>
-                    <h2 className="text-xl font-black text-white leading-tight">Pagamento em Atraso</h2>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowOverdueModal(false)}
-                  className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition cursor-pointer"
-                  title="Fechar aviso"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Modal Body */}
-            <div className="p-6 space-y-5">
-              {/* Overdue Card */}
-              <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-500/30 space-y-3">
-                <div className="flex items-center justify-between pb-3 border-b border-rose-200 dark:border-rose-500/20">
-                  <div>
-                    <span className="text-[11px] font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider block">
-                      Parcela Pendente
-                    </span>
-                    <span className="text-base font-black text-stone-900 dark:text-white">
-                      Parcela 1/3 em Atraso
-                    </span>
-                  </div>
-                  <span className="bg-rose-600 text-white font-black text-xs px-3 py-1 rounded-full shadow-sm flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                    <span>Em Atraso</span>
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-stone-600 dark:text-stone-300">Valor da Parcela:</span>
-                  <span className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono tracking-tight">
-                    R$ 166,66
-                  </span>
-                </div>
-
-                <p className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-medium pt-1">
-                  Informamos que a <strong>parcela 1 de 3 no valor de R$ 166,66</strong> encontra-se em atraso no sistema. Por gentileza, efetue a quitação via PIX abaixo para regularizar seu cadastro.
-                </p>
-              </div>
-
-              {/* Pix Details Card */}
-              <div className="p-4 rounded-2xl bg-stone-100 dark:bg-white/5 border border-stone-200 dark:border-white/10 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <DollarSign className="w-4 h-4 text-amber-500" />
-                    <span>Dados para Pagamento Via PIX</span>
-                  </span>
-                  <span className="text-[10px] font-extrabold text-stone-600 dark:text-stone-300 bg-stone-200 dark:bg-white/10 px-2 py-0.5 rounded-md border border-stone-300 dark:border-white/10">
-                    Tipo: CPF
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-white dark:bg-black/40 border border-stone-300 dark:border-white/15 gap-2">
-                  <div>
-                    <span className="text-[10px] text-stone-500 dark:text-stone-400 font-bold block uppercase tracking-wider">Chave PIX (CPF)</span>
-                    <code className="text-base font-mono font-black text-stone-900 dark:text-amber-300 tracking-wider">
-                      05931416102
-                    </code>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      navigator.clipboard.writeText('05931416102');
-                      setPixCopied(true);
-                      setTimeout(() => setPixCopied(false), 3000);
-                    }}
-                    className={`px-3.5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 shadow-md ${
-                      pixCopied 
-                        ? 'bg-emerald-500 text-white' 
-                        : 'bg-amber-400 hover:bg-amber-300 text-stone-950 active:scale-95'
-                    }`}
-                  >
-                    {pixCopied ? (
-                      <>
-                        <Check className="w-4 h-4" />
-                        <span>Copiado!</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 text-stone-950" />
-                        <span>Copiar PIX</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                <div className="text-[11px] text-stone-500 dark:text-stone-400 space-y-1 pt-1 font-medium leading-relaxed">
-                  <p>• <strong>Chave PIX:</strong> 05931416102 (CPF)</p>
-                  <p>• Após efetuar a transferência, envie o comprovante de pagamento ao suporte para baixa e liberação automática.</p>
-                </div>
-              </div>
-
-              {/* Modal Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    navigator.clipboard.writeText('05931416102');
-                    setPixCopied(true);
-                    setTimeout(() => setPixCopied(false), 3000);
-                  }}
-                  className="w-full sm:flex-1 py-3.5 px-4 dark-glass-button-gold font-black rounded-full text-xs shadow-lg transition active:scale-98 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Copy className="w-4 h-4 text-stone-950" />
-                  <span>{pixCopied ? 'Chave PIX Copiada com Sucesso!' : 'Copiar Chave PIX (05931416102)'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowOverdueModal(false)}
-                  className="w-full sm:w-auto py-3.5 px-5 rounded-full bg-stone-100 hover:bg-stone-200 dark:bg-white/10 dark:hover:bg-white/15 text-stone-800 dark:text-white font-bold text-xs transition cursor-pointer"
-                >
-                  Fechar e Acessar Painel
-                </button>
-              </div>
-            </div>
-
           </div>
         </div>
       )}
